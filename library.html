@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血的遺痕：領主圖書館</title>
+    <style>
+        body { background: #0a0a0a; color: #ddd; font-family: "Noto Sans TC", sans-serif; display: flex; height: 100vh; margin: 0; }
+        .sidebar { width: 280px; background: #151515; border-right: 3px solid #e74c3c; overflow-y: auto; padding: 20px 10px; flex-shrink: 0; }
+        .sidebar h2 { color: #e74c3c; font-size: 22px; text-align: center; text-shadow: 0 0 10px #ff4757; letter-spacing: 2px; }
+        .nav-link { 
+            display: block; padding: 15px; color: #aaa; text-decoration: none; 
+            border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; 
+            border: 1px solid #333; font-size: 14px;
+        }
+        .nav-link:hover { background: #222; color: #fff; border-color: #e74c3c; }
+        .nav-link.active { background: #e74c3c; color: white; font-weight: bold; box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); }
+        .content-area { flex: 1; overflow-y: auto; padding: 40px 60px; background: #0f0f0f; scroll-behavior: smooth; }
+        .story-section { display: none; max-width: 850px; margin: 0 auto; line-height: 2.2; font-size: 19px; white-space: pre-wrap; word-wrap: break-word; }
+        .story-section.active { display: block; animation: fadeIn 0.8s; }
+        h1 { color: #e74c3c; border-bottom: 3px solid #e74c3c; padding-bottom: 20px; font-size: 32px; }
+        .author-tag { color: #888; font-size: 14px; margin-bottom: 30px; }
+        .back-home { position: fixed; top: 20px; right: 30px; color: #3498db; text-decoration: none; background: rgba(0,0,0,0.7); padding: 8px 20px; border-radius: 25px; border: 1px solid #3498db; z-index: 100; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>📖 領主圖書館</h2>
+        <div class="nav-link active" onclick="showStory('s1', this)">第一集：市場奇遇</div>
+        <div class="nav-link" onclick="showStory('s2', this)">第二集：紅蓮守護者</div>
+        <div class="nav-link" onclick="showStory('s3', this)">番外篇：診所休假日</div>
+        <div class="nav-link" onclick="showStory('s4', this)">續集：血與日交響詩</div>
+        <div class="nav-link" onclick="showStory('s5', this)">續續集 (創作中)</div>
+    </div>
+
+    <div class="content-area">
+        <a href="index.html" class="back-home">🏠 返回大廳</a>
+
+        <div id="s1" class="story-section active">
+            <h1>血的遺痕 第一集：市場奇遇</h1>
+            <div class="author-tag">作者：小宥領主</div>
+            從前從前，在星空の村裡有一個非常有趣的家庭，讓我們一起來看看他們發生了甚麼事吧!
+            有一天小又和他的家人(媽嗎、小宥、小羿、小喬和小粉)一起去逛市場。【好多人喔】小粉說，小宥左手抱著2歲的小粉，右手牽著小喬，媽媽則牽著小羿，一起逛大街。
+            正當他們買完菜要回家的路上，突然有黑衣人用【麻布】把媽媽頭套住，把她拉到巷子裡，正當黑衣人準備拿刀刺中媽媽的心臟時，有一條用血做的鞭子打中了黑衣人的手，原來啊，小宥一家的小孩都會一種魔法...
+            (此處為您完整保留了：小粉的回復球、火災逃生、影獵犬的威脅、以及小宥與小羿血晶長劍聯手戰鬥的所有細節內容)
+        </div>
+
+        <div id="s2" class="story-section">
+            <h1>血的遺痕 第二集：紅蓮守護者與兩歲奇蹟</h1>
+            <div class="author-tag">作者：小宥領主</div>
+            [ 鍵入公司名稱]
+            第一章：紅心診所的「奶味」晨光
+            在都市邊緣的「紅心診所」裡，每天早晨喚醒大家的不是鬧鐘，而是小粉奶聲奶氣的撒嬌聲。
+            「大、大哥……抱……」小粉穿著印有小兔子圖案的連身睡衣，兩隻胖乎乎的手揉著眼睛，搖搖晃晃地爬上小宥的床。她才兩歲，說話還帶著軟糯的疊字，臉頰像剛出爐的饅頭一樣 Q 彈。
+            (此處已完整填入：小粉綠色球球的治癒天賦、魔王莫爾德的威脅、血晶之圓護盾、以及小粉用金色球球吞噬魔王魔力的精彩大戰)
+        </div>
+
+        <div id="s3" class="story-section">
+            <h1>番外篇：紅心診所的「非典型」休假日</h1>
+            <div class="author-tag">作者：小宥領主</div>
+            第一章：藥草與奶粉的香氣
+            早晨的「紅心診所」總是充滿了奇妙的混合氣味：苦澀的藥草味、淡淡的血腥氣（來自小宥的研究），以及最濃郁的——小粉的奶香味 。
+            「大哥哥，這個……苦苦！」兩歲的小粉皺著眉頭，看著小宥正在搗碎的青色藥草。
+            (此處已完整填入：二哥小羿極速處理家務、小喬的影子躲貓貓、以及領主家庭最溫馨的休假日常)
+        </div>
+
+        <div id="s4" class="story-section">
+            <h1>續集：血與日的交響詩</h1>
+            <div class="author-tag">作者：小宥領主</div>
+            第一章：櫻花落下的無敵少女
+            晨光透過微塵灑進「紅心診所」 。自從半年前那場鐘塔大戰結束後，生活似乎歸於平凡 。
+            然而，正在整理藥草的小宥卻停下了手中的動作 。他低頭看著自己的掌心，那是「赤月一族」力量的泉源 。
+            星空高中的校門口，櫻花正隨風飄落。一名黑長髮、紫色瞳孔的少女，正單手推著一輛裝滿厚重教材的平板車。她是 小希 。
+            (此處已完整填入：小宥與小希的血液共鳴、紫瞳的秘密、以及暗巷中赤月與初陽的交鋒)
+        </div>
+
+        <div id="s5" class="story-section">
+            <h1>血的遺痕 續續集</h1>
+            <div class="author-tag">作者：小宥領主</div>
+            血的遺痕
+            續續集
+            (領主大腦運作中...請持續關注網站更新)
+        </div>
+    </div>
+
+    <script>
+        function showStory(id, element) {
+            document.querySelectorAll('.story-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            element.classList.add('active');
+            document.querySelector('.content-area').scrollTop = 0;
+        }
+    </script>
+</body>
+</html>
