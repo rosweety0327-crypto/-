@@ -5,33 +5,27 @@
     <title>3人狼人殺：自訂房號版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: white; text-align: center; font-family: sans-serif; }
-        .btn { background: #e74c3c; color: white; padding: 15px; border-radius: 10px; cursor: pointer; margin: 5px; width: 80%; border:none; font-weight:bold; }
-        .box { background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 10px auto; border: 1px solid #444; max-width: 400px; }
-        input { padding: 10px; margin: 5px; border-radius: 5px; border: none; width: 70%; text-align: center; font-size: 18px; }
-        #board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; }
+        body { background: #000; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
+        .box { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 2px solid #444; margin: 10px auto; max-width: 350px; }
+        input { padding: 12px; font-size: 20px; width: 80%; text-align: center; border-radius: 8px; border: none; }
+        .btn { padding: 15px; width: 85%; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        #board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
         .card { background: #333; border: 1px solid #ff00ff; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#ff00ff">💀 領主連鎖：自訂房號 💀</h2>
+    <h2 style="color:#ff00ff">💀 領主自訂房號 💀</h2>
 
     <div id="setup">
         <div class="box">
-            <p>第一步：設定你的房號 (例如: 888)</p>
-            <input id="my-room-id" placeholder="輸入你想當房號的數字">
-            <button onclick="createRoom()" style="background:#27ae60; color:white; padding:10px; border-radius:5px;">開啟房間</button>
-            <p id="status" style="color:yellow; font-size:12px;">尚未開房</p>
+            <p>1. 輸入你的專屬房號</p>
+            <input id="room-input" placeholder="例如: 1234">
+            <button onclick="openRoom()" class="btn" style="background:#27ae60">開房間 (當房主)</button>
+            <button onclick="joinRoom()" class="btn" style="background:#2980b9">進房間 (找隊友)</button>
+            <p id="status" style="color:yellow; margin-top:10px;">尚未連線</p>
         </div>
-
-        <div class="box">
-            <p>第二步：加入別人的房間</p>
-            <input id="join-room-id" placeholder="輸入對方的房號">
-            <button onclick="joinRoom()" style="background:#2980b9; color:white; padding:10px; border-radius:5px;">加入房間</button>
-        </div>
-        
-        <button id="start-btn" class="btn" onclick="start()" style="display:none">⚔️ 房主點此開戰</button>
+        <button id="start-btn" class="btn" onclick="start()" style="background:red; display:none">⚔️ 立刻開戰</button>
     </div>
 
     <div id="board" style="display:none"></div>
@@ -39,49 +33,41 @@
     <script>
         let peer = null, conns = [];
 
-        // 【功能 1：創立房間】
-        function createRoom() {
-            let roomId = document.getElementById('my-room-id').value;
-            if(!roomId) return alert("請輸入房號！");
+        // 核心：用你輸入的文字當作 ID
+        function openRoom() {
+            let id = document.getElementById('room-input').value;
+            if(!id) return alert("請輸入房號！");
             
-            // 這裡就是關鍵：把自訂 ID 傳給 Peer
-            peer = new Peer('poki-room-' + roomId); 
+            // 關鍵：直接把 id 丟進 Peer，不讓它隨機產生
+            peer = new Peer('poki-' + id); 
             
-            peer.on('open', id => {
-                document.getElementById('status').innerText = "✅ 房間 " + roomId + " 已開，快叫隊友進來！";
+            peer.on('open', () => {
+                document.getElementById('status').innerText = "✅ 房號 poki-" + id + " 已開啟！";
                 document.getElementById('start-btn').style.display = 'block';
             });
-
-            peer.on('error', err => {
-                if(err.type === 'unavailable-id') alert("這個房號有人用了，換一個吧！");
-                else alert("連線錯誤：" + err.type);
-            });
-
             peer.on('connection', c => {
                 conns.push(c);
+                alert("隊友進來了！");
                 c.on('data', d => handle(d));
-                alert("隊友已連線！");
             });
+            peer.on('error', () => alert("這房號有人用了，換一個吧！"));
         }
 
-        // 【功能 2：加入房間】
         function joinRoom() {
-            let roomId = document.getElementById('join-room-id').value;
-            if(!roomId) return alert("請輸入房號！");
-            
-            peer = new Peer(); // 隨機 ID 即可
+            let id = document.getElementById('room-input').value;
+            peer = new Peer(); 
             peer.on('open', () => {
-                let c = peer.connect('poki-room-' + roomId);
+                let c = peer.connect('poki-' + id);
                 conns.push(c);
                 c.on('data', d => handle(d));
-                document.getElementById('status').innerText = "嘗試連入房間 " + roomId + "...";
+                document.getElementById('status').innerText = "正在連入 poki-" + id + "...";
             });
         }
 
         function start() {
-            let players = [{n:"小宥", r:"預言家"}, {n:"小希", r:"狼人"}, {n:"AI1", r:"平民"}, {n:"AI2", r:"平民"}, {n:"AI3", r:"平民"}, {n:"AI4", r:"平民"}];
-            players.sort(() => Math.random() - 0.5);
-            let data = { type: 'START', p: players };
+            let p = [{n:"小宥",r:"預言家"},{n:"小希",r:"狼人"},{n:"AI1",r:"平民"},{n:"AI2",r:"平民"}];
+            p.sort(() => Math.random() - 0.5);
+            let data = { type:'START', p:p };
             conns.forEach(c => c.send(data));
             handle(data);
         }
@@ -91,9 +77,7 @@
                 document.getElementById('setup').style.display = 'none';
                 let b = document.getElementById('board');
                 b.style.display = 'grid';
-                data.p.forEach(p => {
-                    b.innerHTML += `<div class="card"><b>${p.n}</b><br><span style="color:cyan">${p.r}</span></div>`;
-                });
+                data.p.forEach(x => b.innerHTML += `<div class="card"><b>${x.n}</b><br>${x.r}</div>`);
             }
         }
     </script>
