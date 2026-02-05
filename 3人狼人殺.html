@@ -2,230 +2,153 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>23人狼人殺：真人人數可調版</title>
+    <title>3人狼人殺：一鍵開戰版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0b0e14; color: #cfd8dc; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
-        #log { width: 95%; max-width: 800px; height: 150px; background: #000; padding: 10px; overflow-y: auto; color: #4caf50; border: 1px solid #37474f; border-radius: 8px; font-size: 12px; margin-bottom: 10px; }
-        .setup-box { background: #1c2732; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #3498db; max-width: 400px; }
-        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; width: 100%; max-width: 950px; }
-        .card { background: #263238; border: 1px solid #455a64; padding: 8px; text-align: center; border-radius: 8px; font-size: 11px; }
-        .card.dead { opacity: 0.3; background: #111; border-color: #b71c1c; }
-        .card.my-card { border: 2px solid #fdd835; background: #37474f; }
-        .card.is-human { border: 2px solid #2ecc71; } /* 只要是真人就發綠光 */
-        .btn-act { padding: 3px; cursor: pointer; background: #e53935; color: white; border: none; border-radius: 4px; margin-top: 4px; width: 100%; font-size: 10px; }
-        .main-btn { padding: 10px 30px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 5px; }
-        .chat-ui { width: 95%; max-width: 800px; display: flex; gap: 5px; margin-bottom: 10px; }
-        #chat-input { flex-grow: 1; padding: 8px; background: #1c2732; color: white; border: 1px solid #37474f; }
-        .player-tag { font-size: 9px; padding: 2px 4px; border-radius: 3px; background: #555; margin-bottom: 2px; display: inline-block; }
+        #log { width: 95%; max-width: 800px; height: 180px; background: #000; padding: 10px; overflow-y: auto; color: #4caf50; border: 1px solid #37474f; border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
+        .setup-box { background: #1c2732; padding: 25px; border-radius: 12px; text-align: center; border: 2px solid #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4); }
+        .btn-main { background: #e74c3c; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 10px; font-weight: bold; }
+        .btn-main:hover { background: #c0392b; transform: scale(1.05); }
+        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; max-width: 950px; }
+        .card { background: #263238; border: 2px solid #455a64; padding: 10px; border-radius: 10px; text-align: center; position: relative; }
+        .card.is-human { border-color: #3498db; background: #2c3e50; }
+        .btn-act { background: #ff9800; border: none; color: black; padding: 5px 10px; border-radius: 5px; margin-top: 5px; cursor: pointer; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>🐺 豪華 23 人局 (真人人數動態調整)</h2>
-    <div id="status" style="color:#ffa000;">伺服器 ID: <span id="my-id">...</span> | 當前連線真人: <span id="conn-count">1</span> 人</div>
+    <h2 id="room-status">等待封印解除...</h2>
+    <div id="log">【系統提示】房主請設定總人數並點擊「立刻開始遊戲」，不夠的人數會由 AI 補滿。</div>
 
-    <div id="setup-ui" class="setup-box">
-        <p>你的暱稱：<input type="text" id="user-name" value="玩家" style="padding:5px; width:100px;"></p>
-        <hr>
-        <div id="host-only-setup" style="display:none;">
-            <p style="color:#2ecc71">你是房主，請等待朋友連線後按開始</p>
-            <button onclick="hostStartGame()" class="main-btn">全員到齊，開始遊戲</button>
+    <div id="setup-area" class="setup-box">
+        <p>你的連線 ID: <b id="my-id" style="color:#f1c40f">---</b></p>
+        <div id="host-controls">
+            <label>設定總遊戲人數 (3-23人): </label><br>
+            <input type="number" id="total-players" value="6" min="3" max="23" style="font-size: 20px; width: 60px; text-align: center; margin: 10px;"><br>
+            <button class="btn-main" onclick="startGame()">⚔️ 立刻開始遊戲 (補滿AI)</button>
         </div>
-        <div id="guest-setup">
-            <input type="text" id="join-id" placeholder="輸入房主 ID" style="padding:10px; width:120px;">
-            <button onclick="connectAsGuest()">加入房間</button>
-            <p>或</p>
-            <button onclick="beHost()" style="background:#2980b9; color:white;">我當房主</button>
+        <hr style="border: 0.5px solid #333;">
+        <div id="join-controls">
+            <input type="text" id="join-id" placeholder="輸入好友 ID" style="padding: 10px; border-radius: 5px; border:none;">
+            <button onclick="connectToHost()" style="padding: 10px 20px; border-radius: 5px; cursor:pointer;">加入房間</button>
         </div>
     </div>
 
-    <div id="game-ui" style="display:none; width:100%; text-align:center;">
-        <h3 id="role-display">等待遊戲開始...</h3>
-        <div id="log"></div>
-        <div class="chat-ui">
-            <input type="text" id="chat-input" placeholder="打字討論..." onkeypress="if(event.key==='Enter') sendChat()">
-            <button onclick="sendChat()">傳送</button>
-        </div>
-        <div id="board"></div>
-    </div>
+    <div id="board" style="display:none; margin-top:20px;"></div>
 
-<script>
-    let peer;
-    let connections = []; 
-    let myConn;           
-    let isHost = false;
-    let myName = "";
-    let myIndex = -1;
-    let connectedHumans = []; // 房主紀錄：[{conn, name}]
+    <script>
+        // --- 核心變數 ---
+        let peer = new Peer();
+        let myId, myConn, myName = "小宥領主";
+        let isHost = true;
+        let connections = [];
+        let game = { phase: "WAITING", players: [], logs: [], nightActions: {} };
+        let myIndex = 0;
 
-    let game = {
-        players: [], phase: "WAITING", logs: [],
-        nightActions: { wolfTarget: null },
-        votes: {}
-    };
-
-    // --- 連線設定 ---
-    function beHost() {
-        isHost = true;
-        myName = document.getElementById('user-name').value;
-        const id = Math.floor(1000 + Math.random() * 9000).toString();
-        peer = new Peer(id);
-        peer.on('open', id => { 
+        peer.on('open', id => {
+            myId = id;
             document.getElementById('my-id').innerText = id;
-            document.getElementById('host-only-setup').style.display = "block";
-            document.getElementById('guest-setup').style.display = "none";
-            addLog(`系統：房主 ${myName} 已開房，ID 是 ${id}`);
-            connectedHumans.push({ name: myName, conn: null }); // 房主自己是第一個
+            addLog("連線已就緒。分享你的 ID 給小希姊姊吧！");
         });
+
+        // 房主接收連線
         peer.on('connection', conn => {
-            conn.on('open', () => {
-                // 等待對方傳送暱稱
-                conn.on('data', data => {
-                    if (data.type === "JOIN_NAME") {
-                        connectedHumans.push({ name: data.name, conn: conn });
-                        updateConnCount();
-                        addLog(`系統：${data.name} 已加入房間`);
-                        broadcast({ type: "CHAT", sender: "系統", msg: `${data.name} 進入了房間` });
-                    }
-                    handleHostData(conn, data);
-                });
-            });
-        });
-        initUI();
-    }
-
-    function connectAsGuest() {
-        isHost = false;
-        myName = document.getElementById('user-name').value;
-        const hostId = document.getElementById('join-id').value;
-        peer = new Peer();
-        peer.on('open', () => {
-            myConn = peer.connect(hostId);
-            myConn.on('open', () => {
-                myConn.send({ type: "JOIN_NAME", name: myName });
-                addLog("系統：成功連線到房主，等待開始...");
-            });
-            setupGuestListener(myConn);
-            initUI();
-        });
-    }
-
-    function updateConnCount() {
-        document.getElementById('conn-count').innerText = connectedHumans.length;
-    }
-
-    function initUI() {
-        document.getElementById('setup-ui').style.display = "none";
-        document.getElementById('game-ui').style.display = "block";
-    }
-
-    // --- 房主邏輯 ---
-    function hostStartGame() {
-        const totalPlayers = 23;
-        const roles = ["狼人","狼人","狼人","狼人","狼人","預言家","女巫","獵人","守衛","白痴","村民","村民","村民","村民","村民","村民","村民","村民","村民","村民","村民","村民","村民"].sort(() => Math.random() - 0.5);
-        
-        game.players = [];
-        
-        // 1. 先把連線的真人放進去
-        connectedHumans.forEach((h, i) => {
-            game.players.push({ id: i, name: h.name, role: roles[i], isAlive: true, isAI: false });
+            isHost = true;
+            connections.push(conn);
+            addLog("新玩家加入！目前連線人數: " + connections.length);
+            conn.on('data', data => handleData(data, conn));
         });
 
-        // 2. 剩下的位置補 AI
-        for(let i = connectedHumans.length; i < totalPlayers; i++) {
-            game.players.push({ id: i, name: `AI-${i+1}`, role: roles[i], isAlive: true, isAI: true });
+        function connectToHost() {
+            const targetId = document.getElementById('join-id').value;
+            if (!targetId) return;
+            isHost = false;
+            myConn = peer.connect(targetId);
+            document.getElementById('host-controls').style.display = 'none';
+            addLog("嘗試連線到房主...");
+            myConn.on('data', data => handleData(data, myConn));
         }
-        
-        game.phase = "NIGHT";
-        addLog("🌙 遊戲開始！天黑請閉眼...");
-        sync();
-    }
 
-    function handleHostData(conn, data) {
-        if (data.type === "CHAT") broadcast({ type: "CHAT", sender: data.sender, msg: data.msg });
-        if (data.type === "ACTION") handleAction(data.target, data.fromIdx, data.subType);
-    }
-
-    function handleAction(targetIdx, fromIdx, subType) {
-        if (!isHost) return;
-        if (subType === "KILL") { game.nightActions.wolfTarget = targetIdx; addLog(`狼人行動完畢`); }
-        if (subType === "VOTE") { game.votes[fromIdx] = targetIdx; }
-        sync();
-    }
-
-    // --- 通用與同步 ---
-    function sync() {
-        if (!isHost) return;
-        myIndex = 0;
-        updateUI();
-        connectedHumans.forEach((h, index) => {
-            if (h.conn) {
-                h.conn.send({ type: "SYNC", game: game, yourIndex: index });
-            }
-        });
-    }
-
-    function setupGuestListener(conn) {
-        conn.on('data', data => {
-            if (data.type === "CHAT") addLog(`💬 ${data.sender}: ${data.msg}`);
-            else if (data.type === "SYNC") { game = data.game; myIndex = data.yourIndex; updateUI(); }
-        });
-    }
-
-    function broadcast(data) {
-        if (isHost) {
-            connectedHumans.forEach(h => { if(h.conn) h.conn.send(data); });
-            if (data.type === "CHAT") addLog(`💬 ${data.sender}: ${data.msg}`);
+        function addLog(msg) {
+            const log = document.getElementById('log');
+            game.logs.push(msg);
+            log.innerHTML = game.logs.join('<br>');
+            log.scrollTop = log.scrollHeight;
         }
-    }
 
-    function updateUI() {
-        const me = game.players[myIndex];
-        if (!me) return;
-        document.getElementById('role-display').innerText = `我是：${me.name} | 身分：${me.role} (${me.isAlive?'存活':'死亡'})`;
-        
-        const board = document.getElementById('board');
-        board.innerHTML = "";
-        game.players.forEach((p, i) => {
-            const div = document.createElement('div');
-            div.className = `card ${p.isAlive ? '' : 'dead'} ${i === myIndex ? 'my-card' : ''} ${!p.isAI ? 'is-human' : ''}`;
+        // --- 遊戲邏輯 ---
+        function startGame() {
+            if (!isHost) return;
+            const total = parseInt(document.getElementById('total-players').value);
+            game.players = [];
             
-            const canSee = (i === myIndex || !p.isAlive);
-            div.innerHTML = `
-                <div class="player-tag">${p.isAI ? 'AI' : '真人'}</div><br>
-                <b>${i+1}. ${p.name}</b><br>
-                <small>${canSee ? p.role : '???'}</small>
-            `;
+            // 1. 加入房主
+            game.players.push({ name: myName, role: "", isAlive: true, isAI: false, connId: myId });
             
-            if (p.isAlive && me.isAlive && i !== myIndex) {
-                if (game.phase === "NIGHT" && me.role === "狼人") div.innerHTML += `<button class="btn-act" onclick="doAction(${i}, 'KILL')">擊殺</button>`;
-                if (game.phase === "VOTE") div.innerHTML += `<button class="btn-act" onclick="doAction(${i}, 'VOTE')">投票</button>`;
+            // 2. 加入已連線的真人
+            connections.forEach((c, idx) => {
+                game.players.push({ name: "玩家 " + (idx+2), role: "", isAlive: true, isAI: false, connId: c.peer });
+            });
+
+            // 3. 剩餘位子補滿 AI
+            while (game.players.length < total) {
+                game.players.push({ name: "AI 貓奴 " + (game.players.length + 1), role: "", isAlive: true, isAI: true });
             }
-            board.appendChild(div);
-        });
-    }
 
-    function doAction(target, type) {
-        if (isHost) handleAction(target, myIndex, type);
-        else myConn.send({ type: "ACTION", target: target, fromIdx: myIndex, subType: type });
-    }
+            // 4. 分配職業
+            assignRoles();
+            game.phase = "NIGHT";
+            game.logs = ["★ 遊戲開始！進入黑暗之夜 ★"];
+            
+            broadcast({ type: "SYNC", game: game });
+            render();
+        }
 
-    function sendChat() {
-        const input = document.getElementById('chat-input');
-        const msg = input.value.trim();
-        if (!msg) return;
-        const chatData = { type: "CHAT", sender: myName, msg: msg };
-        if (isHost) broadcast(chatData);
-        else myConn.send(chatData);
-        input.value = "";
-    }
+        function assignRoles() {
+            const roles = ["狼人", "預言家", "女巫", "平民"];
+            game.players.forEach((p, i) => {
+                p.role = roles[i % roles.length];
+            });
+            // 洗牌
+            game.players.sort(() => Math.random() - 0.5);
+        }
 
-    function addLog(m) {
-        const log = document.getElementById('log');
-        log.innerHTML += `<div>> ${m}</div>`;
-        log.scrollTop = log.scrollHeight;
-    }
-</script>
+        function handleData(data, conn) {
+            if (data.type === "SYNC") {
+                game = data.game;
+                // 更新我的索引
+                myIndex = game.players.findIndex(p => p.connId === myId);
+                render();
+            }
+        }
+
+        function broadcast(data) {
+            connections.forEach(c => c.send(data));
+        }
+
+        function render() {
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('board').style.display = 'grid';
+            document.getElementById('room-status').innerText = "當前階段: " + game.phase;
+            
+            const board = document.getElementById('board');
+            board.innerHTML = "";
+            game.players.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = `card ${!p.isAI ? 'is-human' : ''}`;
+                div.innerHTML = `
+                    <small>${p.isAI ? '🤖 AI' : '👤 真人'}</small><br>
+                    <b>${p.name}</b><br>
+                    <span>${(i === myIndex || !p.isAlive) ? p.role : '???'}</span>
+                `;
+                board.appendChild(div);
+            });
+            
+            const log = document.getElementById('log');
+            log.innerHTML = game.logs.join('<br>');
+            log.scrollTop = log.scrollHeight;
+        }
+    </script>
 </body>
 </html>
