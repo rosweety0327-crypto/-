@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小宥：中二傳奇遊戲城 v7</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
+        body { background: #050505; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
         .poki-container { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
@@ -14,27 +14,29 @@
             margin: 0 auto; 
         }
         .game-card { 
-            background: #1a1a1a; 
+            background: #111; 
             padding: 20px 10px; 
             border-radius: 15px; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            border: 2px solid #333; 
+            border: 2px solid #222; 
         }
-        .game-card:hover { transform: translateY(-8px); border-color: #ff00ff; box-shadow: 0 0 15px #ff00ff; }
-        .icon { font-size: 40px; margin-bottom: 10px; }
-        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
-        .mid2-title { color: #00ffff; font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .game-card:hover { transform: translateY(-8px); border-color: #ff00ff; box-shadow: 0 0 20px rgba(255, 0, 255, 0.4); }
+        .icon { font-size: 45px; margin-bottom: 10px; }
+        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; margin-bottom: 5px; }
+        .mid2-title { color: #00ffff; font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; letter-spacing: 1px; }
         .game-name { font-size: 15px; color: #fff; font-weight: bold; }
+        .new-tag { background: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
     </style>
 </head>
 <body>
 
     <h1>💀 小宥：中二傳奇遊戲城 💀</h1>
-    <p style="color: #888;">管理者：小宥 (黑暗領主) | 最新解鎖：多人在線聯機</p>
+    <p style="color: #666;">管理者：黑暗領主小宥 | 目前狀態：七大聖域全開</p>
 
     <div class="poki-container">
-        <div class="game-card" style="border-color: #e74c3c;" onclick="location.href='3人狼人殺.html'">
+        <div class="game-card" style="border-color: #e74c3c; position: relative;" onclick="location.href='3人狼人殺.html'">
+            <span class="new-tag">NEW</span>
             <span class="mid2-title">【 萬人宿命 】</span>
             <div class="icon">👥</div>
             <div class="game-name" style="color: #e74c3c;">3人狼人殺 (2-23人)</div>
@@ -49,7 +51,7 @@
         <div class="game-card" onclick="location.href='二人狼人殺 2.html'">
             <span class="mid2-title">【 謊言之淵 】</span>
             <div class="icon">🐺</div>
-            <div class="game-name">二人狼人殺 (12人局)</div>
+            <div class="game-name">二人狼人殺 (AI版)</div>
         </div>
 
         <div class="game-card" onclick="location.href='競賽貓站.html'">
@@ -77,8 +79,8 @@
         </div>
     </div>
 
-    <footer style="margin-top: 40px; color: #444; font-size: 10px;">
-        <p>黑暗領主小宥在此監視著每一場勝負...</p>
+    <footer style="margin-top: 50px; color: #333; font-size: 10px;">
+        <p>即便在 iPad 上，領主的威嚴依舊存在...</p>
     </footer>
 
 </body>
