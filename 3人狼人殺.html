@@ -2,125 +2,202 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>多人狼人殺：領主隱藏身分版</title>
+    <title>狼人殺：領主多人版 (2-6人+AI)</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0b0e14; color: #cfd8dc; font-family: sans-serif; text-align: center; padding: 10px; }
-        .box { background: #1c2732; padding: 15px; border-radius: 12px; border: 2px solid #3498db; max-width: 400px; margin: 10px auto; }
-        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
-        .card { background: #263238; border: 2px solid #455a64; padding: 10px; border-radius: 10px; min-height: 80px; }
-        .card.my-card { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; } /* 自己的卡片發黃光 */
-        .role-text { font-weight: bold; font-size: 18px; margin-top: 5px; display: block; }
-        .btn-start { background: #e74c3c; color: white; padding: 15px; font-size: 20px; width: 80%; border: none; border-radius: 10px; cursor: pointer; display: none; margin: 10px auto; }
-        input { padding: 10px; border-radius: 5px; border: none; width: 60%; text-align: center; }
+        body { background: #0b0e14; color: #cfd8dc; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0; }
+        #log { width: 95%; max-width: 650px; height: 180px; background: #000; padding: 12px; overflow-y: auto; color: #4caf50; border: 1px solid #37474f; border-radius: 8px; font-size: 13px; margin-bottom: 10px; }
+        .setup-box { background: #1c2732; padding: 25px; border-radius: 12px; text-align: center; border: 3px solid #f1c40f; margin-top: 20px; width: 320px; }
+        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; max-width: 800px; }
+        .card { background: #263238; border: 1px solid #455a64; padding: 10px; text-align: center; border-radius: 10px; font-size: 12px; }
+        .card.dead { opacity: 0.3; background: #111; border-color: #b71c1c; }
+        .card.my-card { border: 2px solid #fdd835; box-shadow: 0 0 10px #fdd835; }
+        .main-btn { padding: 15px 30px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin-top: 15px; font-weight: bold; width: 100%; }
+        .join-btn { padding: 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #timer { font-size: 24px; color: #ff5252; font-weight: bold; margin-bottom: 5px; }
+        select { padding: 10px; font-size: 16px; border-radius: 5px; background: #000; color: white; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#3498db">🐺 多人狼人殺：領主基地</h2>
+    <h2>🐺 狼人殺：多人進化版</h2>
+    <div id="timer">準備中...</div>
+    <div id="status" style="color:#ffa000; margin-bottom:10px;">我的 ID: <span id="my-id">...</span></div>
 
-    <div id="setup-area">
-        <div class="box">
-            <p>房號 (Room ID): <input id="room-id" placeholder="例如: 777"></p>
-            <button onclick="init(true)" style="background:#27ae60; color:white; padding:8px 15px; border-radius:5px;">當房主</button>
-            <button onclick="init(false)" style="background:#2980b9; color:white; padding:8px 15px; border-radius:5px;">進房間</button>
-            <p id="status" style="color:yellow; font-size:12px;">輸入房號並選擇身分</p>
-        </div>
-        <button id="start-btn" class="btn-start" onclick="startGame()">⚔️ 立刻開始遊戲</button>
+    <div id="setup-ui" class="setup-box">
+        <h3 style="color:#f1c40f; margin-top:0;">🎮 房主設定</h3>
+        <label>你想玩幾人局？</label>
+        <select id="player-count">
+            <option value="2">2 人局 (單挑 + AI)</option>
+            <option value="3">3 人局</option>
+            <option value="4">4 人局</option>
+            <option value="5">5 人局</option>
+            <option value="6" selected>6 人局 (最刺激)</option>
+        </select>
+        <div id="connected-info" style="margin:15px 0; color:#4caf50; font-weight:bold;">已連線的朋友: 0</div>
+        <button class="main-btn" onclick="hostStart()">開始遊戲 (不足人數由AI補)</button>
+        
+        <hr style="border:0.5px solid #333; margin:20px 0;">
+        <h3 style="color:#3498db; margin-top:0;">🤝 加入朋友</h3>
+        <input type="text" id="join-id" placeholder="輸入房主ID" style="width:120px; padding:10px; border-radius:5px; border:none; text-align:center;">
+        <button class="join-btn" onclick="connectToHost()">連線</button>
     </div>
 
-    <div id="board"></div>
+    <div id="game-ui" style="display:none; width:100%; text-align:center;">
+        <h3 id="role-display" style="color:#f1c40f;">正在分配角色...</h3>
+        <div id="log"></div>
+        <div id="board"></div>
+        <button id="next-phase-btn" class="main-btn" style="display:none; width:200px;" onclick="forceNextPhase()">強制進入下一階段</button>
+    </div>
 
-    <script>
-        let peer = null, conns = [], isHost = false, myIdx = -1;
-        let game = { players: [], phase: "WAITING" };
+<script>
+    const peer = new Peer(Math.floor(1000 + Math.random() * 9000).toString());
+    let conns = [], myConn, isHost = false, myIdx = -1;
+    let game = { players: [], phase: "WAITING", logs: [], countdown: 0 };
 
-        function init(asHost) {
-            const id = document.getElementById('room-id').value;
-            if(!id) return alert("請輸入房號！");
-            isHost = asHost;
-            
-            // 房主 ID 固定為 poki-ID，隊友隨機 ID
-            peer = isHost ? new Peer('poki-' + id) : new Peer();
-            
-            peer.on('open', () => {
-                if(isHost) {
-                    document.getElementById('status').innerText = "✅ 房號 poki-" + id + " 等待中...";
-                    document.getElementById('start-btn').style.display = 'block';
-                } else {
-                    let c = peer.connect('poki-' + id);
-                    setupConn(c);
-                    document.getElementById('status').innerText = "正在連入 poki-" + id + "...";
-                }
-            });
+    peer.on('open', id => document.getElementById('my-id').innerText = id);
+    
+    // 房主接聽連線
+    peer.on('connection', c => {
+        isHost = true;
+        conns.push(c);
+        document.getElementById('connected-info').innerText = `已連線的朋友: ${conns.length}`;
+        addLog(`朋友 ${c.peer} 已加入房間`);
+        c.on('data', data => handleData(data));
+    });
 
-            peer.on('connection', c => {
-                setupConn(c);
-                alert("有玩家進場了！");
+    function connectToHost() {
+        const id = document.getElementById('join-id').value;
+        if(!id) return alert("請輸入ID");
+        myConn = peer.connect(id);
+        myConn.on('data', data => handleData(data));
+        document.getElementById('setup-ui').innerHTML = "<h3 style='color:#3498db;'>✅ 已連線，等待房主開局...</h3>";
+    }
+
+    function hostStart() {
+        isHost = true;
+        const total = parseInt(document.getElementById('player-count').value);
+        
+        // 根據人數分配角色
+        let roles = ["狼人", "預言家", "女巫", "村民", "獵人", "狼人"].slice(0, total);
+        roles = roles.sort(() => Math.random() - 0.5);
+
+        game.players = [];
+        for(let i=0; i<total; i++) {
+            let pType = (i === 0) ? "HOST" : (i <= conns.length ? "CLIENT" : "AI");
+            game.players.push({
+                id: i,
+                name: pType === "AI" ? `AI-${i+1}` : `玩家-${i+1}`,
+                role: roles[i],
+                isAlive: true,
+                isAI: pType === "AI"
             });
         }
-
-        function setupConn(c) {
-            conns.push(c);
-            c.on('data', data => {
-                if(data.type === "SYNC") {
-                    game = data.game;
-                    myIdx = data.targetIdx; // 房主告訴我是第幾號玩家
-                    render();
-                }
-            });
+        myIdx = 0;
+        game.phase = "NIGHT";
+        game.logs = [];
+        addLog("🌙 遊戲開始！天黑請閉眼...");
+        broadcastSync();
+        if(game.players[0].role !== "狼人" && game.players[0].role !== "預言家") {
+            setTimeout(checkAiTurn, 2000); 
         }
+    }
 
-        function startGame() {
-            const roles = ["狼人", "預言家", "平民", "女巫", "平民", "平民"]; // 預設角色
-            game.players = [];
-            
-            // 1. 加入房主 (我)
-            game.players.push({ name: "小宥領主", role: roles[0], isAlive: true });
-            
-            // 2. 加入連線玩家
-            conns.forEach((c, i) => {
-                game.players.push({ name: "玩家 " + (i+2), role: roles[(i+1)%roles.length], isAlive: true });
-            });
+    function handleData(data) {
+        if(data.type === "SYNC") {
+            game = data.game;
+            myIdx = data.idx;
+            updateUI();
+        } else if(data.type === "ACTION") {
+            processAction(data.target, data.from, data.act);
+        }
+    }
 
-            // 3. 補 AI 到 6 人
-            while(game.players.length < 6) {
-                game.players.push({ name: "AI 貓奴 " + (game.players.length+1), role: "平民", isAlive: true });
+    function broadcastSync() {
+        if(!isHost) return;
+        updateUI();
+        conns.forEach((c, i) => c.send({ type: "SYNC", game: game, idx: i+1 }));
+    }
+
+    function addLog(m) {
+        game.logs.push(`> ${m}`);
+        if(game.logs.length > 10) game.logs.shift();
+    }
+
+    function updateUI() {
+        document.getElementById('setup-ui').style.display = "none";
+        document.getElementById('game-ui').style.display = "block";
+        const me = game.players[myIdx];
+        document.getElementById('role-display').innerText = `你的身分：【${me.role}】 (${me.isAlive?'存活':'死亡'})`;
+        document.getElementById('timer').innerText = game.phase === "NIGHT" ? "🌙 黑夜階段" : "☀️ 白天討論";
+        document.getElementById('log').innerHTML = game.logs.join('<br>');
+        
+        const board = document.getElementById('board');
+        board.innerHTML = "";
+        game.players.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = `card ${p.isAlive?'':'dead'} ${i===myIdx?'my-card':''}`;
+            // 狼人隊友可以看到彼此
+            const canSee = (i===myIdx || !p.isAlive || (me.role==='狼人' && p.role==='狼人'));
+            card.innerHTML = `<b>${p.name}</b><br>${canSee ? p.role : '???'}`;
+            
+            if(p.isAlive && me.isAlive && i!==myIdx) {
+                if(game.phase === "NIGHT") {
+                    if(me.role === "狼人") card.innerHTML += `<button class="main-btn" style="font-size:12px; padding:5px; margin:5px 0;" onclick="doAct(${i},'KILL')">殺死</button>`;
+                    if(me.role === "預言家") card.innerHTML += `<button class="main-btn" style="font-size:12px; padding:5px; margin:5px 0;" onclick="doAct(${i},'CHECK')">驗人</button>`;
+                } else if(game.phase === "VOTE") {
+                    card.innerHTML += `<button class="main-btn" style="font-size:12px; padding:5px; margin:5px 0;" onclick="doAct(${i},'VOTE')">投票</button>`;
+                }
             }
+            board.appendChild(card);
+        });
+        
+        if(isHost) document.getElementById('next-phase-btn').style.display = "inline-block";
+    }
 
-            game.phase = "START";
-            
-            // 4. 發送資料給所有人，並告訴他們是誰
-            conns.forEach((c, i) => {
-                c.send({ type: "SYNC", game: game, targetIdx: i + 1 });
-            });
-            
-            myIdx = 0; // 房主永遠是 0
-            render();
-        }
+    function doAct(target, act) {
+        if(isHost) processAction(target, 0, act);
+        else myConn.send({ type: "ACTION", target: target, from: myIdx, act: act });
+    }
 
-        function render() {
-            document.getElementById('setup-area').style.display = 'none';
-            const board = document.getElementById('board');
-            board.innerHTML = "";
+    function processAction(target, from, act) {
+        if(!isHost) return;
+        const p = game.players[target];
+        if(act === "KILL") { p.isAlive = false; addLog(`昨晚 ${p.name} 慘遭殺害...`); game.phase = "VOTE"; }
+        else if(act === "CHECK") { alert(`${p.name} 是 ${p.role==='狼人'?'壞人':'好人'}`); game.phase = "VOTE"; }
+        else if(act === "VOTE") { p.isAlive = false; addLog(`投票結果：${p.name} 被處決了`); game.phase = "NIGHT"; }
+        
+        checkWin();
+        broadcastSync();
+        if(game.phase === "NIGHT") setTimeout(checkAiTurn, 2000);
+    }
 
-            game.players.forEach((p, i) => {
-                const isMe = (i === myIdx);
-                const div = document.createElement('div');
-                div.className = `card ${isMe ? 'my-card' : ''}`;
-                
-                // 核心邏輯：如果是自己，顯示身分；如果是別人，隱藏！
-                let roleDisplay = (isMe || !p.isAlive) ? p.role : "???";
-                let color = (isMe) ? "#f1c40f" : "#fff";
+    function checkAiTurn() {
+        if(!isHost || game.phase !== "NIGHT") return;
+        game.players.forEach((p, i) => {
+            if(p.isAlive && p.isAI && p.role === "狼人") {
+                const targets = game.players.filter(v => v.isAlive && v.role !== "狼人");
+                if(targets.length > 0) {
+                    const t = targets[Math.floor(Math.random()*targets.length)];
+                    processAction(t.id, i, "KILL");
+                }
+            }
+        });
+    }
 
-                div.innerHTML = `
-                    <small>${isMe ? '【你】' : '玩家 '+(i+1)}</small><br>
-                    <b>${p.name}</b><br>
-                    <span class="role-text" style="color:${color}">${roleDisplay}</span>
-                `;
-                board.appendChild(div);
-            });
-        }
-    </script>
+    function checkWin() {
+        const wolf = game.players.filter(p => p.isAlive && p.role === "狼人").length;
+        const human = game.players.filter(p => p.isAlive && p.role !== "狼人").length;
+        if(wolf === 0) { alert("🎉 好人勝利！"); location.reload(); }
+        else if(wolf >= human) { alert("🐺 狼人勝利！"); location.reload(); }
+    }
+
+    function forceNextPhase() {
+        game.phase = (game.phase === "NIGHT") ? "VOTE" : "NIGHT";
+        addLog("系統：強制切換階段");
+        broadcastSync();
+        if(game.phase === "NIGHT") setTimeout(checkAiTurn, 1000);
+    }
+</script>
 </body>
 </html>
