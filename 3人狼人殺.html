@@ -2,46 +2,44 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>狼人殺：領主 12 人進化版</title>
+    <title>狼人殺：12人慢速版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0b0e14; color: #cfd8dc; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
-        #log { width: 95%; max-width: 650px; height: 180px; background: #000; padding: 10px; overflow-y: auto; color: #4caf50; border: 1px solid #37474f; border-radius: 8px; font-size: 13px; margin-bottom: 10px; }
+        #log { width: 95%; max-width: 650px; height: 180px; background: #000; padding: 10px; overflow-y: auto; color: #4caf50; border: 1px solid #37474f; border-radius: 8px; font-size: 13px; margin-bottom: 5px; }
+        .chat-box { width: 95%; max-width: 650px; display: flex; gap: 8px; margin-bottom: 10px; }
+        #chat-input { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #3498db; background: #1c2732; color: white; }
+        .send-btn { padding: 10px 20px; background: #3498db; color: white; border-radius: 6px; cursor: pointer; border:none; }
         .setup-box { background: #1c2732; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #3498db; margin-top: 10px; }
         #board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 800px; }
         .card { background: #263238; border: 1px solid #455a64; padding: 8px; text-align: center; border-radius: 8px; font-size: 11px; }
         .card.dead { opacity: 0.3; background: #111; border-color: #b71c1c; }
-        .card.my-card { border: 2px solid #fdd835; box-shadow: 0 0 8px rgba(253, 216, 53, 0.4); }
-        .btn-act { padding: 4px; cursor: pointer; background: #e53935; color: white; border: none; border-radius: 4px; margin-top: 5px; width: 100%; font-size: 11px; }
-        .chat-area { width: 95%; max-width: 650px; display: flex; gap: 5px; margin-bottom: 10px; }
-        #chat-input { flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid #37474f; background: #1c2732; color: white; }
-        .main-btn { padding: 10px 20px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .card.my-card { border: 2px solid #fdd835; }
+        .btn-act { padding: 5px; cursor: pointer; background: #e53935; color: white; border: none; border-radius: 4px; margin-top: 5px; width: 100%; font-size: 11px; font-weight: bold; }
+        .main-btn { padding: 12px 25px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2 style="margin:10px 0;">🐺 狼人殺：12人全職能進化版</h2>
-    <div id="status-bar" style="color:#ffa000; margin-bottom:10px;">我的 ID: <span id="my-id">...</span></div>
+    <h2 style="margin:5px 0;">🐺 狼人殺：12人全員投票慢速版</h2>
+    <div id="status" style="color:#ffa000; font-size:14px; margin-bottom:5px;">ID: <span id="my-id">...</span></div>
 
     <div id="setup-ui" class="setup-box">
-        <button class="main-btn" onclick="hostStart()">啟動 12 人局 (AI自動補位)</button>
-        <div id="connected-info" style="margin:10px 0; font-size:14px; color:#4caf50;">等待連線...</div>
-        <input type="text" id="join-id" placeholder="房主 ID" style="width:100px; padding:5px; text-align:center;">
-        <button onclick="connect()" style="padding:5px 15px; background:#3498db; color:white; border:none; border-radius:5px;">加入</button>
+        <button class="main-btn" onclick="hostStart()">房主：開局 (補 AI 至 12 人)</button>
+        <p id="connected-info" style="color:#4caf50; font-size:14px;">已連線朋友: 0</p>
+        <input type="text" id="join-id" placeholder="輸入房主 ID" style="padding:8px; width:120px; text-align:center;">
+        <button onclick="connect()" style="padding:8px 15px; background:#3498db; color:white; border:none; border-radius:5px;">加入</button>
     </div>
 
     <div id="game-ui" style="display:none; width:100%; text-align:center;">
-        <h3 id="role-display" style="color:#fdd835; margin:5px 0;">身分分配中...</h3>
-        
+        <h3 id="role-display" style="color:#fdd835; margin:5px 0;">等待角色...</h3>
         <div id="log"></div>
-        
-        <div class="chat-area">
-            <input type="text" id="chat-input" placeholder="說點什麼來干擾大家..." onkeypress="if(event.key==='Enter') sendChat()">
-            <button onclick="sendChat()" style="padding:8px 15px; background:#2980b9; color:white; border:none; border-radius:5px;">發送</button>
+        <div class="chat-box">
+            <input type="text" id="chat-input" placeholder="按 Enter 發言..." onkeypress="if(event.key==='Enter') sendChat()">
+            <button class="send-btn" onclick="sendChat()">發言</button>
         </div>
-
         <div id="board"></div>
-        <button id="next-btn" class="main-btn" style="display:none; margin-top:15px; background:#1565c0;" onclick="forceNext()">房主：進入下一天</button>
+        <button id="next-btn" class="main-btn" style="display:none; background:#1565c0;" onclick="forceNext()">房主：進入下一天</button>
     </div>
 
 <script>
@@ -50,25 +48,24 @@
     let game = { players: [], phase: "WAITING", logs: [], wolfVotes: {}, victim: null, witchUsed: {heal:false, poison:false} };
 
     peer.on('open', id => document.getElementById('my-id').innerText = id);
-    peer.on('connection', c => { isHost=true; conns.push(c); c.on('data', d => handleData(d)); });
+    peer.on('connection', c => { isHost = true; conns.push(c); document.getElementById('connected-info').innerText = `已連線朋友: ${conns.length}`; c.on('data', d => handleData(d)); });
 
     function connect() {
         myConn = peer.connect(document.getElementById('join-id').value);
         myConn.on('data', d => handleData(d));
-        document.getElementById('setup-ui').innerHTML = "<h3>✅ 已成功連線，等待房主開局</h3>";
+        document.getElementById('setup-ui').innerHTML = "<h3>✅ 連線成功</h3>";
     }
 
     function hostStart() {
         isHost = true;
         const roles = ["狼人","狼人","狼人","狼人","預言家","女巫","獵人","騎士","村民","村民","村民","村民"].sort(() => Math.random() - 0.5);
         game.players = Array.from({length: 12}, (_, i) => ({
-            id: i, name: i === 0 ? "小宥領主" : (i <= conns.length ? `朋友${i}` : `AI-${i+1}`),
+            id: i, name: i === 0 ? "小宥領主" : (i <= conns.length ? `玩家${i+1}` : `AI-${i+1}`),
             role: roles[i], isAlive: true, isAI: i > conns.length
         }));
-        myIdx = 0; game.phase = "NIGHT"; game.logs = [];
-        addLog("🌙 遊戲開始！天黑請閉眼，狼人請殺人。");
-        broadcast();
-        aiBehavior();
+        myIdx = 0; game.phase = "NIGHT"; 
+        addLog("🌙 12 人局開始... 請稍候...");
+        setTimeout(() => { addLog("🌕 天黑請閉眼，狼人開始投票。"); broadcast(); aiAction(); }, 2000);
     }
 
     function handleData(data) {
@@ -78,49 +75,40 @@
         else if(data.type === "MSG") { alert(data.msg); }
     }
 
-    function broadcast() { 
-        if(!isHost) return; updateUI(); 
-        conns.forEach((c, i) => c.send({ type: "SYNC", game: game, idx: i+1 })); 
-    }
+    function broadcast() { if(!isHost) return; updateUI(); conns.forEach((c, i) => c.send({ type: "SYNC", game: game, idx: i+1 })); }
 
     function sendChat() {
         const input = document.getElementById('chat-input');
-        const msg = input.value.trim(); if(!msg) return;
-        const sender = game.players[myIdx].name;
-        const chatData = { type: "CHAT", sender, msg };
-        addLog(`💬 ${sender}: ${msg}`);
+        if(!input.value.trim()) return;
+        const chatData = { type: "CHAT", sender: game.players[myIdx].name, msg: input.value };
+        addLog(`💬 ${chatData.sender}: ${chatData.msg}`);
         if(isHost) conns.forEach(c => c.send(chatData)); else myConn.send(chatData);
         input.value = "";
     }
 
-    function addLog(m) { game.logs.push(`> ${m}`); if(game.logs.length > 15) game.logs.shift(); updateUI(); }
+    function addLog(m) { game.logs.push(`> ${m}`); if(game.logs.length > 20) game.logs.shift(); updateUI(); }
 
     function updateUI() {
         document.getElementById('setup-ui').style.display = "none";
         document.getElementById('game-ui').style.display = "block";
         const me = game.players[myIdx];
-        document.getElementById('role-display').innerText = `【${me.role}】 - ${me.isAlive?'存活':'已淘汰'}`;
-        document.getElementById('log').innerHTML = game.logs.join('<br>');
-        const l = document.getElementById('log'); l.scrollTop = l.scrollHeight;
-        
+        document.getElementById('role-display').innerText = `【${me.role}】 - ${me.isAlive?'存活':'淘汰'}`;
+        const logBox = document.getElementById('log'); logBox.innerHTML = game.logs.join('<br>'); logBox.scrollTop = logBox.scrollHeight;
         const board = document.getElementById('board'); board.innerHTML = "";
         game.players.forEach((p, i) => {
             const card = document.createElement('div');
             const canSee = (i===myIdx || !p.isAlive || (me.role==='狼人' && p.role==='狼人'));
             card.className = `card ${p.isAlive?'':'dead'} ${i===myIdx?'my-card':''}`;
-            card.innerHTML = `<b>${i+1}.${p.name}</b><br>${canSee?p.role:'???'}`;
-
+            card.innerHTML = `<b>${i+1}.${p.name}</b><br>${canSee ? p.role : '???'}`;
             if(p.isAlive && me.isAlive) {
                 if(game.phase === "NIGHT") {
-                    if(me.role === "狼人" && i!==myIdx) card.innerHTML += `<button class="btn-act" onclick="doAct(${i},'KILL')">狼人投票</button>`;
-                    if(me.role === "預言家" && i!==myIdx) card.innerHTML += `<button class="btn-act" style="background:#2980b9" onclick="doAct(${i},'CHECK')">查驗</button>`;
+                    if(me.role === "狼人" && i !== myIdx) card.innerHTML += `<button class="btn-act" onclick="doAct(${i},'KILL')">狼人投票</button>`;
+                    if(me.role === "預言家" && i !== myIdx) card.innerHTML += `<button class="btn-act" style="background:#2980b9" onclick="doAct(${i},'CHECK')">驗人</button>`;
                     if(me.role === "女巫") {
                         if(i === game.victim && !game.witchUsed.heal) card.innerHTML += `<button class="btn-act" style="background:#27ae60" onclick="doAct(${i},'HEAL')">救人</button>`;
-                        if(i !== myIdx && !game.witchUsed.poison) card.innerHTML += `<button class="btn-act" style="background:#8e44ad" onclick="doAct(${i},'POISON')">投毒</button>`;
+                        if(i !== myIdx && !game.witchUsed.poison) card.innerHTML += `<button class="btn-act" style="background:#8e44ad" onclick="doAct(${i},'POISON')">毒殺</button>`;
                     }
-                } else if(game.phase === "VOTE" && i!==myIdx) {
-                    card.innerHTML += `<button class="btn-act" style="background:#d35400" onclick="doAct(${i},'VOTE')">放逐投票</button>`;
-                }
+                } else if(game.phase === "VOTE" && i !== myIdx) card.innerHTML += `<button class="btn-act" style="background:#d35400" onclick="doAct(${i},'投票')">投票</button>`;
             }
             board.appendChild(card);
         });
@@ -134,34 +122,28 @@
         const target = game.players[t];
         if(s === "KILL") {
             game.wolfVotes[f] = t;
-            addLog(`${game.players[f].name} 投票想殺 ${t+1}號`);
-            // 狼人多數決判定
+            addLog(`${game.players[f].name} 投票擊殺 ${t+1}號`);
             const votes = Object.values(game.wolfVotes);
             const counts = {}; votes.forEach(v => counts[v] = (counts[v]||0)+1);
-            game.victim = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-        }
-        else if(s === "CHECK") {
-            const res = `查驗結果：${t+1}號 是 ${target.role==='狼人'?'狼人':'好人'}`;
+            game.victim = parseInt(Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b));
+        } else if(s === "CHECK") {
+            const res = `查驗：${t+1}號 是 ${target.role==='狼人'?'壞人':'好人'}`;
             if(f === 0) alert(res); else conns[f-1].send({ type: "MSG", msg: res });
-            addLog("預言家查驗了身分。");
-        }
-        else if(s === "HEAL") { game.victim = null; game.witchUsed.heal = true; addLog("女巫救回了一條命。"); }
-        else if(s === "POISON") { target.isAlive = false; game.witchUsed.poison = true; addLog("女巫毒死了一個人。"); }
-        else if(s === "VOTE") { target.isAlive = false; addLog(`${target.name} 被公投出局。`); game.phase = "NIGHT"; game.wolfVotes = {}; }
-        
+            addLog("預言家已查驗。");
+        } else if(s === "HEAL") { game.victim = null; game.witchUsed.heal = true; addLog("女巫救回了目標。"); }
+        else if(s === "POISON") { target.isAlive = false; game.witchUsed.poison = true; addLog(`${t+1}號 被毒死了。`); }
+        else if(s === "投票") { target.isAlive = false; addLog(`${target.name} 被公投出局。`); game.phase = "NIGHT"; game.wolfVotes = {}; setTimeout(aiAction, 3000); }
         broadcast(); checkWin();
     }
 
-    function aiBehavior() {
+    function aiAction() {
         if(!isHost || game.phase !== "NIGHT") return;
         game.players.forEach(p => {
             if(p.isAlive && p.isAI) {
-                // AI 狼人有自己的獵殺目標，不一定聽領主的
-                if(p.role === "狼人" && !game.wolfVotes[p.id]) {
-                    const targets = game.players.filter(x => x.isAlive && x.role !== "狼人");
-                    const pick = targets[Math.floor(Math.random()*targets.length)].id;
-                    processAction(pick, p.id, "KILL");
-                    setTimeout(() => addLog(`💬 ${p.name}(狼隊交流): 我覺得殺 ${pick+1}號 比較好。`), 2000);
+                if(p.role === "狼人") {
+                    const ts = game.players.filter(x => x.isAlive && x.role !== "狼人");
+                    const pick = ts[Math.floor(Math.random()*ts.length)].id;
+                    setTimeout(() => { processAction(pick, p.id, "KILL"); }, 3000 + (Math.random()*2000));
                 }
             }
         });
@@ -169,18 +151,18 @@
 
     function forceNext() {
         if(game.phase === "NIGHT") {
-            if(game.victim !== null) { game.players[game.victim].isAlive = false; addLog(`太陽升起，${parseInt(game.victim)+1}號 昨晚死了。`); }
-            else addLog("昨晚是個平安夜。");
+            if(game.victim !== null) { game.players[game.victim].isAlive = false; addLog(`🌅 天亮了，${game.victim+1}號 昨晚死了。`); }
+            else addLog("🌅 天亮了，昨晚是平安夜。");
             game.phase = "VOTE";
-        } else { game.phase = "NIGHT"; aiBehavior(); }
+        } else { game.phase = "NIGHT"; game.victim = null; addLog("🌙 天黑請閉眼..."); setTimeout(aiAction, 3000); }
         broadcast();
     }
 
     function checkWin() {
         const w = game.players.filter(p => p.isAlive && p.role === "狼人").length;
         const h = game.players.filter(p => p.isAlive && p.role !== "狼人").length;
-        if(w === 0) { alert("🎉 好人陣營勝利！"); location.reload(); }
-        else if(w >= h) { alert("🐺 狼人陣營勝利！"); location.reload(); }
+        if(w === 0) { alert("🎉 好人勝利！"); location.reload(); }
+        else if(w >= h) { alert("🐺 狼人勝利！"); location.reload(); }
     }
 </script>
 </body>
