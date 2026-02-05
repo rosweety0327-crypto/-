@@ -2,61 +2,55 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>競賽貓站 - 領主最終修復版</title>
+    <title>競賽貓戰 - 領主電腦修復版</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
-        .box { max-width: 450px; margin: auto; background: #161b22; padding: 15px; border-radius: 20px; border: 2px solid #30363d; }
-        .track { background: #21262d; height: 60px; border-radius: 30px; position: relative; margin: 15px 0; border: 1px solid #444; overflow: hidden; }
-        .cat { position: absolute; left: 10px; top: 10px; font-size: 35px; transition: left 0.15s linear; z-index: 10; }
-        .line { position: absolute; right: 60px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); opacity: 0.3; }
-        .btn { background: #238636; color: white; padding: 15px; font-size: 20px; border-radius: 30px; border: none; width: 100%; font-weight: bold; margin-top: 10px; }
-        .btn:disabled { background: #333; }
-        .msg { font-size: 20px; color: #ff4757; height: 30px; margin: 10px 0; font-weight: bold; }
-        .label { text-align: left; font-size: 13px; color: #8b949e; margin-left: 10px; }
+        /* 強制電腦顯示背景與顏色 */
+        html, body { background-color: #0d1117 !important; color: white !important; font-family: Arial, sans-serif; text-align: center; }
+        .track-box { width: 90%; max-width: 600px; margin: 20px auto; background: #161b22; padding: 20px; border: 2px solid #333; border-radius: 10px; }
+        .lane { background: #21262d; height: 60px; margin: 10px 0; position: relative; border-radius: 30px; border: 1px solid #444; }
+        .cat-emoji { position: absolute; left: 10px; top: 10px; font-size: 35px; z-index: 100; transition: left 0.1s linear; }
+        .btn { background: #238636; color: white; padding: 15px 50px; font-size: 20px; border-radius: 10px; cursor: pointer; border: none; margin: 20px; }
+        .btn:disabled { background: #555; }
     </style>
 </head>
 <body>
-    <h1>🐈 競賽貓站</h1>
-    <div class="box">
-        <div class="label">🔴 小宥 (血晶)</div>
-        <div class="track"><div class="line"></div><div id="m1" class="cat">🐱</div></div>
-        <div class="label">🟢 小粉 (回復球)</div>
-        <div class="track"><div class="line"></div><div id="m2" class="cat">😸</div></div>
-        <div class="label">🟣 小希 (紫瞳)</div>
-        <div class="track"><div class="line"></div><div id="m3" class="cat">😼</div></div>
-        <div id="info" class="msg"></div>
-        <button id="goBtn" class="btn" onclick="race()">全軍衝鋒！</button>
+    <h1>🐈 競賽貓站 (電腦修復版)</h1>
+    <div class="track-box">
+        <div class="lane"><div id="cat1" class="cat-emoji">🐱</div></div>
+        <div class="lane"><div id="cat2" class="cat-emoji">😸</div></div>
+        <div class="lane"><div id="cat3" class="cat-emoji">😼</div></div>
+        <h2 id="result">準備好了嗎？</h2>
+        <button class="btn" id="startBtn" onclick="runRace()">開跑！</button>
     </div>
-    <br><a href="index.html" style="color:#58a6ff; text-decoration:none;">← 返回大廳</a>
+    <p><a href="index.html" style="color: #58a6ff;">← 回到大廳</a></p>
 
     <script>
-        function race() {
-            const btn = document.getElementById('goBtn');
-            const info = document.getElementById('info');
+        function runRace() {
+            const btn = document.getElementById('startBtn');
+            const res = document.getElementById('result');
             btn.disabled = true;
-            info.innerText = "🏃 比賽開始...";
-            
-            let p1 = 10, p2 = 10, p3 = 10;
-            // 抓取跑道寬度，自動適應 iPad
-            const goal = document.querySelector('.track').offsetWidth - 80;
+            res.innerText = "🏃 比賽衝刺中...";
 
-            const timer = setInterval(() => {
-                p1 += Math.random() * 9;
-                p2 += Math.random() * 9;
-                p3 += Math.random() * 9;
+            let p1=10, p2=10, p3=10;
+            // 電腦版自動抓取寬度
+            const finish = document.querySelector('.lane').offsetWidth - 60;
 
-                document.getElementById('m1').style.left = p1 + 'px';
-                document.getElementById('m2').style.left = p2 + 'px';
-                document.getElementById('m3').style.left = p3 + 'px';
+            const clock = setInterval(() => {
+                p1 += Math.random() * 12;
+                p2 += Math.random() * 12;
+                p3 += Math.random() * 12;
 
-                if (p1 >= goal || p2 >= goal || p3 >= goal) {
-                    clearInterval(timer);
-                    let win = p1 >= goal ? "小宥領主" : (p2 >= goal ? "可愛小粉" : "神秘小希");
-                    info.innerText = "🏆 冠軍：" + win;
+                document.getElementById('cat1').style.left = p1 + 'px';
+                document.getElementById('cat2').style.left = p2 + 'px';
+                document.getElementById('cat3').style.left = p3 + 'px';
+
+                if (p1 >= finish || p2 >= finish || p3 >= finish) {
+                    clearInterval(clock);
+                    let winner = p1 >= finish ? "小宥" : (p2 >= finish ? "小粉" : "小希");
+                    res.innerText = "🏆 冠軍是：" + winner + "！";
                     btn.disabled = false;
                 }
-            }, 60);
+            }, 50);
         }
     </script>
 </body>
