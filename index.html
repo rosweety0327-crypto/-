@@ -3,39 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥：中二傳奇遊戲城</title>
+    <title>小宥：中二傳奇遊戲城 v7</title>
     <style>
         body { background: #0a0a0a; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
         .poki-container { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-            gap: 20px; 
-            max-width: 900px; 
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            gap: 15px; 
+            max-width: 1000px; 
             margin: 0 auto; 
         }
         .game-card { 
             background: #1a1a1a; 
-            padding: 25px 15px; 
-            border-radius: 20px; 
+            padding: 20px 10px; 
+            border-radius: 15px; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            border: 3px solid #333; 
-            position: relative;
-            overflow: hidden;
+            border: 2px solid #333; 
         }
-        .game-card:hover { transform: scale(1.05); border-color: #ff00ff; box-shadow: 0 0 20px #ff00ff; }
-        .icon { font-size: 50px; margin-bottom: 12px; }
-        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; font-size: 32px; }
-        .mid2-title { color: #00ffff; font-size: 14px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .game-name { font-size: 18px; color: #fff; }
+        .game-card:hover { transform: translateY(-8px); border-color: #ff00ff; box-shadow: 0 0 15px #ff00ff; }
+        .icon { font-size: 40px; margin-bottom: 10px; }
+        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+        .mid2-title { color: #00ffff; font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .game-name { font-size: 15px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>💀 小宥：中二傳奇遊戲城 💀</h1>
-    <p style="color: #888;">管理者：小宥 (黑暗領主) | 測試員：小希姊姊 (光之聖女)</p>
+    <p style="color: #888;">管理者：小宥 (黑暗領主) | 最新解鎖：多人在線聯機</p>
 
     <div class="poki-container">
+        <div class="game-card" style="border-color: #e74c3c;" onclick="location.href='3人狼人殺.html'">
+            <span class="mid2-title">【 萬人宿命 】</span>
+            <div class="icon">👥</div>
+            <div class="game-name" style="color: #e74c3c;">3人狼人殺 (2-23人)</div>
+        </div>
+
         <div class="game-card" onclick="location.href='槍戰 2.html'">
             <span class="mid2-title">【 終焉之戰 】</span>
             <div class="icon">🔫</div>
@@ -73,8 +77,8 @@
         </div>
     </div>
 
-    <footer style="margin-top: 50px; color: #444;">
-        <p>一旦踏入，就沒有回頭路... (小宥開發計畫 2026)</p>
+    <footer style="margin-top: 40px; color: #444; font-size: 10px;">
+        <p>黑暗領主小宥在此監視著每一場勝負...</p>
     </footer>
 
 </body>
