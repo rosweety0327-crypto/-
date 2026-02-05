@@ -1,84 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>3人狼人殺：自訂房號版</title>
+    <title>多人狼人殺：領主隱藏身分版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
-        .box { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 2px solid #444; margin: 10px auto; max-width: 350px; }
-        input { padding: 12px; font-size: 20px; width: 80%; text-align: center; border-radius: 8px; border: none; }
-        .btn { padding: 15px; width: 85%; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        #board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .card { background: #333; border: 1px solid #ff00ff; padding: 10px; border-radius: 8px; }
+        body { background: #0b0e14; color: #cfd8dc; font-family: sans-serif; text-align: center; padding: 10px; }
+        .box { background: #1c2732; padding: 15px; border-radius: 12px; border: 2px solid #3498db; max-width: 400px; margin: 10px auto; }
+        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
+        .card { background: #263238; border: 2px solid #455a64; padding: 10px; border-radius: 10px; min-height: 80px; }
+        .card.my-card { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; } /* 自己的卡片發黃光 */
+        .role-text { font-weight: bold; font-size: 18px; margin-top: 5px; display: block; }
+        .btn-start { background: #e74c3c; color: white; padding: 15px; font-size: 20px; width: 80%; border: none; border-radius: 10px; cursor: pointer; display: none; margin: 10px auto; }
+        input { padding: 10px; border-radius: 5px; border: none; width: 60%; text-align: center; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#ff00ff">💀 領主自訂房號 💀</h2>
+    <h2 style="color:#3498db">🐺 多人狼人殺：領主基地</h2>
 
-    <div id="setup">
+    <div id="setup-area">
         <div class="box">
-            <p>1. 輸入你的專屬房號</p>
-            <input id="room-input" placeholder="例如: 1234">
-            <button onclick="openRoom()" class="btn" style="background:#27ae60">開房間 (當房主)</button>
-            <button onclick="joinRoom()" class="btn" style="background:#2980b9">進房間 (找隊友)</button>
-            <p id="status" style="color:yellow; margin-top:10px;">尚未連線</p>
+            <p>房號 (Room ID): <input id="room-id" placeholder="例如: 777"></p>
+            <button onclick="init(true)" style="background:#27ae60; color:white; padding:8px 15px; border-radius:5px;">當房主</button>
+            <button onclick="init(false)" style="background:#2980b9; color:white; padding:8px 15px; border-radius:5px;">進房間</button>
+            <p id="status" style="color:yellow; font-size:12px;">輸入房號並選擇身分</p>
         </div>
-        <button id="start-btn" class="btn" onclick="start()" style="background:red; display:none">⚔️ 立刻開戰</button>
+        <button id="start-btn" class="btn-start" onclick="startGame()">⚔️ 立刻開始遊戲</button>
     </div>
 
-    <div id="board" style="display:none"></div>
+    <div id="board"></div>
 
     <script>
-        let peer = null, conns = [];
+        let peer = null, conns = [], isHost = false, myIdx = -1;
+        let game = { players: [], phase: "WAITING" };
 
-        // 核心：用你輸入的文字當作 ID
-        function openRoom() {
-            let id = document.getElementById('room-input').value;
+        function init(asHost) {
+            const id = document.getElementById('room-id').value;
             if(!id) return alert("請輸入房號！");
+            isHost = asHost;
             
-            // 關鍵：直接把 id 丟進 Peer，不讓它隨機產生
-            peer = new Peer('poki-' + id); 
+            // 房主 ID 固定為 poki-ID，隊友隨機 ID
+            peer = isHost ? new Peer('poki-' + id) : new Peer();
             
             peer.on('open', () => {
-                document.getElementById('status').innerText = "✅ 房號 poki-" + id + " 已開啟！";
-                document.getElementById('start-btn').style.display = 'block';
+                if(isHost) {
+                    document.getElementById('status').innerText = "✅ 房號 poki-" + id + " 等待中...";
+                    document.getElementById('start-btn').style.display = 'block';
+                } else {
+                    let c = peer.connect('poki-' + id);
+                    setupConn(c);
+                    document.getElementById('status').innerText = "正在連入 poki-" + id + "...";
+                }
             });
+
             peer.on('connection', c => {
-                conns.push(c);
-                alert("隊友進來了！");
-                c.on('data', d => handle(d));
-            });
-            peer.on('error', () => alert("這房號有人用了，換一個吧！"));
-        }
-
-        function joinRoom() {
-            let id = document.getElementById('room-input').value;
-            peer = new Peer(); 
-            peer.on('open', () => {
-                let c = peer.connect('poki-' + id);
-                conns.push(c);
-                c.on('data', d => handle(d));
-                document.getElementById('status').innerText = "正在連入 poki-" + id + "...";
+                setupConn(c);
+                alert("有玩家進場了！");
             });
         }
 
-        function start() {
-            let p = [{n:"小宥",r:"預言家"},{n:"小希",r:"狼人"},{n:"AI1",r:"平民"},{n:"AI2",r:"平民"}];
-            p.sort(() => Math.random() - 0.5);
-            let data = { type:'START', p:p };
-            conns.forEach(c => c.send(data));
-            handle(data);
+        function setupConn(c) {
+            conns.push(c);
+            c.on('data', data => {
+                if(data.type === "SYNC") {
+                    game = data.game;
+                    myIdx = data.targetIdx; // 房主告訴我是第幾號玩家
+                    render();
+                }
+            });
         }
 
-        function handle(data) {
-            if(data.type === 'START') {
-                document.getElementById('setup').style.display = 'none';
-                let b = document.getElementById('board');
-                b.style.display = 'grid';
-                data.p.forEach(x => b.innerHTML += `<div class="card"><b>${x.n}</b><br>${x.r}</div>`);
+        function startGame() {
+            const roles = ["狼人", "預言家", "平民", "女巫", "平民", "平民"]; // 預設角色
+            game.players = [];
+            
+            // 1. 加入房主 (我)
+            game.players.push({ name: "小宥領主", role: roles[0], isAlive: true });
+            
+            // 2. 加入連線玩家
+            conns.forEach((c, i) => {
+                game.players.push({ name: "玩家 " + (i+2), role: roles[(i+1)%roles.length], isAlive: true });
+            });
+
+            // 3. 補 AI 到 6 人
+            while(game.players.length < 6) {
+                game.players.push({ name: "AI 貓奴 " + (game.players.length+1), role: "平民", isAlive: true });
             }
+
+            game.phase = "START";
+            
+            // 4. 發送資料給所有人，並告訴他們是誰
+            conns.forEach((c, i) => {
+                c.send({ type: "SYNC", game: game, targetIdx: i + 1 });
+            });
+            
+            myIdx = 0; // 房主永遠是 0
+            render();
+        }
+
+        function render() {
+            document.getElementById('setup-area').style.display = 'none';
+            const board = document.getElementById('board');
+            board.innerHTML = "";
+
+            game.players.forEach((p, i) => {
+                const isMe = (i === myIdx);
+                const div = document.createElement('div');
+                div.className = `card ${isMe ? 'my-card' : ''}`;
+                
+                // 核心邏輯：如果是自己，顯示身分；如果是別人，隱藏！
+                let roleDisplay = (isMe || !p.isAlive) ? p.role : "???";
+                let color = (isMe) ? "#f1c40f" : "#fff";
+
+                div.innerHTML = `
+                    <small>${isMe ? '【你】' : '玩家 '+(i+1)}</small><br>
+                    <b>${p.name}</b><br>
+                    <span class="role-text" style="color:${color}">${roleDisplay}</span>
+                `;
+                board.appendChild(div);
+            });
         }
     </script>
 </body>
