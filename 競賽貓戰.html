@@ -1,58 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>競賽貓站-領主電腦修復版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>競賽貓站 - 修正版</title>
     <style>
-        /* 強制電腦顯示背景與顏色 */
-        html, body { background-color: #0d1117 !important; color: white !important; font-family: Arial, sans-serif; text-align: center; }
-        .track-box { width: 90%; max-width: 600px; margin: 20px auto; background: #161b22; padding: 20px; border: 2px solid #333; border-radius: 10px; }
-        .lane { background: #21262d; height: 60px; margin: 10px 0; position: relative; border-radius: 30px; border: 1px solid #444; }
-        .cat-emoji { position: absolute; left: 10px; top: 10px; font-size: 35px; z-index: 100; transition: left 0.1s linear; }
-        .btn { background: #238636; color: white; padding: 15px 50px; font-size: 20px; border-radius: 10px; cursor: pointer; border: none; margin: 20px; }
-        .btn:disabled { background: #555; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .game-area { max-width: 500px; margin: auto; background: #161b22; padding: 15px; border-radius: 20px; border: 2px solid #30363d; }
+        .track { background: #21262d; height: 60px; border-radius: 30px; position: relative; margin: 15px 0; border: 1px solid #444; overflow: hidden; }
+        .cat { position: absolute; left: 10px; top: 10px; font-size: 35px; transition: left 0.1s linear; }
+        .line { position: absolute; right: 50px; top: 0; bottom: 0; width: 10px; background: white; opacity: 0.2; }
+        .start-btn { background: #238636; color: white; padding: 15px 40px; font-size: 20px; border-radius: 30px; border: none; cursor: pointer; width: 100%; font-weight: bold; }
+        .start-btn:disabled { background: #444; color: #888; }
+        #result { font-size: 22px; color: #f1c40f; margin: 15px 0; min-height: 30px; }
     </style>
 </head>
 <body>
-    <h1>🐈 競賽貓站 (電腦修復版)</h1>
-    <div class="track-box">
-        <div class="lane"><div id="cat1" class="cat-emoji">🐱</div></div>
-        <div class="lane"><div id="cat2" class="cat-emoji">😸</div></div>
-        <div class="lane"><div id="cat3" class="cat-emoji">😼</div></div>
-        <h2 id="result">準備好了嗎？</h2>
-        <button class="btn" id="startBtn" onclick="runRace()">開跑！</button>
+    <h1>🐈 競賽貓站</h1>
+    <div class="game-area">
+        <div class="track"><div class="line"></div><div id="c1" class="cat">🐱</div></div>
+        <p style="font-size:12px; color:#888;">小宥 (血晶)</p>
+        <div class="track"><div class="line"></div><div id="c2" class="cat">😸</div></div>
+        <p style="font-size:12px; color:#888;">小粉 (回復球)</p>
+        <div class="track"><div class="line"></div><div id="c3" class="cat">😼</div></div>
+        <p style="font-size:12px; color:#888;">小希 (紫瞳)</p>
+        
+        <div id="result"></div>
+        <button id="btn" class="start-btn" onclick="startRace()">全軍衝鋒！</button>
     </div>
-    <p><a href="index.html" style="color: #58a6ff;">← 回到大廳</a></p>
+    <br><a href="index.html" style="color: #58a6ff; text-decoration: none;">← 返回領主大廳</a>
 
     <script>
-        function runRace() {
-            const btn = document.getElementById('startBtn');
+        function startRace() {
+            const btn = document.getElementById('btn');
             const res = document.getElementById('result');
             btn.disabled = true;
-            res.innerText = "🏃 比賽衝刺中...";
+            res.innerText = "🏃 比賽開始...";
 
-            let p1=10, p2=10, p3=10;
-            // 電腦版自動抓取寬度
-            const finish = document.querySelector('.lane').offsetWidth - 60;
+            let p1 = 10, p2 = 10, p3 = 10;
+            // 抓取跑道實際寬度，扣掉貓咪寬度
+            const goal = document.querySelector('.track').offsetWidth - 70;
 
-            const clock = setInterval(() => {
-                p1 += Math.random() * 12;
-                p2 += Math.random() * 12;
-                p3 += Math.random() * 12;
+            const timer = setInterval(() => {
+                // 每次隨機移動
+                p1 += Math.random() * 10;
+                p2 += Math.random() * 10;
+                p3 += Math.random() * 10;
 
-                document.getElementById('cat1').style.left = p1 + 'px';
-                document.getElementById('cat2').style.left = p2 + 'px';
-                document.getElementById('cat3').style.left = p3 + 'px';
+                document.getElementById('c1').style.left = p1 + 'px';
+                document.getElementById('c2').style.left = p2 + 'px';
+                document.getElementById('c3').style.left = p3 + 'px';
 
-                if (p1 >= finish || p2 >= finish || p3 >= finish) {
-                    clearInterval(clock);
-                    let winner = p1 >= finish ? "小宥" : (p2 >= finish ? "小粉" : "小希");
+                if (p1 >= goal || p2 >= goal || p3 >= goal) {
+                    clearInterval(timer);
+                    let winner = p1 >= goal ? "小宥領主" : (p2 >= goal ? "可愛小粉" : "神秘小希");
                     res.innerText = "🏆 冠軍是：" + winner + "！";
                     btn.disabled = false;
                 }
-            }, 50);
+            }, 60);
         }
     </script>
 </body>
 </html>
-
