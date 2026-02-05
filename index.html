@@ -11,6 +11,7 @@
             --blue: #58a6ff;
             --red: #ff4757;
             --gold: #f1c40f;
+            --purple: #8e44ad;
             --text: #c9d1d9;
         }
 
@@ -46,20 +47,22 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 120px;
         }
 
         .card:hover { border-color: var(--blue); transform: translateY(-5px); }
         .card:active { transform: scale(0.95); background: #21262d; }
 
-        /* 特殊卡片顏色 */
+        /* 特殊卡片顏色樣式 */
         .novel-card { border-color: var(--red); }
         .cat-card { border-color: var(--gold); }
+        .wolf-card { border-color: var(--purple); }
 
         .icon { font-size: 40px; margin-bottom: 8px; }
         .title { font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 4px; }
         .desc { font-size: 11px; color: #8b949e; }
         
-        .novel-tag { position: absolute; top: 10px; right: -25px; background: var(--red); color: white; font-size: 9px; padding: 2px 25px; transform: rotate(45deg); }
+        .tag { position: absolute; top: 10px; right: -25px; color: white; font-size: 9px; padding: 2px 25px; transform: rotate(45deg); }
     </style>
 </head>
 <body>
@@ -69,22 +72,24 @@
     <div class="container">
         
         <div class="card novel-card" onclick="location.href='library.html'">
-            <span class="novel-tag">NOVEL</span>
+            <span class="tag" style="background: var(--red);">NOVEL</span>
             <div class="icon">📖</div>
             <div class="title" style="color: var(--red);">血之遺痕</div>
             <div class="desc">小說全集收錄</div>
         </div>
 
         <div class="card cat-card" onclick="location.href='race.html'">
+            <span class="tag" style="background: var(--gold);">1001關</span>
             <div class="icon">🐈</div>
             <div class="title" style="color: var(--gold);">競賽貓站</div>
             <div class="desc">闇黑啟示錄</div>
         </div>
 
-        <div class="card" onclick="location.href='二人狼人殺 2.html'">
+        <div class="card wolf-card" onclick="location.href='wolf.html'">
+            <span class="tag" style="background: var(--purple);">連線版</span>
             <div class="icon">🐺</div>
-            <div class="title">2人狼人殺</div>
-            <div class="desc">經典對戰版</div>
+            <div class="title" style="color: var(--purple);">多人狼人殺</div>
+            <div class="desc">3-6人連線對局</div>
         </div>
 
         <div class="card" onclick="location.href='數字炸彈.html'">
@@ -114,7 +119,7 @@
     </div>
 
     <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
-        © 2026 小宥領主基地 | 系統狀態：已修復
+        © 2026 小宥領主基地 | 系統版本：V1.2 多人連線版
     </footer>
 
 </body>
