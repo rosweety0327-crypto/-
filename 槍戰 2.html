@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>3D 草原生存 - 戰神版</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #87CEEB; font-family: 'Segoe UI', Arial, sans-serif; }
+        #ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+        
+        /* 血條樣式 */
+        #hud { position: fixed; bottom: 30px; left: 30px; width: 300px; }
+        #hp-bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
+        #hp-bar-fill { width: 100%; height: 100%; background: #2ecc71; transition: width 0.2s; }
+        #hp-text { color: white; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px #000; margin-top: 5px; }
+        
+        #stats { position: fixed; top: 30px; left: 30px; color: white; text-shadow: 2px 2px 4px #000; font-size: 24px; }
+        #inventory { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; pointer-events: auto; }
+        .slot { width: 70px; height: 70px; background: rgba(0,0,0,0.7); border: 3px solid #555; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border-radius: 12px; transition: 0.3s; }
+        .slot.active { border-color: #00ffcc; background: rgba(0,255,204,0.3); transform: scale(1.1); box-shadow: 0 0 15px #00ffcc; }
+        
+        #crosshair { position: fixed; top: 50%; left: 50%; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; z-index: 100; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" onclick="startGame()">
+        <div>
+            <h1 style="font-size: 48px; margin-bottom: 10px;">🌿 草原不滅戰神</h1>
+            <p style="font-size: 20px;">血量已強化：<span style="color: #2ecc71;">500 HP</span></p>
+            <p>[1] 長刀 (近戰) | [2] 手槍 (遠程)</p>
+            <p>擊殺敵人可恢復生命值！</p>
+            <h2 style="margin-top: 30px; color: #f1c40f;">點擊開始戰鬥</h2>
+        </div>
+    </div>
+
+    <div id="ui">
+        <div id="crosshair"></div>
+        <div id="stats">💀 擊殺數: <span id="score">0</span></div>
+        <div id="hud">
+            <div id="hp-bar-bg"><div id="hp-bar-fill"></div></div>
+            <div id="hp-text">HP: <span id="hp-num">500</span> / 500</div>
+        </div>
+        <div id="inventory">
+            <div id="slot1" class="slot active">1 刀</div>
+            <div id="slot2" class="slot">2 槍</div>
+        </div>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.1/three.min.js"></script>
+<script>
+    let scene, camera, renderer, sword, gun, muzzleFlash;
+    let currentWeapon = "sword", isAction = false, hp = 500, maxHp = 500, score = 0, enemies = [];
+    const keys = { w: false, a: false, s: false, d: false };
+
+    function startGame() {
+        document.getElementById('overlay').style.display = 'none';
+        if (!renderer) init();
+        document.body.requestPointerLock();
+    }
+
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 60);
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.rotation.order = "YXZ";
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        sun.position.set(20, 40, 20);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        // 繪製草地地板
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#4d9a27'; ctx.fillRect(0,0,128,128);
+        for(let i=0; i<400; i++) {
+            ctx.fillStyle = `rgb(60, ${150 + Math.random() * 50}, 40)`;
+            ctx.fillRect(Math.random()*128, Math.random()*128, 2, 5);
+        }
+        const grassTex = new THREE.CanvasTexture(canvas);
+        grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
+        grassTex.repeat.set(120, 120);
+
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshStandardMaterial({ map: grassTex }));
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        createWeapons();
+        switchWeapon("sword");
+
+        for(let i=0; i<10; i++) spawnEnemy();
+
+        window.onkeydown = (e) => {
+            if(e.key === "1") switchWeapon("sword");
+            if(e.key === "2") switchWeapon("gun");
+            if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true;
+        };
+        window.onkeyup = (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; };
+        window.onmousedown = useWeapon;
+        window.onmousemove = (e) => {
+            if (document.pointerLockElement) {
+                camera.rotation.y -= e.movementX * 0.002;
+                camera.rotation.x -= e.movementY * 0.002;
+                camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+            }
+        };
+
+        updateUI();
+        animate();
+    }
+
+    function createWeapons() {
+        sword = new THREE.Group();
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.3, 0.12), new THREE.MeshBasicMaterial({color: 0xffffff}));
+        blade.position.y = 0.65;
+        sword.add(blade, new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35), new THREE.MeshStandardMaterial({color: 0x333})));
+        sword.position.set(0.6, -0.6, -1.0);
+        sword.rotation.set(0.2, 0, 0.4);
+        camera.add(sword);
+
+        gun = new THREE.Group();
+        const gBody = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.5), new THREE.MeshStandardMaterial({color: 0x222}));
+        const gBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.45), new THREE.MeshStandardMaterial({color: 0x111}));
+        gBarrel.rotation.x = Math.PI/2; gBarrel.position.z = -0.35;
+        muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0}));
+        muzzleFlash.position.z = -0.7;
+        gun.add(gBody, gBarrel, muzzleFlash);
+        gun.position.set(0.45, -0.45, -0.9);
+        camera.add(gun);
+
+        scene.add(camera);
+    }
+
+    function switchWeapon(type) {
+        currentWeapon = type;
+        sword.visible = (type === "sword");
+        gun.visible = (type === "gun");
+        document.getElementById('slot1').classList.toggle('active', type === "sword");
+        document.getElementById('slot2').classList.toggle('active', type === "gun");
+    }
+
+    function useWeapon() {
+        if (!document.pointerLockElement || isAction || hp <= 0) return;
+        isAction = true;
+        if (currentWeapon === "sword") {
+            let start = Date.now();
+            function sweep() {
+                let p = (Date.now() - start) / 180;
+                if (p < 1) {
+                    sword.rotation.z = 0.4 - Math.sin(p * Math.PI) * 2.2;
+                    sword.position.x = 0.6 - Math.sin(p * Math.PI) * 1.5;
+                    checkHit(4.5);
+                    requestAnimationFrame(sweep);
+                } else { sword.rotation.z = 0.4; sword.position.x = 0.6; isAction = false; }
+            }
+            sweep();
+        } else {
+            muzzleFlash.material.opacity = 1;
+            gun.position.z += 0.15;
+            checkHit(60);
+            setTimeout(() => { muzzleFlash.material.opacity = 0; gun.position.z = -0.9; isAction = false; }, 60);
+        }
+    }
+
+    function checkHit(range) {
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera({ x: 0, y: 0 }, camera);
+        ray.far = range;
+        const hits = ray.intersectObjects(enemies);
+        if (hits.length > 0) {
+            scene.remove(hits[0].object);
+            enemies = enemies.filter(e => e !== hits[0].object);
+            score++;
+            hp = Math.min(maxHp, hp + 15); // 擊殺回血
+            updateUI();
+            setTimeout(spawnEnemy, 600);
+        }
+    }
+
+    function spawnEnemy() {
+        const bot = new THREE.Mesh(new THREE.OctahedronGeometry(0.7), new THREE.MeshStandardMaterial({color: 0x333, emissive: 0xff3300, emissiveIntensity: 0.5}));
+        const ang = Math.random() * Math.PI * 2;
+        const d = 18 + Math.random() * 12;
+        bot.position.set(camera.position.x + Math.cos(ang)*d, 1.2, camera.position.z + Math.sin(ang)*d);
+        scene.add(bot);
+        enemies.push(bot);
+    }
+
+    function updateUI() {
+        document.getElementById('hp-num').innerText = Math.floor(hp);
+        document.getElementById('score').innerText = score;
+        const percent = (hp / maxHp) * 100;
+        document.getElementById('hp-bar-fill').style.width = percent + "%";
+        // 血量低於 30% 變紅色
+        document.getElementById('hp-bar-fill').style.background = percent < 30 ? "#e74c3c" : "#2ecc71";
+    }
+
+    function animate() {
+        if (hp <= 0) return;
+        requestAnimationFrame(animate);
+
+        const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+        const side = new THREE.Vector3().crossVectors(camera.up, dir).normalize();
+        const moveSpeed = 0.18;
+        if (keys.w) camera.position.addScaledVector(dir, moveSpeed);
+        if (keys.s) camera.position.addScaledVector(dir, -moveSpeed);
+        if (keys.a) camera.position.addScaledVector(side, moveSpeed);
+        if (keys.d) camera.position.addScaledVector(side, -moveSpeed);
+
+        enemies.forEach(e => {
+            const dist = e.position.distanceTo(camera.position);
+            if (dist > 1.3) {
+                e.position.addScaledVector(new THREE.Vector3().subVectors(camera.position, e.position).normalize(), 0.1);
+            } else {
+                hp -= 0.3; // 傷害稍微調低一點
+                updateUI();
+                if (hp <= 0) die();
+            }
+            e.rotation.y += 0.05;
+        });
+
+        renderer.render(scene, camera);
+    }
+
+    function die() {
+        document.body.exitPointerLock();
+        const screen = document.createElement('div');
+        screen.style = "position:fixed; inset:0; background:rgba(100,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:200; backdrop-filter:blur(5px);";
+        screen.innerHTML = `<h1>戰士倒下了</h1><p style='font-size:24px'>你的擊殺傳奇: ${score}</p><button onclick="location.reload()" style="padding:15px 40px; cursor:pointer; font-size:20px; border-radius:30px; border:none; background:#fff; color:#000; font-weight:bold;">重生再戰</button>`;
+        document.body.appendChild(screen);
+    }
+</script>
+</body>
+</html>

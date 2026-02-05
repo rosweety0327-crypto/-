@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>貓咪大戰爭：闇黑啟示錄 - 1001關終極版</title>
+    <style>
+        :root { --dark: #050505; --gold: #f1c40f; --win: #27ae60; --glow: #8e44ad; --text: #e0e0e0; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--dark); margin: 0; color: var(--text); overflow: hidden; }
+        
+        #save-selector { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        .save-btn { width: 300px; padding: 25px; font-size: 24px; font-weight: bold; border-radius: 20px; border: 3px solid var(--glow); cursor: pointer; color: white; transition: 0.3s; box-shadow: 0 0 10px rgba(142, 68, 173, 0.3); }
+        .save-btn:hover { transform: translateY(-5px); box-shadow: 0 0 30px var(--glow); filter: brightness(1.2); }
+        
+        .top-bar { height: 65px; background: #111; display: flex; align-items: center; justify-content: space-around; border-bottom: 3px solid var(--gold); font-size: 20px; }
+        .nav { display: flex; justify-content: center; background: #222; padding: 12px; gap: 10px; }
+        .nav button { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: #444; color: white; font-weight: bold; transition: 0.2s; }
+        .nav button:hover { background: #666; }
+        
+        .view { display: none; padding: 20px; height: calc(100vh - 180px); overflow-y: auto; }
+        .view.active { display: block; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .stage-card { padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #333; background: #1a1a1a; transition: 0.3s; }
+        .locked { opacity: 0.3; filter: grayscale(1); }
+        .cleared { border-color: var(--win); background: #002200; box-shadow: inset 0 0 10px var(--win); }
+        
+        .card { background: #fff; color: #000; padding: 12px; border-radius: 15px; text-align: center; border: 3px solid #666; cursor: pointer; transition: 0.2s; }
+        .in-team { border-color: #3498db; background: #b3e5fc; box-shadow: 0 0 20px #3498db; }
+        .img-box { font-size: 45px; margin-bottom: 5px; }
+        .lvl-up-btn { background: var(--gold); border: none; padding: 6px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; font-size: 12px; }
+        
+        #battle-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
+        #battle-ui { position: absolute; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; background: rgba(0,0,0,0.85); box-sizing: border-box; z-index: 2000; border-bottom: 2px solid #444; }
+        #b-money { font-size: 32px; color: #2ecc71; font-weight: bold; }
+        #battle-field { position: absolute; bottom: 160px; width: 100%; height: 400px; background: linear-gradient(to bottom, #050505, #1a1a1a); border-bottom: 5px solid #444; overflow: hidden; }
+        .base { position: absolute; bottom: 0; width: 160px; height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; text-align: center; color: white; }
+        .deploy-bar { position: absolute; bottom: 0; width: 100%; height: 160px; background: #111; display: flex; align-items: center; gap: 12px; padding: 0 20px; overflow-x: auto; box-sizing: border-box; border-top: 2px solid #333; }
+        .deploy-btn { min-width: 95px; height: 130px; background: #eee; color: black; border-radius: 10px; text-align: center; cursor: pointer; position: relative; overflow: hidden; font-weight: bold; font-size: 12px; flex-shrink: 0; }
+        .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0,0,0,0.7); transition: height linear; }
+        .unit { position: absolute; bottom: 15px; font-size: 50px; z-index: 5; transition: left 0.1s linear; }
+    </style>
+</head>
+<body>
+
+<div id="save-selector">
+    <h1 style="color:var(--gold); font-size: 45px; text-shadow: 0 0 15px var(--glow); margin-bottom: 0;">貓咪大戰爭：闇黑啟示錄</h1>
+    <p style="color:#aaa; letter-spacing: 2px;">—— 第 1001 個黃昏 ——</p>
+    <button class="save-btn" style="background:#2980b9;" onclick="loadSave('yoo')">小宥 的時空存檔</button>
+    <button class="save-btn" style="background:#8e44ad;" onclick="loadSave('fish')">小魚弟 的時空存檔</button>
+</div>
+
+<div id="game-main" style="display:none;">
+    <div class="top-bar">
+        <span id="player-name" style="color:cyan; font-weight:bold;"></span>
+        <span>💰 XP: <span id="ui-xp">0</span></span>
+        <span>🥫 罐頭: <span id="ui-can">0</span></span>
+    </div>
+    <div class="nav">
+        <button onclick="setView('stages')">墮落世界 (1001)</button>
+        <button onclick="setView('team')">魔力進化 (升級)</button>
+        <button onclick="setView('gacha')">混沌召喚 (抽卡)</button>
+    </div>
+    <div id="view-stages" class="view active"><div class="grid" id="stage-grid"></div></div>
+    <div id="view-team" class="view"><div class="grid" id="team-grid"></div></div>
+    <div id="view-gacha" class="view" style="text-align:center;">
+        <div style="margin: 50px 0;">
+            <button style="font-size:28px; padding:25px 50px; background:var(--gold); border-radius:60px; border:none; cursor:pointer; font-weight:bold; box-shadow: 0 10px 20px rgba(0,0,0,0.5);" onclick="drawCat()">150 罐頭召喚</button>
+        </div>
+        <div id="gacha-result" style="font-size:30px; margin-top:40px; color:var(--gold); text-shadow: 0 0 15px orange;"></div>
+    </div>
+</div>
+
+<div id="battle-screen">
+    <div id="battle-ui">
+        <div id="b-money">💵 0</div>
+        <div id="s-title" style="color:var(--gold); font-size: 24px;"></div>
+        <button onclick="exitBattle()" style="background:#c0392b; color:white; border:none; padding:10px 25px; border-radius:8px; font-weight:bold; cursor:pointer;">撤退</button>
+    </div>
+    <div id="battle-field">
+        <div class="base" style="left:0; background:linear-gradient(to top, #1e3c72, #2a5298); border-right: 4px solid #fff;">
+            聖域要塞<br><span id="m-hp" style="font-size:20px; color:#2ecc71;">5000</span>
+        </div>
+        <div class="base" style="right:0; background:linear-gradient(to top, #000, #434343); border-left: 4px solid #f00;">
+            深淵魔窟<br><span id="e-hp" style="font-size:20px; color:#e74c3c;">500</span>
+        </div>
+    </div>
+    <div class="deploy-bar" id="deploy-btns"></div>
+</div>
+
+<script>
+// --- 40 位角色：強化差異性 ---
+const ALL_CATS = [
+    { id: 1, name: "希", emo: "⚔️", cost: 75, range: 60, atk: 15, hp: 400, cd: 2000 },
+    { id: 2, name: "秋", emo: "⚡", cost: 75, range: 60, atk: 15, hp: 400, cd: 2000 },
+    { id: 3, name: "影月殺手", emo: "👤", cost: 200, range: 70, atk: 60, hp: 350, cd: 3500 },
+    { id: 4, name: "烈焰魔導", emo: "🔥", cost: 350, range: 300, atk: 90, hp: 450, cd: 6000 },
+    { id: 5, name: "重鎧巨像", emo: "🛡️", cost: 500, range: 40, atk: 20, hp: 4500, cd: 12000 },
+    { id: 6, name: "極光獵人", emo: "🏹", cost: 400, range: 450, atk: 110, hp: 300, cd: 8000 },
+    { id: 7, name: "星之裁決", emo: "🌟", cost: 280, range: 150, atk: 55, hp: 1000, cd: 5000 },
+    { id: 8, name: "狂雷之巔", emo: "⛈️", cost: 600, range: 220, atk: 180, hp: 1500, cd: 13000 },
+    { id: 9, name: "冥河擺渡", emo: "🛶", cost: 550, range: 320, atk: 130, hp: 800, cd: 14000 },
+    { id: 10, name: "終焉之龍", emo: "🐉", cost: 1500, range: 480, atk: 450, hp: 7000, cd: 45000 },
+    { id: 11, name: "海淵狂魔", emo: "🐙", cost: 700, range: 90, atk: 95, hp: 4000, cd: 18000 },
+    { id: 12, name: "影之劍聖", emo: "🥷", cost: 220, range: 140, atk: 70, hp: 600, cd: 4500 },
+    { id: 13, name: "萬年冰封", emo: "❄️", cost: 320, range: 180, atk: 60, hp: 1300, cd: 7000 },
+    { id: 14, name: "孤傲殘狼", emo: "🐺", cost: 250, range: 80, atk: 80, hp: 900, cd: 4800 },
+    { id: 15, name: "時空囚徒", emo: "⏳", cost: 650, range: 350, atk: 140, hp: 1000, cd: 16000 },
+    { id: 16, name: "殲滅鐵騎", emo: "🤖", cost: 900, range: 250, atk: 250, hp: 3000, cd: 25000 },
+    { id: 17, name: "墮落福音", emo: "🖤", cost: 800, range: 420, atk: 190, hp: 1200, cd: 20000 },
+    { id: 18, name: "獄淵惡犬", emo: "🐕", cost: 100, range: 50, atk: 40, hp: 500, cd: 2800 },
+    { id: 19, name: "古樹神木", emo: "🌳", cost: 400, range: 50, atk: 30, hp: 2800, cd: 11000 },
+    { id: 20, name: "永恆黑洞", emo: "🕳️", cost: 1800, range: 550, atk: 650, hp: 1500, cd: 55000 },
+    { id: 21, name: "聖騎士小宥", emo: "👑", cost: 1200, range: 330, atk: 320, hp: 7500, cd: 35000 },
+    { id: 22, name: "暗夜伯爵", emo: "🧛", cost: 550, range: 130, atk: 120, hp: 1400, cd: 13000 },
+    { id: 23, name: "深淵之眼", emo: "👁️", cost: 450, range: 380, atk: 100, hp: 500, cd: 10000 },
+    { id: 24, name: "不滅武魂", emo: "🍣", cost: 180, range: 70, atk: 55, hp: 800, cd: 3800 },
+    { id: 25, name: "魂索鐮刀", emo: "💀", cost: 1000, range: 260, atk: 280, hp: 2000, cd: 28000 },
+    { id: 26, name: "虛空飛艇", emo: "🛸", cost: 750, range: 430, atk: 170, hp: 1100, cd: 18000 },
+    { id: 27, name: "幻雷靈狐", emo: "🦊", cost: 280, range: 160, atk: 75, hp: 700, cd: 5800 },
+    { id: 28, name: "岩漿焚者", emo: "🌋", cost: 850, range: 90, atk: 130, hp: 5000, cd: 20000 },
+    { id: 29, name: "咒禁法師", emo: "🔮", cost: 480, range: 310, atk: 105, hp: 600, cd: 11000 },
+    { id: 30, name: "聖潔之翼", emo: "🦅", cost: 650, range: 340, atk: 150, hp: 950, cd: 15000 },
+    { id: 31, name: "荒漠巨蠍", emo: "🦂", cost: 230, range: 80, atk: 65, hp: 850, cd: 4800 },
+    { id: 32, name: "潮汐歌者", emo: "🧜", cost: 350, range: 220, atk: 70, hp: 1500, cd: 8500 },
+    { id: 33, name: "叛逆騎士", emo: "♟️", cost: 300, range: 70, atk: 75, hp: 1200, cd: 5500 },
+    { id: 34, name: "收魂幽魂", emo: "👻", cost: 450, range: 270, atk: 130, hp: 400, cd: 12000 },
+    { id: 35, name: "極寒地帶", emo: "🧊", cost: 520, range: 200, atk: 90, hp: 1800, cd: 13000 },
+    { id: 36, name: "鑽石意志", emo: "💎", cost: 1300, range: 180, atk: 180, hp: 11000, cd: 38000 },
+    { id: 37, name: "閃爍迅雷", emo: "⚡", cost: 260, range: 130, atk: 85, hp: 600, cd: 4500 },
+    { id: 38, name: "邪域之主", emo: "👾", cost: 1600, range: 510, atk: 500, hp: 3000, cd: 48000 },
+    { id: 39, name: "真理聖賢", emo: "🧙", cost: 950, range: 450, atk: 250, hp: 1000, cd: 26000 },
+    { id: 40, name: "創世之神", emo: "✨", cost: 3000, range: 600, atk: 1500, hp: 15000, cd: 75000 }
+];
+
+let userData = { xp: 0, can: 500, owned: [1, 2], team: [1, 2], cleared: [], levels: {}, version: 20260205 };
+let currentSlot = '', isFighting = false, bMoney = 0, mHP = 5000, eHP = 500, curS = 0, units = [];
+
+function loadSave(slot) {
+    currentSlot = 'CAT_WAR_V1001_' + slot;
+    let saved = localStorage.getItem(currentSlot);
+    if (saved) {
+        let parsed = JSON.parse(saved);
+        // 數據補全機制：如果存檔裡沒有某些欄位，就補上預設值，這就是你要的「更新不刷掉紀錄」按鍵
+        userData = Object.assign({}, userData, parsed);
+        userData.version = 20260205; 
+    }
+    document.getElementById("player-name").innerText = slot==='yoo'?'小宥':'小魚弟';
+    document.getElementById("save-selector").style.display = "none";
+    document.getElementById("game-main").style.display = "block";
+    render();
+}
+
+function render() {
+    document.getElementById("ui-xp").innerText = userData.xp;
+    document.getElementById("ui-can").innerText = userData.can;
+    
+    let stageGrid = document.getElementById("stage-grid");
+    stageGrid.innerHTML = "";
+    // 渲染 1001 關
+    for(let i=1; i<=1001; i++) {
+        let isDone = userData.cleared.includes(i);
+        let isLock = i > 1 && !userData.cleared.includes(i-1);
+        stageGrid.innerHTML += `
+            <div class="stage-card ${isLock?'locked':''} ${isDone?'cleared':''}">
+                <b>第 ${i} 關</b><br>
+                ${isLock?'🔒':`<button style="margin-top:8px;" onclick="startBattle(${i})">侵略</button>`}
+            </div>`;
+    }
+
+    document.getElementById("team-grid").innerHTML = userData.owned.map(id => {
+        const cat = ALL_CATS.find(c => c.id == id);
+        let lv = userData.levels[id] || 1;
+        let inT = userData.team.includes(id);
+        return `<div class="card ${inT?'in-team':''}" onclick="toggleTeam(${id})">
+            <div class="img-box">${cat.emo}</div>
+            <div style="font-size:13px; font-weight:bold;">${cat.name}</div>
+            <div style="font-size:11px;">等級: ${lv}</div>
+            <button class="lvl-up-btn" onclick="event.stopPropagation(); upgradeCat(${id})">升級:${lv*1200}XP</button>
+        </div>`;
+    }).join('');
+    localStorage.setItem(currentSlot, JSON.stringify(userData));
+}
+
+function upgradeCat(id) {
+    let lv = userData.levels[id] || 1;
+    if (userData.xp >= lv * 1200) {
+        userData.xp -= lv * 1200;
+        userData.levels[id] = lv + 1;
+        render();
+    }
+}
+
+function toggleTeam(id) {
+    let idx = userData.team.indexOf(id);
+    if(idx > -1) { if(userData.team.length > 1) userData.team.splice(idx,1); }
+    else { if(userData.team.length < 10) userData.team.push(id); }
+    render();
+}
+
+function startBattle(id) {
+    curS = id;
+    isFighting = true;
+    bMoney = 0;
+    mHP = 5000 + (id * 200); 
+    eHP = 3000 + (id * 4000); 
+    units = [];
+    document.getElementById("s-title").innerText = `第 ${id} 節 戰役`;
+    document.getElementById("battle-screen").style.display = "block";
+    document.getElementById("deploy-btns").innerHTML = userData.team.map(cid => {
+        const cat = ALL_CATS.find(c => c.id == cid);
+        return `<div id="btn-${cid}" class="deploy-btn" onclick="spawnUnit(${cid})"><div class="cd-overlay" id="cd-${cid}"></div><div style="font-size:40px;margin-top:15px;">${cat.emo}</div>$${cat.cost}</div>`;
+    }).join('');
+    gameLoop();
+}
+
+function spawnUnit(id) {
+    const cat = ALL_CATS.find(c => c.id == id);
+    const btn = document.getElementById(`btn-${id}`);
+    if(cat && bMoney >= cat.cost && !btn.classList.contains('cd')) {
+        bMoney -= cat.cost;
+        let lv = userData.levels[id] || 1;
+        const el = document.createElement("div"); el.className = "unit"; el.innerText = cat.emo;
+        document.getElementById("battle-field").appendChild(el);
+        units.push({ x: 160, type: 'my', el: el, range: cat.range, atk: cat.atk * (1+lv*0.2), hp: cat.hp * (1+lv*0.2), dead: false });
+        btn.classList.add('cd');
+        let cdBar = document.getElementById(`cd-${id}`);
+        cdBar.style.height = "100%";
+        setTimeout(()=>cdBar.style.height="0%", 10);
+        cdBar.style.transition = `height ${cat.cd}ms linear`;
+        setTimeout(()=>btn.classList.remove('cd'), cat.cd);
+    }
+}
+
+function gameLoop() {
+    if(!isFighting) return;
+    bMoney += (3 + curS*0.1); 
+    document.getElementById("b-money").innerText = "💵 " + Math.floor(bMoney);
+    document.getElementById("m-hp").innerText = Math.round(mHP);
+    document.getElementById("e-hp").innerText = Math.round(eHP);
+
+    units.forEach(u => {
+        if(u.dead) return;
+        let r = u.type==='my'?u.range:55;
+        let target = units.find(t => !t.dead && t.type !== u.type && Math.abs(t.x - u.x) < r);
+        let baseInRange = (u.type==='my' && (window.innerWidth-160-u.x)<r) || (u.type==='en' && (u.x-160)<55);
+        
+        if(target || baseInRange) {
+            if(u.type==='my') { if(target) target.hp-=u.atk; else eHP-=u.atk; }
+            else { if(target) target.hp-=(20+curS*5); else mHP-=(25+curS*10); }
+            if(target && target.hp<=0) { target.dead=true; target.el.remove(); }
+        } else {
+            if(u.type==='my') { u.x+=4; u.el.style.left=u.x+"px"; }
+            else { u.x-=2.5; u.el.style.left=u.x+"px"; }
+        }
+    });
+    units = units.filter(u => !u.dead);
+
+    if(Math.random() < 0.02 + (curS*0.001)) {
+        const el = document.createElement("div"); el.className = "unit"; el.innerText = "👾";
+        document.getElementById("battle-field").appendChild(el);
+        units.push({ x: window.innerWidth-160, type:'en', el:el, hp:200*(1+curS*1.2), dead:false });
+    }
+
+    if(eHP<=0) { 
+        let rewardCan = 10 + Math.floor(curS * 2);
+        alert(`勝利！\n獲得 XP: ${curS*1000}\n獲得 罐頭: ${rewardCan}`); 
+        userData.xp += curS*1000;
+        userData.can += rewardCan;
+        if(!userData.cleared.includes(curS)) userData.cleared.push(curS);
+        exitBattle();
+    }
+    if(mHP<=0) { alert("失敗..."); exitBattle(); }
+    if(isFighting) requestAnimationFrame(gameLoop);
+}
+
+function exitBattle() { 
+    isFighting = false; 
+    document.getElementById("battle-screen").style.display = "none"; 
+    document.querySelectorAll('.unit').forEach(u => u.remove());
+    render(); 
+}
+
+function drawCat() {
+    if(userData.can < 150) { alert("罐頭不足！"); return; }
+    userData.can -= 150;
+    // 抽獎邏輯：從未擁有的池子裡抽
+    let pool = ALL_CATS.filter(c => !userData.owned.includes(c.id));
+    if(pool.length > 0) { 
+        let win = pool[Math.floor(Math.random()*pool.length)]; 
+        userData.owned.push(win.id); 
+        document.getElementById("gacha-result").innerText = "恭喜獲得：【" + win.name + "】";
+    } else { document.getElementById("gacha-result").innerText = "已擁有所有角色！"; }
+    render();
+}
+
+function setView(v) { 
+    document.querySelectorAll('.view').forEach(e=>e.classList.remove('active')); 
+    document.getElementById('view-'+v).classList.add('active'); 
+}
+</script>
+</body>
+</html>
