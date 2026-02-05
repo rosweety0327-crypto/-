@@ -3,84 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥：中二傳奇遊戲城 v7</title>
+    <title>小宥領主的遊戲與小說城</title>
     <style>
-        body { background: #050505; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
-        .poki-container { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
-            gap: 15px; 
-            max-width: 1000px; 
-            margin: 0 auto; 
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-red: #ff4757;
+            --accent-blue: #58a6ff;
         }
-        .game-card { 
-            background: #111; 
-            padding: 20px 10px; 
-            border-radius: 15px; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            border: 2px solid #222; 
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .game-card:hover { transform: translateY(-8px); border-color: #ff00ff; box-shadow: 0 0 20px rgba(255, 0, 255, 0.4); }
-        .icon { font-size: 45px; margin-bottom: 10px; }
-        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; margin-bottom: 5px; }
-        .mid2-title { color: #00ffff; font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; letter-spacing: 1px; }
-        .game-name { font-size: 15px; color: #fff; font-weight: bold; }
-        .new-tag { background: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
+
+        h1 {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(88, 166, 255, 0.5);
+            margin-bottom: 30px;
+        }
+
+        /* 遊戲方塊容器 */
+        .poki-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* 基本方塊樣式 */
+        .game-card {
+            background-color: var(--card-bg);
+            border: 2px solid #30363d;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        /* 小說專屬樣式 */
+        .novel-card {
+            border-color: var(--accent-red) !important;
+            background: linear-gradient(145deg, #1a1a1a, #000);
+        }
+        
+        .novel-card:hover {
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .icon { font-size: 40px; margin-bottom: 10px; }
+        .game-name { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .new-tag {
+            position: absolute;
+            top: 10px;
+            right: -25px;
+            background: #238636;
+            color: white;
+            font-size: 10px;
+            padding: 3px 30px;
+            transform: rotate(45deg);
+        }
+
+        .novel-tag { background: var(--accent-red) !important; }
+
+        .author-text { font-size: 12px; color: #8b949e; }
+
     </style>
 </head>
 <body>
 
-    <h1>💀 小宥：中二傳奇遊戲城 💀</h1>
-    <p style="color: #666;">管理者：黑暗領主小宥 | 目前狀態：七大聖域全開</p>
+    <h1>🏰 小宥領主的數位基地</h1>
 
     <div class="poki-container">
-        <div class="game-card" style="border-color: #e74c3c; position: relative;" onclick="location.href='3人狼人殺.html'">
-            <span class="new-tag">NEW</span>
-            <span class="mid2-title">【 萬人宿命 】</span>
-            <div class="icon">👥</div>
-            <div class="game-name" style="color: #e74c3c;">3人狼人殺 (2-23人)</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='槍戰 2.html'">
-            <span class="mid2-title">【 終焉之戰 】</span>
-            <div class="icon">🔫</div>
-            <div class="game-name">草原槍戰 (500HP)</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='二人狼人殺 2.html'">
-            <span class="mid2-title">【 謊言之淵 】</span>
-            <div class="icon">🐺</div>
-            <div class="game-name">二人狼人殺 (AI版)</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='競賽貓站.html'">
-            <span class="mid2-title">【 混沌毛球 】</span>
-            <div class="icon">🐱</div>
-            <div class="game-name">競賽貓站 (魔王版)</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='數字炸彈.html'">
-            <span class="mid2-title">【 命運爆裂 】</span>
-            <div class="icon">💣</div>
-            <div class="game-name">數字炸彈 PK 戰</div>
+        
+        <div class="game-card novel-card" onclick="location.href='library.html'">
+            <span class="new-tag novel-tag">NOVEL</span>
+            <div class="icon">📖</div>
+            <div class="game-name" style="color: var(--accent-red);">血之遺痕 全集</div>
+            <div class="author-text">作者：小宥領主</div>
+            <div style="font-size: 10px; margin-top: 8px; color: #666;">赤月一族與紫瞳少女</div>
         </div>
 
         <div class="game-card" onclick="location.href='四子棋.html'">
-            <span class="mid2-title">【 斷罪連鎖 】</span>
             <div class="icon">🔴</div>
-            <div class="game-name">經典四子棋</div>
+            <div class="game-name">連線四子棋</div>
+            <div class="author-text">策略對戰</div>
+        </div>
+
+        <div class="game-card" onclick="location.href='競賽貓站.html'">
+            <div class="icon">🐈</div>
+            <div class="game-name">競賽貓站</div>
+            <div class="author-text">熱血開跑</div>
+        </div>
+
+        <div class="game-card" onclick="location.href='數字炸彈.html'">
+            <div class="icon">💣</div>
+            <div class="game-name">數字炸彈</div>
+            <div class="author-text">驚險刺激</div>
+        </div>
+
+        <div class="game-card" onclick="location.href='草原槍戰.html'">
+            <div class="icon">🔫</div>
+            <div class="game-name">草原槍戰</div>
+            <div class="author-text">射擊冒險</div>
         </div>
 
         <div class="game-card" onclick="location.href='數獨.html'">
-            <span class="mid2-title">【 禁忌刻印 】</span>
             <div class="icon">🔢</div>
-            <div class="game-name">清晰格線數獨</div>
+            <div class="game-name">終極數獨</div>
+            <div class="author-text">腦力激盪</div>
         </div>
+
     </div>
 
-    <footer style="margin-top: 50px; color: #333; font-size: 10px;">
-        <p>即便在 iPad 上，領主的威嚴依舊存在...</p>
+    <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
+        © 2026 小宥領主基地 - 版權所有，翻印必究
     </footer>
 
 </body>
