@@ -6,7 +6,6 @@
     <title>小宥 Poki 遊戲城 - 六路英雄版</title>
     <style>
         body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        /* 調整格狀排版，讓六個方塊在 iPad 上更好看 */
         .poki-container { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
@@ -21,19 +20,17 @@
             cursor: pointer; 
             transition: all 0.3s ease; 
             border: 4px solid #333; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .game-card:hover { transform: translateY(-10px); border-color: #7bed9f; background: #333; }
+        .game-card:hover { transform: translateY(-10px); border-color: #7bed9f; }
         .icon { font-size: 50px; margin-bottom: 12px; }
-        h1 { color: #7bed9f; text-shadow: 0 0 15px #7bed9f; margin-bottom: 5px; }
-        .subtitle { color: #aaa; margin-bottom: 30px; font-size: 14px; }
+        h1 { color: #7bed9f; text-shadow: 0 0 15px #7bed9f; }
         .game-name { font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <h1>🎮 小宥 Poki 遊戲城</h1>
-    <div class="subtitle">管理者：小宥 (小魚弟) | 每個方塊都是一個傳奇</div>
+    <p>管理者：小宥 (小魚弟) | 最新進度：六大遊戲解鎖</p>
 
     <div class="poki-container">
         <div class="game-card" onclick="location.href='槍戰 2.html'">
@@ -66,10 +63,6 @@
             <div class="game-name" style="color: #9b59b6;">清晰格線數獨</div>
         </div>
     </div>
-
-    <footer style="margin-top: 50px; color: #555; font-size: 12px;">
-        <p>所有權歸屬：小宥基地 | 2026 遊戲開發計畫</p>
-    </footer>
 
 </body>
 </html>
