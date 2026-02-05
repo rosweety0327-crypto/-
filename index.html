@@ -2,106 +2,74 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>小宥 Poki 遊戲城</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小宥 Poki 遊戲城 - 六路英雄版</title>
     <style>
-        :root { --gold: #f1c40f; --bg: #0f172a; --card: #1e293b; --accent: #2ecc71; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; text-align: center; }
-        
-        .user-bar { background: #111; padding: 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: center; gap: 20px; }
-        .user-tag { padding: 5px 15px; border-radius: 20px; border: 1px solid var(--gold); cursor: pointer; transition: 0.3s; }
-        .active-user { background: var(--gold); color: black; font-weight: bold; }
-
-        .container { padding: 40px; }
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        
-        .game-card { background: var(--card); border-radius: 20px; overflow: hidden; transition: 0.3s; cursor: pointer; border: 3px solid transparent; position: relative; }
-        .game-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 30px rgba(241, 196, 15, 0.3); }
-        
-        .game-thumb { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 70px; background: #334155; }
-        .game-info { padding: 15px; }
-        .game-info h3 { margin: 10px 0 5px 0; color: var(--gold); }
-        .game-info p { margin: 0; font-size: 14px; color: #94a3b8; }
-
-        /* 遊戲執行視窗 */
-        #game-frame-container { display: none; position: fixed; inset: 0; background: black; z-index: 10000; }
-        #game-iframe { width: 100%; height: 100%; border: none; }
-        .close-btn { position: absolute; top: 15px; right: 25px; background: #e74c3c; color: white; border: none; padding: 12px 25px; cursor: pointer; border-radius: 8px; z-index: 10001; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        /* 調整格狀排版，讓六個方塊在 iPad 上更好看 */
+        .poki-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            gap: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        .game-card { 
+            background: #2a2a2a; 
+            padding: 25px 15px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: 4px solid #333; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .game-card:hover { transform: translateY(-10px); border-color: #7bed9f; background: #333; }
+        .icon { font-size: 50px; margin-bottom: 12px; }
+        h1 { color: #7bed9f; text-shadow: 0 0 15px #7bed9f; margin-bottom: 5px; }
+        .subtitle { color: #aaa; margin-bottom: 30px; font-size: 14px; }
+        .game-name { font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div class="user-bar" id="user-bar">
-        <div class="user-tag" onclick="setUser('yoo', this)">小宥</div>
-        <div class="user-tag" onclick="setUser('fish', this)">小魚弟</div>
-        <div class="user-tag" onclick="setUser('sister', this)">小希</div>
-        <div class="user-tag" onclick="setUser('parents', this)">爸爸媽媽</div>
-    </div>
+    <h1>🎮 小宥 Poki 遊戲城</h1>
+    <div class="subtitle">管理者：小宥 (小魚弟) | 每個方塊都是一個傳奇</div>
 
-    <div class="container">
-        <h1 style="font-size: 3.5em; text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);">🕹️ 小宥家族遊戲城</h1>
-        <p style="color: #94a3b8; margin-bottom: 40px;">選擇你的挑戰，紀錄已與伺服器同步</p>
-        
-        <div class="game-grid">
-            <div class="game-card" onclick="launchGame('競賽貓戰.html')">
-                <div class="game-thumb">⚔️</div>
-                <div class="game-info">
-                    <h3>貓咪大戰爭：闇黑啟示錄</h3>
-                    <p>100關終極征服模式</p>
-                </div>
-            </div>
+    <div class="poki-container">
+        <div class="game-card" onclick="location.href='槍戰 2.html'">
+            <div class="icon">🔫</div>
+            <div class="game-name">草原槍戰 (500HP)</div>
+        </div>
 
-            <div class="game-card" onclick="launchGame('二人狼人殺 2.html')">
-                <div class="game-thumb">🐺</div>
-                <div class="game-info">
-                    <h3>狼人殺：12人強化版</h3>
-                    <p>真人連線 + AI 智能戰術</p>
-                </div>
-            </div>
+        <div class="game-card" onclick="location.href='二人狼人殺 2.html'">
+            <div class="icon">🐺</div>
+            <div class="game-name">二人狼人殺 (12人局)</div>
+        </div>
 
-            <div class="game-card" onclick="launchGame('槍戰 2.html')">
-                <div class="game-thumb">🔫</div>
-                <div class="game-info" style="border-top: 2px solid var(--accent);">
-                    <h3>3D 草原生存 - 戰神版</h3>
-                    <p>擊殺回血！500 HP 強力生存</p>
-                </div>
-            </div>
+        <div class="game-card" onclick="location.href='競賽貓站.html'">
+            <div class="icon">🐱</div>
+            <div class="game-name">競賽貓站 (中二魔王版)</div>
+        </div>
 
-            <div class="game-card" style="opacity: 0.4; cursor: default; border: 2px dashed #444;">
-                <div class="game-thumb">🏗️</div>
-                <div class="game-info">
-                    <h3>新遊戲開發中...</h3>
-                    <p>敬請期待小宥的新作品</p>
-                </div>
-            </div>
+        <div class="game-card" style="border-color: #ffa502;" onclick="location.href='數字炸彈.html'">
+            <div class="icon">💣</div>
+            <div class="game-name" style="color: #ffa502;">數字炸彈 PK 戰</div>
+        </div>
+
+        <div class="game-card" style="border-color: #3498db;" onclick="location.href='四子棋.html'">
+            <div class="icon">🔴</div>
+            <div class="game-name" style="color: #3498db;">經典四子棋</div>
+        </div>
+
+        <div class="game-card" style="border-color: #9b59b6;" onclick="location.href='數獨.html'">
+            <div class="icon">🔢</div>
+            <div class="game-name" style="color: #9b59b6;">清晰格線數獨</div>
         </div>
     </div>
 
-    <div id="game-frame-container">
-        <button class="close-btn" onclick="closeGame()">❌ 結束遊戲並返回</button>
-        <iframe id="game-iframe" src=""></iframe>
-    </div>
+    <footer style="margin-top: 50px; color: #555; font-size: 12px;">
+        <p>所有權歸屬：小宥基地 | 2026 遊戲開發計畫</p>
+    </footer>
 
-<script>
-    function setUser(name, el) {
-        document.querySelectorAll('.user-tag').forEach(tag => tag.classList.remove('active-user'));
-        el.classList.add('active-user');
-        console.log("切換玩家至：" + name);
-        // 這裡可以連動你的存檔系統
-    }
-
-    function launchGame(file) {
-        const container = document.getElementById('game-frame-container');
-        const iframe = document.getElementById('game-iframe');
-        iframe.src = file;
-        container.style.display = 'block';
-    }
-
-    function closeGame() {
-        const container = document.getElementById('game-frame-container');
-        const iframe = document.getElementById('game-iframe');
-        iframe.src = ""; 
-        container.style.display = 'none';
-    }
-</script>
 </body>
 </html>
