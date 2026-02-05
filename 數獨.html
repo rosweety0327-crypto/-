@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>清晰格線數獨</title>
+    <style>
+        body { background-color: #f4f4f9; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
+        
+        /* 數獨主容器 */
+        #grid { 
+            display: grid; 
+            grid-template-columns: repeat(9, 50px); 
+            grid-template-rows: repeat(9, 50px); 
+            border: 3px solid #000; /* 最外層粗框 */
+            background-color: #000;
+            gap: 1px; /* 細格線 */
+        }
+
+        .cell {
+            width: 50px; height: 50px;
+            background-color: white;
+            display: flex; justify-content: center; align-items: center;
+            box-sizing: border-box;
+        }
+
+        /* 重點：畫出 3x3 的粗橫線與粗直線 */
+        .cell:nth-child(3n) { border-right: 2px solid #000; } /* 每 3 欄加粗 */
+        .cell:nth-child(9n) { border-right: none; } /* 每一行最後一格取消邊框 */
+        
+        /* 利用 nth-child 選擇第 3 列與第 6 列的格子加粗底線 */
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { 
+            border-bottom: 3px solid #000; 
+        }
+
+        .cell input {
+            width: 100%; height: 100%;
+            border: none; text-align: center;
+            font-size: 24px; color: #2c3e50;
+            background: transparent;
+            outline: none;
+        }
+
+        .fixed { background-color: #e2e2e2; font-weight: bold; font-size: 24px; cursor: default; }
+        .error { color: #ff0000 !important; background-color: #ffebeb; }
+        
+        #controls { margin-top: 25px; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 5px; transition: 0.2s; }
+        button:hover { background: #34495e; }
+    </style>
+</head>
+<body>
+
+    <h1>經典數獨</h1>
+    <div id="grid"></div>
+
+    <div id="controls">
+        <button onclick="generateNewGame()">新遊戲</button>
+        <button onclick="checkWin()">檢查答案</button>
+    </div>
+
+<script>
+    const gridEl = document.getElementById('grid');
+    let solution = [];
+
+    // 判斷填入數字是否合法
+    function isValid(board, r, c, n) {
+        for (let i = 0; i < 9; i++) {
+            if (board[r][i] === n || board[i][c] === n) return false;
+        }
+        let boxR = Math.floor(r / 3) * 3, boxC = Math.floor(c / 3) * 3;
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[boxR + i][boxC + j] === n) return false;
+            }
+        }
+        return true;
+    }
+
+    // 遞迴填充數獨盤面
+    function fillBoard(board) {
+        for (let i = 0; i < 81; i++) {
+            let r = Math.floor(i / 9), c = i % 9;
+            if (board[r][c] === 0) {
+                let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                for (let n of nums) {
+                    if (isValid(board, r, c, n)) {
+                        board[r][c] = n;
+                        if (fillBoard(board)) return true;
+                        board[r][c] = 0;
+                    }
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function generateNewGame() {
+        gridEl.innerHTML = "";
+        const board = Array.from({length: 9}, () => Array(9).fill(0));
+        fillBoard(board);
+        solution = board.map(row => [...row]);
+
+        // 挖洞：數字越少越難
+        const puzzle = board.map(row => [...row]);
+        for (let i = 0; i < 40; i++) {
+            let r = Math.floor(Math.random() * 9), c = Math.floor(Math.random() * 9);
+            puzzle[r][c] = 0;
+        }
+
+        // 渲染 HTML
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (puzzle[r][c] !== 0) {
+                    cell.innerText = puzzle[r][c];
+                    cell.classList.add('fixed');
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'tel'; // 手機好輸入
+                    input.maxLength = 1;
+                    input.oninput = function() { this.value = this.value.replace(/[^1-9]/g, ''); };
+                    cell.appendChild(input);
+                }
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    function checkWin() {
+        const cells = gridEl.children;
+        let isComplete = true;
+        for (let i = 0; i < 81; i++) {
+            const input = cells[i].querySelector('input');
+            const val = input ? input.value : cells[i].innerText;
+            if (val != solution[Math.floor(i/9)][i%9]) {
+                if(input) input.classList.add('error');
+                isComplete = false;
+            } else if(input) {
+                input.classList.remove('error');
+            }
+        }
+        alert(isComplete ? "太棒了！完全正確！" : "還有錯誤的地方，再試試看！");
+    }
+
+    generateNewGame();
+</script>
+</body>
+</html>
