@@ -3,67 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥 Poki 遊戲城 - 六路英雄版</title>
+    <title>小宥：中二傳奇遊戲城</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        body { background: #0a0a0a; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
         .poki-container { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
             gap: 20px; 
-            max-width: 800px; 
+            max-width: 900px; 
             margin: 0 auto; 
         }
         .game-card { 
-            background: #2a2a2a; 
+            background: #1a1a1a; 
             padding: 25px 15px; 
             border-radius: 20px; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            border: 4px solid #333; 
+            border: 3px solid #333; 
+            position: relative;
+            overflow: hidden;
         }
-        .game-card:hover { transform: translateY(-10px); border-color: #7bed9f; }
+        .game-card:hover { transform: scale(1.05); border-color: #ff00ff; box-shadow: 0 0 20px #ff00ff; }
         .icon { font-size: 50px; margin-bottom: 12px; }
-        h1 { color: #7bed9f; text-shadow: 0 0 15px #7bed9f; }
-        .game-name { font-weight: bold; font-size: 16px; }
+        h1 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; font-size: 32px; }
+        .mid2-title { color: #00ffff; font-size: 14px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .game-name { font-size: 18px; color: #fff; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 小宥 Poki 遊戲城</h1>
-    <p>管理者：小宥 (小魚弟) | 最新進度：六大遊戲解鎖</p>
+    <h1>💀 小宥：中二傳奇遊戲城 💀</h1>
+    <p style="color: #888;">管理者：小宥 (黑暗領主) | 測試員：小希姊姊 (光之聖女)</p>
 
     <div class="poki-container">
         <div class="game-card" onclick="location.href='槍戰 2.html'">
+            <span class="mid2-title">【 終焉之戰 】</span>
             <div class="icon">🔫</div>
             <div class="game-name">草原槍戰 (500HP)</div>
         </div>
 
         <div class="game-card" onclick="location.href='二人狼人殺 2.html'">
+            <span class="mid2-title">【 謊言之淵 】</span>
             <div class="icon">🐺</div>
             <div class="game-name">二人狼人殺 (12人局)</div>
         </div>
 
         <div class="game-card" onclick="location.href='競賽貓站.html'">
+            <span class="mid2-title">【 混沌毛球 】</span>
             <div class="icon">🐱</div>
-            <div class="game-name">競賽貓站 (中二魔王版)</div>
+            <div class="game-name">競賽貓站 (魔王版)</div>
         </div>
 
-        <div class="game-card" style="border-color: #ffa502;" onclick="location.href='數字炸彈.html'">
+        <div class="game-card" onclick="location.href='數字炸彈.html'">
+            <span class="mid2-title">【 命運爆裂 】</span>
             <div class="icon">💣</div>
-            <div class="game-name" style="color: #ffa502;">數字炸彈</div>
+            <div class="game-name">數字炸彈 PK 戰</div>
         </div>
 
-        <div class="game-card" style="border-color: #3498db;" onclick="location.href='四子棋.html'">
+        <div class="game-card" onclick="location.href='四子棋.html'">
+            <span class="mid2-title">【 斷罪連鎖 】</span>
             <div class="icon">🔴</div>
-            <div class="game-name" style="color: #3498db;">四子棋</div>
+            <div class="game-name">經典四子棋</div>
         </div>
 
-        <div class="game-card" style="border-color: #9b59b6;" onclick="location.href='數獨.html'">
+        <div class="game-card" onclick="location.href='數獨.html'">
+            <span class="mid2-title">【 禁忌刻印 】</span>
             <div class="icon">🔢</div>
-            <div class="game-name" style="color: #9b59b6;">清晰格線數獨</div>
+            <div class="game-name">清晰格線數獨</div>
         </div>
     </div>
 
+    <footer style="margin-top: 50px; color: #444;">
+        <p>一旦踏入，就沒有回頭路... (小宥開發計畫 2026)</p>
+    </footer>
+
 </body>
 </html>
-
