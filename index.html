@@ -2,99 +2,37 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小宥領主的數位基地</title>
     <style>
-        :root {
-            --bg: #0d1117;
-            --card: #161b22;
-            --red: #ff4757;
-            --blue: #58a6ff;
-            --green: #238636;
-        }
-        body { background: var(--bg); color: #c9d1d9; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: white; margin-bottom: 30px; text-shadow: 0 0 10px var(--blue); }
-        
-        .poki-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px;
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .game-card {
-            background: var(--card);
-            border: 2px solid #30363d;
-            border-radius: 15px;
-            padding: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-card:active { transform: scale(0.95); } /* iPad 點擊感 */
-
-        .novel-card { border-color: var(--red); background: linear-gradient(145deg, #1a1a1a, #000); }
-        .icon { font-size: 45px; margin-bottom: 10px; }
-        .name { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
-        .tag { position: absolute; top: 10px; right: -25px; background: var(--red); color: white; font-size: 10px; padding: 3px 30px; transform: rotate(45deg); }
-        .author { font-size: 12px; color: #8b949e; }
+        :root { --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757; }
+        body { background: var(--bg); color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; }
+        .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: var(--blue); transform: translateY(-5px); }
+        .novel { border-color: var(--red); }
+        .icon { font-size: 40px; margin-bottom: 10px; }
+        .title { font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
-
     <h1>🏰 小宥領主的基地</h1>
-
-    <div class="poki-container">
-        
-        <div class="game-card novel-card" onclick="location.href='library.html'">
-            <span class="tag">NOVEL</span>
+    <div class="grid">
+        <div class="card novel" onclick="location.href='library.html'">
             <div class="icon">📖</div>
-            <div class="name" style="color:var(--red)">血之遺痕</div>
-            <div class="author">全系列收錄</div>
+            <div class="title" style="color:var(--red)">血之遺痕</div>
         </div>
-
-        <div class="game-card" style="border-color: #f1c40f;" onclick="location.href='競賽貓站.html'">
+        <div class="card" onclick="location.href='競賽貓站.html'">
             <div class="icon">🐈</div>
-            <div class="name">競賽貓站</div>
-            <div class="author">修正版</div>
+            <div class="title">競賽貓站</div>
         </div>
-
-        <div class="game-card" onclick="location.href='二人狼人殺 2.html'">
+        <div class="card" onclick="location.href='二人狼人殺 2.html'">
             <div class="icon">🐺</div>
-            <div class="name">2人狼人殺</div>
-            <div class="author">經典對戰</div>
+            <div class="title">2人狼人殺</div>
         </div>
-
-        <div class="game-card" onclick="location.href='數字炸彈.html'">
-            <div class="icon">💣</div>
-            <div class="name">數字炸彈</div>
-            <div class="author">生存遊戲</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='草原槍戰.html'">
-            <div class="icon">🔫</div>
-            <div class="name">草原槍戰</div>
-            <div class="author">熱血射擊</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='數獨.html'">
-            <div class="icon">🔢</div>
-            <div class="name">終極數獨</div>
-            <div class="author">腦力激盪</div>
-        </div>
-
-        <div class="game-card" onclick="location.href='四子棋.html'">
-            <div class="icon">🔴</div>
-            <div class="name">連線四子棋</div>
-            <div class="author">策略對話</div>
-        </div>
-
+        <div class="card" onclick="location.href='數字炸彈.html'"><div class="icon">💣</div><div class="title">數字炸彈</div></div>
+        <div class="card" onclick="location.href='草原槍戰.html'"><div class="icon">🔫</div><div class="title">草原槍戰</div></div>
+        <div class="card" onclick="location.href='數獨.html'"><div class="icon">🔢</div><div class="title">終極數獨</div></div>
     </div>
-
-    <footer style="margin-top: 40px; color: #484f58; font-size: 12px;">© 2026 小宥領主</footer>
-
 </body>
 </html>
