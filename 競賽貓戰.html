@@ -1,114 +1,62 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>競賽貓站 - 領主修復版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>競賽貓站 - 領主最終修復版</title>
     <style>
-        /* 強制背景顏色與字體 */
-        body { background-color: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        
-        /* 遊戲區域外框 */
-        .container { 
-            max-width: 500px; margin: auto; background: #161b22; 
-            padding: 20px; border-radius: 20px; border: 2px solid #30363d; 
-        }
-
-        /* 跑道樣式 */
-        .track { 
-            background: #21262d; height: 60px; border-radius: 30px; 
-            position: relative; margin: 15px 0; border: 1px solid #444; 
-        }
-
-        /* 終點線（格子旗感覺） */
-        .finish { 
-            position: absolute; right: 50px; top: 0; bottom: 0; width: 10px; 
-            background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px);
-            opacity: 0.3;
-        }
-
-        /* 貓咪本體 */
-        .cat { 
-            position: absolute; left: 10px; top: 10px; font-size: 35px; 
-            transition: left 0.1s linear; z-index: 10;
-        }
-
-        /* 標題與按鈕 */
-        h1 { color: #f1c40f; font-size: 28px; }
-        .name { font-size: 14px; color: #8b949e; text-align: left; margin-left: 10px; }
-        
-        .start-btn { 
-            background: #238636; color: white; padding: 15px 40px; 
-            font-size: 20px; border-radius: 30px; border: none; cursor: pointer; 
-            width: 100%; margin-top: 20px; font-weight: bold;
-        }
-        .start-btn:disabled { background: #444; color: #777; }
-        
-        .res { font-size: 20px; color: #ff4757; font-weight: bold; margin: 15px 0; min-height: 25px; }
-        .back { display: block; margin-top: 20px; color: #58a6ff; text-decoration: none; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .box { max-width: 450px; margin: auto; background: #161b22; padding: 15px; border-radius: 20px; border: 2px solid #30363d; }
+        .track { background: #21262d; height: 60px; border-radius: 30px; position: relative; margin: 15px 0; border: 1px solid #444; overflow: hidden; }
+        .cat { position: absolute; left: 10px; top: 10px; font-size: 35px; transition: left 0.15s linear; z-index: 10; }
+        .line { position: absolute; right: 60px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); opacity: 0.3; }
+        .btn { background: #238636; color: white; padding: 15px; font-size: 20px; border-radius: 30px; border: none; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn:disabled { background: #333; }
+        .msg { font-size: 20px; color: #ff4757; height: 30px; margin: 10px 0; font-weight: bold; }
+        .label { text-align: left; font-size: 13px; color: #8b949e; margin-left: 10px; }
     </style>
 </head>
 <body>
-
-    <h1>🐈 競賽貓站 🏁</h1>
-
-    <div class="container">
-        <div class="name">🔴 小宥 (血晶)</div>
-        <div class="track">
-            <div class="finish"></div>
-            <div id="c1" class="cat">🐱</div>
-        </div>
-
-        <div class="name">🟢 小粉 (回復球)</div>
-        <div class="track">
-            <div class="finish"></div>
-            <div id="c2" class="cat">😸</div>
-        </div>
-
-        <div class="name">🟣 小希 (紫瞳)</div>
-        <div class="track">
-            <div class="finish"></div>
-            <div id="c3" class="cat">😼</div>
-        </div>
-
-        <div id="res" class="res"></div>
-        <button id="btn" class="start-btn" onclick="go()">全軍衝鋒！</button>
+    <h1>🐈 競賽貓站</h1>
+    <div class="box">
+        <div class="label">🔴 小宥 (血晶)</div>
+        <div class="track"><div class="line"></div><div id="m1" class="cat">🐱</div></div>
+        <div class="label">🟢 小粉 (回復球)</div>
+        <div class="track"><div class="line"></div><div id="m2" class="cat">😸</div></div>
+        <div class="label">🟣 小希 (紫瞳)</div>
+        <div class="track"><div class="line"></div><div id="m3" class="cat">😼</div></div>
+        <div id="info" class="msg"></div>
+        <button id="goBtn" class="btn" onclick="race()">全軍衝鋒！</button>
     </div>
-
-    <a href="index.html" class="back">← 返回領主大廳</a>
+    <br><a href="index.html" style="color:#58a6ff; text-decoration:none;">← 返回大廳</a>
 
     <script>
-        let isRunning = false;
-        function go() {
-            if (isRunning) return;
-            isRunning = true;
-            document.getElementById('btn').disabled = true;
-            document.getElementById('res').innerText = "🏃 比賽激烈進行中...";
-
+        function race() {
+            const btn = document.getElementById('goBtn');
+            const info = document.getElementById('info');
+            btn.disabled = true;
+            info.innerText = "🏃 比賽開始...";
+            
             let p1 = 10, p2 = 10, p3 = 10;
-            const finishLine = window.innerWidth > 500 ? 400 : (window.innerWidth * 0.7);
+            // 抓取跑道寬度，自動適應 iPad
+            const goal = document.querySelector('.track').offsetWidth - 80;
 
             const timer = setInterval(() => {
-                p1 += Math.random() * 8;
-                p2 += Math.random() * 8;
-                p3 += Math.random() * 8;
+                p1 += Math.random() * 9;
+                p2 += Math.random() * 9;
+                p3 += Math.random() * 9;
 
-                document.getElementById('c1').style.left = p1 + 'px';
-                document.getElementById('c2').style.left = p2 + 'px';
-                document.getElementById('c3').style.left = p3 + 'px';
+                document.getElementById('m1').style.left = p1 + 'px';
+                document.getElementById('m2').style.left = p2 + 'px';
+                document.getElementById('m3').style.left = p3 + 'px';
 
-                let winner = "";
-                if (p1 >= finishLine) winner = "小宥領主";
-                else if (p2 >= finishLine) winner = "可愛小粉";
-                else if (p3 >= finishLine) winner = "神秘小希";
-
-                if (winner) {
+                if (p1 >= goal || p2 >= goal || p3 >= goal) {
                     clearInterval(timer);
-                    document.getElementById('res').innerText = "🏆 冠軍是：" + winner + "！";
-                    document.getElementById('btn').disabled = false;
-                    isRunning = false;
+                    let win = p1 >= goal ? "小宥領主" : (p2 >= goal ? "可愛小粉" : "神秘小希");
+                    info.innerText = "🏆 冠軍：" + win;
+                    btn.disabled = false;
                 }
-            }, 50);
+            }, 60);
         }
     </script>
 </body>
