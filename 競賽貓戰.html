@@ -2,103 +2,85 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>競賽貓站：中二魔王版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>競賽貓站 - 修復版</title>
     <style>
-        body { background: #000; color: #fff; font-family: "Microsoft JhengHei", sans-serif; text-align: center; overflow: hidden; }
-        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, #1a0033, #000); }
-        #level-name { font-size: 28px; color: #ff00ff; text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; margin-bottom: 20px; font-weight: bold; }
-        #cat-target { width: 120px; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(0 0 5px #fff); }
-        #cat-target:active { transform: scale(0.8); }
-        .stats { font-size: 20px; margin: 10px; color: #00ffff; }
-        #save-btn { padding: 10px 20px; background: #222; color: #0f0; border: 1px solid #0f0; cursor: pointer; margin-top: 20px; border-radius: 5px; }
-        #save-btn:hover { background: #0f0; color: #000; }
+        body { background: #1a1a1a; color: white; text-align: center; font-family: sans-serif; overflow-x: hidden; }
+        .track { background: #333; height: 80px; margin: 15px auto; width: 90%; border-radius: 40px; position: relative; border: 3px solid #555; overflow: hidden; }
+        .finish-line { position: absolute; right: 50px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
+        .cat { position: absolute; left: 10px; top: 15px; font-size: 40px; transition: left 0.1s linear; }
+        .btn-start { background: #f1c40f; color: #000; padding: 15px 40px; font-size: 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; margin: 20px; }
+        .btn-start:disabled { background: #7f8c8d; cursor: not-allowed; }
+        .result { font-size: 24px; color: #ff4757; font-weight: bold; margin-top: 20px; min-height: 30px; }
+        .back-btn { display: inline-block; margin-top: 20px; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 5px 15px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div class="stats">玩家：<span id="player-name">小宥</span> | 紀錄：<span id="save-status">無</span></div>
-    <div id="level-title" style="font-size: 20px; color: #aaa;">第 1 關</div>
-    <div id="level-name">載入中...</div>
-    
-    <div class="stats">目標點擊數：<span id="target-clicks">--</span></div>
-    <div class="stats">目前點擊：<span id="current-clicks">0</span></div>
+    <h1>🐈 競賽貓站 🏁</h1>
+    <p>誰會是星空の村最快的貓？</p>
 
-    <img id="cat-target" src="https://img.icons8.com/emoji/96/cat-face.png" onclick="handleClick()">
+    <div id="game-container">
+        <div class="track">
+            <div class="finish-line"></div>
+            <div id="cat1" class="cat">🐱</div>
+        </div>
+        <p>小粉的貓 (波比)</p>
 
+        <div class="track">
+            <div class="finish-line"></div>
+            <div id="cat2" class="cat">😺</div>
+        </div>
+        <p>小喬的影子貓</p>
+
+        <div class="track">
+            <div class="finish-line"></div>
+            <div id="cat3" class="cat">😸</div>
+        </div>
+        <p>小希的紫瞳貓</p>
+    </div>
+
+    <div class="result" id="result-text"></div>
+    <button class="btn-start" id="start-btn" onclick="startRace()">開跑！</button>
     <br>
-    <button id="save-btn" onclick="saveGame()">💾 封存靈魂紀錄 (存檔)</button>
-    <button onclick="location.href='index.html'" style="margin-top:10px; background:none; border:none; color:#555; cursor:pointer;">⬅ 返回大廳</button>
-</div>
+    <a href="index.html" class="back-btn">🏠 返回領主大廳</a>
 
-<script>
-    let level = 1;
-    let clicks = 0;
-    let playerName = "小宥";
+    <script>
+        let racing = false;
 
-    // --- 中二關卡名稱表 ---
-    const mid2Names = [
-        "初始之混沌毛球", "暗影街頭的爪痕", "顫慄的罐頭渴望", "被封印的沙盆怒吼", "虛空之眼：綠眼瞳",
-        "狂亂之舞：紅點追尋", "斷罪之肉球", "永恆的懶洋洋之王", "煉獄中的逗貓棒", "深淵之主的呼嚕聲",
-        "蒼雷之速：暴衝", "萬物終結的抓板", "星辰大海的紙箱", "寂滅之吻：咬手", "邪眼之視：鄙視人類",
-        "九命之魂的禁咒", "雷鳴般的呼嚕重組", "末日之日的午睡", "幻影殘像：躲貓貓", "至高天之頂：櫥櫃",
-        // ... 中間省略，直接用計算方式生成更多
-    ];
+        function startRace() {
+            if (racing) return;
+            racing = true;
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('result-text').innerText = "比賽開始...";
 
-    function getLevelName(lv) {
-        if (lv <= 20) return mid2Names[lv-1];
-        const prefixes = ["聖域", "冥府", "時空", "極光", "崩壞", "神諭", "血月", "修羅"];
-        const suffixes = ["之裁決", "之崩滅", "之覺醒", "之輪迴", "之戰歌", "之孤傲"];
-        return prefixes[lv % prefixes.length] + "貓王" + suffixes[lv % suffixes.length];
-    }
+            const cats = [
+                { id: 'cat1', pos: 10, name: '小粉的波比' },
+                { id: 'cat2', pos: 10, name: '小喬的影子貓' },
+                { id: 'cat3', pos: 10, name: '小希的紫瞳貓' }
+            ];
 
-    function updateDisplay() {
-        document.getElementById('level-title').innerText = `第 ${level} 關`;
-        document.getElementById('level-name').innerText = `【 ${getLevelName(level)} 】`;
-        // 難度公式：每關需要的點擊次數變多，且更難！
-        let target = level * 5 + Math.floor(Math.pow(level, 1.5));
-        document.getElementById('target-clicks').innerText = target;
-        document.getElementById('current-clicks').innerText = clicks;
-        
-        // 貓咪會隨著關卡變大或變小（更難點）
-        let size = 120 - (level % 10) * 5;
-        document.getElementById('cat-target').style.width = size + "px";
-    }
+            // 重置位置
+            cats.forEach(c => document.getElementById(c.id).style.left = '10px');
 
-    function handleClick() {
-        clicks++;
-        let target = parseInt(document.getElementById('target-clicks').innerText);
-        
-        // 點擊特效
-        document.body.style.backgroundColor = (clicks % 2 === 0) ? "#1a001a" : "#000";
+            const finishPos = window.innerWidth * 0.9 - 80;
 
-        if (clicks >= target) {
-            alert(`🎉 突破成功！\n你已征服「${getLevelName(level)}」！`);
-            level++;
-            clicks = 0;
-            if (level > 100) {
-                alert("恭喜！你已征服所有貓之神！");
-                level = 1;
-            }
-            updateDisplay();
-        } else {
-            document.getElementById('current-clicks').innerText = clicks;
+            const timer = setInterval(() => {
+                cats.forEach(c => {
+                    // 隨機前進 1~10 距離
+                    c.pos += Math.random() * 10;
+                    document.getElementById(c.id).style.left = c.pos + 'px';
+
+                    // 檢查是否到達終點
+                    if (c.pos >= finishPos && racing) {
+                        racing = false;
+                        clearInterval(timer);
+                        document.getElementById('result-text').innerText = "🏆 冠軍是：" + c.name + "！";
+                        document.getElementById('start-btn').disabled = false;
+                    }
+                });
+            }, 50);
         }
-    }
-
-    function saveGame() {
-        localStorage.setItem('catGame_level', level);
-        document.getElementById('save-status').innerText = "已存檔";
-        setTimeout(() => document.getElementById('save-status').innerText = "紀錄中", 2000);
-    }
-
-    // 讀檔
-    window.onload = () => {
-        let savedLevel = localStorage.getItem('catGame_level');
-        if (savedLevel) level = parseInt(savedLevel);
-        updateDisplay();
-    };
-</script>
-
+    </script>
 </body>
 </html>
