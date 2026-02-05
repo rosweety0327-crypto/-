@@ -1,89 +1,99 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>3人狼人殺：暴力開始版</title>
+    <title>3人狼人殺：自訂房號版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
-        
-        /* 暴力按鈕：這顆按鈕絕對不會不見 */
-        #force-start-btn { 
-            background: #ff0000; 
-            color: white; 
-            padding: 30px; 
-            font-size: 30px; 
-            font-weight: bold; 
-            border: 5px solid white;
-            border-radius: 20px;
-            cursor: pointer;
-            width: 90%;
-            max-width: 400px;
-            margin: 20px auto;
-            display: block !important; /* 強制顯示 */
-            box-shadow: 0 0 30px rgba(255,0,0,0.8);
-        }
-
-        #log { width: 90%; height: 150px; background: #222; margin: 10px auto; overflow-y: auto; padding: 10px; color: #0f0; border-radius: 10px; }
-        .setup-info { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
-        #board { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 20px; }
-        .card { background: #333; padding: 15px; border-radius: 10px; border: 2px solid #555; }
+        body { background: #000; color: white; text-align: center; font-family: sans-serif; }
+        .btn { background: #e74c3c; color: white; padding: 15px; border-radius: 10px; cursor: pointer; margin: 5px; width: 80%; border:none; font-weight:bold; }
+        .box { background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 10px auto; border: 1px solid #444; max-width: 400px; }
+        input { padding: 10px; margin: 5px; border-radius: 5px; border: none; width: 70%; text-align: center; font-size: 18px; }
+        #board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; }
+        .card { background: #333; border: 1px solid #ff00ff; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h1 style="color: #ff00ff;">💀 狼人殺：強制開戰 💀</h1>
+    <h2 style="color:#ff00ff">💀 領主連鎖：自訂房號 💀</h2>
 
-    <button id="force-start-btn" onclick="startGame()">⚔️ 立刻開始遊戲</button>
+    <div id="setup">
+        <div class="box">
+            <p>第一步：設定你的房號 (例如: 888)</p>
+            <input id="my-room-id" placeholder="輸入你想當房號的數字">
+            <button onclick="createRoom()" style="background:#27ae60; color:white; padding:10px; border-radius:5px;">開啟房間</button>
+            <p id="status" style="color:yellow; font-size:12px;">尚未開房</p>
+        </div>
 
-    <div class="setup-info">
-        <p>你的連線 ID: <b id="my-id" style="color:#f1c40f">---</b></p>
-        <label>設定人數 (3-23): </label>
-        <input type="number" id="total-players" value="6" min="3" max="23" style="font-size:20px; width:60px;">
+        <div class="box">
+            <p>第二步：加入別人的房間</p>
+            <input id="join-room-id" placeholder="輸入對方的房號">
+            <button onclick="joinRoom()" style="background:#2980b9; color:white; padding:10px; border-radius:5px;">加入房間</button>
+        </div>
+        
+        <button id="start-btn" class="btn" onclick="start()" style="display:none">⚔️ 房主點此開戰</button>
     </div>
 
-    <div id="log">【系統提示】如果看不到按鈕，請重新整理網頁。<br>連線 ID 跑出來後可以分給小希姊姊。</div>
-
-    <div id="board"></div>
+    <div id="board" style="display:none"></div>
 
     <script>
-        let peer = new Peer();
-        let myId, connections = [], isHost = true, gameStarted = false;
+        let peer = null, conns = [];
 
-        peer.on('open', id => {
-            myId = id;
-            document.getElementById('my-id').innerText = id;
-        });
-
-        peer.on('connection', conn => {
-            connections.push(conn);
-            document.getElementById('log').innerHTML += `<br>新玩家加入！目前連線：${connections.length}`;
-        });
-
-        function startGame() {
-            if (gameStarted) return;
-            gameStarted = true;
+        // 【功能 1：創立房間】
+        function createRoom() {
+            let roomId = document.getElementById('my-room-id').value;
+            if(!roomId) return alert("請輸入房號！");
             
-            const total = parseInt(document.getElementById('total-players').value);
-            const board = document.getElementById('board');
-            const log = document.getElementById('log');
+            // 這裡就是關鍵：把自訂 ID 傳給 Peer
+            peer = new Peer('poki-room-' + roomId); 
             
-            // 隱藏設定區和按鈕
-            document.getElementById('force-start-btn').style.display = 'none';
-            document.querySelector('.setup-info').style.display = 'none';
-            
-            log.innerHTML = "★ 遊戲正式啟動！黑暗降臨 ★";
-            board.innerHTML = "";
+            peer.on('open', id => {
+                document.getElementById('status').innerText = "✅ 房間 " + roomId + " 已開，快叫隊友進來！";
+                document.getElementById('start-btn').style.display = 'block';
+            });
 
-            // 產出玩家
-            for(let i=0; i < total; i++) {
-                let name = (i === 0) ? "小宥領主" : (i <= connections.length ? "玩家 "+(i+1) : "AI 貓奴 "+(i+1));
-                let role = (i === 0) ? "預言家" : (i === 1 ? "狼人" : "平民");
-                
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<b>${name}</b><br><br>身分：${role}`;
-                board.appendChild(div);
+            peer.on('error', err => {
+                if(err.type === 'unavailable-id') alert("這個房號有人用了，換一個吧！");
+                else alert("連線錯誤：" + err.type);
+            });
+
+            peer.on('connection', c => {
+                conns.push(c);
+                c.on('data', d => handle(d));
+                alert("隊友已連線！");
+            });
+        }
+
+        // 【功能 2：加入房間】
+        function joinRoom() {
+            let roomId = document.getElementById('join-room-id').value;
+            if(!roomId) return alert("請輸入房號！");
+            
+            peer = new Peer(); // 隨機 ID 即可
+            peer.on('open', () => {
+                let c = peer.connect('poki-room-' + roomId);
+                conns.push(c);
+                c.on('data', d => handle(d));
+                document.getElementById('status').innerText = "嘗試連入房間 " + roomId + "...";
+            });
+        }
+
+        function start() {
+            let players = [{n:"小宥", r:"預言家"}, {n:"小希", r:"狼人"}, {n:"AI1", r:"平民"}, {n:"AI2", r:"平民"}, {n:"AI3", r:"平民"}, {n:"AI4", r:"平民"}];
+            players.sort(() => Math.random() - 0.5);
+            let data = { type: 'START', p: players };
+            conns.forEach(c => c.send(data));
+            handle(data);
+        }
+
+        function handle(data) {
+            if(data.type === 'START') {
+                document.getElementById('setup').style.display = 'none';
+                let b = document.getElementById('board');
+                b.style.display = 'grid';
+                data.p.forEach(p => {
+                    b.innerHTML += `<div class="card"><b>${p.n}</b><br><span style="color:cyan">${p.r}</span></div>`;
+                });
             }
         }
     </script>
