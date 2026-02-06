@@ -14,6 +14,7 @@
             --purple: #8e44ad;
             --cyan: #00d2ff;
             --pink: #ff79c6;
+            --yt-red: #ff0000; /* YouTube 專屬紅 */
             --text: #c9d1d9;
         }
 
@@ -60,7 +61,8 @@
         .cat-card { border-color: var(--gold); }
         .wolf-card { border-color: var(--purple); }
         .taiko-card { border-color: var(--cyan); }
-        .music-card { border-color: var(--pink); box-shadow: 0 0 10px rgba(255, 121, 198, 0.2); }
+        .music-card { border-color: var(--pink); }
+        .yt-card { border-color: var(--yt-red); box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
 
         .icon { font-size: 40px; margin-bottom: 8px; }
         .title { font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 4px; }
@@ -95,18 +97,18 @@
 
     <div class="container">
         
-        <div class="card music-card" onclick="toggleMusic()">
-            <span class="tag" style="background: var(--pink);">MUSIC</span>
-            <div class="icon music-icon">🎵</div>
-            <div class="title" style="color: var(--pink);">閃光射線</div>
-            <div class="desc">背景音樂播放中</div>
+        <div class="card yt-card" onclick="window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
+            <span class="tag" style="background: var(--yt-red);">LIVE</span>
+            <div class="icon">📺</div>
+            <div class="title" style="color: var(--yt-red);">小魚 YouTube</div>
+            <div class="desc">麥塊實況與音樂</div>
         </div>
 
-        <div class="card novel-card" onclick="location.href='library.html'">
-            <span class="tag" style="background: var(--red);">NOVEL</span>
-            <div class="icon">📖</div>
-            <div class="title" style="color: var(--red);">血之遺痕</div>
-            <div class="desc">小說全集收錄</div>
+        <div class="card music-card" onclick="toggleMusic()">
+            <span class="tag" style="background: var(--pink);">MUSIC</span>
+            <div class="icon">🎵</div>
+            <div class="title" style="color: var(--pink);">閃光射線</div>
+            <div class="desc">背景音樂播放</div>
         </div>
 
         <div class="card cat-card" onclick="location.href='race.html'">
@@ -120,26 +122,27 @@
             <span class="tag" style="background: var(--purple);">連線版</span>
             <div class="icon">🐺</div>
             <div class="title" style="color: var(--purple);">多人狼人殺</div>
-            <div class="desc">3-6人連線對局</div>
+            <div class="desc">3-6人對局</div>
         </div>
 
         <div class="card taiko-card" onclick="location.href='太古大戰.html'">
             <span class="tag" style="background: var(--cyan);">NEW</span>
-            <div class="icon"> drums </div>
+            <div class="icon">🥁</div>
             <div class="title" style="color: var(--cyan);">太鼓達人</div>
             <div class="desc">節奏對決</div>
         </div>
 
-        <div class="card" onclick="location.href='數字炸彈.html'">
-            <div class="icon">💣</div>
-            <div class="title">數字炸彈</div>
-            <div class="desc">驚險刺激</div>
+        <div class="card novel-card" onclick="location.href='library.html'">
+            <span class="tag" style="background: var(--red);">NOVEL</span>
+            <div class="icon">📖</div>
+            <div class="title" style="color: var(--red);">血之遺痕</div>
+            <div class="desc">小說全集</div>
         </div>
 
         <div class="card" onclick="location.href='槍戰 2.html'">
             <div class="icon">🔫</div>
             <div class="title">草原槍戰</div>
-            <div class="desc">射擊冒險</div>
+            <div class="desc">3D 射擊生存</div>
         </div>
 
     </div>
@@ -158,7 +161,7 @@
     </audio>
 
     <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
-        © 2026 小宥領主基地 | 系統版本：V1.4 音樂電台上線
+        © 2026 小宥領主基地 | 系統版本：V1.5 YouTube 連結更新
     </footer>
 
     <script>
@@ -179,13 +182,8 @@
         }
 
         function controlAudio() {
-            if (audio.paused) {
-                audio.play();
-                updateUI(true);
-            } else {
-                audio.pause();
-                updateUI(false);
-            }
+            if (audio.paused) { audio.play(); updateUI(true); }
+            else { audio.pause(); updateUI(false); }
         }
 
         function updateUI(isPlaying) {
