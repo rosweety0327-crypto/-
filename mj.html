@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>小宥領主：12人簡單麻將</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #073642; color: #93a1a1; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        #log { width: 95%; max-width: 650px; height: 150px; background: #002b36; padding: 10px; overflow-y: auto; color: #859900; border: 2px solid #586e75; border-radius: 8px; font-size: 13px; margin-bottom: 5px; }
+        .chat-box { width: 95%; max-width: 650px; display: flex; gap: 5px; margin-bottom: 10px; }
+        #chat-input { flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #2aa198; background: #002b36; color: white; }
+        .setup-box { background: #002b36; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #2aa198; margin-top: 10px; }
+        #board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 800px; }
+        .card { background: #eee8d5; border: 1px solid #93a1a1; padding: 8px; text-align: center; border-radius: 8px; color: #073642; }
+        .card.my-card { border: 3px solid #b58900; background: #fdf6e3; }
+        .mj-tile { display: inline-block; width: 30px; height: 40px; background: white; border: 2px solid #000; border-radius: 4px; margin: 2px; font-size: 20px; font-weight: bold; line-height: 40px; }
+        .btn-act { padding: 4px; cursor: pointer; background: #268bd2; color: white; border: none; border-radius: 4px; margin-top: 5px; width: 100%; font-size: 12px; }
+        .main-btn { padding: 12px 25px; background: #859900; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2 style="color: #b58900;">🀄 領主簡單麻將 (12人補位版)</h2>
+    <div id="status">我的 ID: <span id="my-id">...</span></div>
+
+    <div id="setup-ui" class="setup-box">
+        <button class="main-btn" onclick="hostStart()">房主：開局 (12人戰)</button>
+        <p>連線朋友: <span id="peer-count">0</span></p>
+        <input type="text" id="join-id" placeholder="房主 ID" style="padding:8px; width:120px; text-align:center;">
+        <button onclick="connect()" style="padding:8px 15px; background:#2aa198; color:white; border:none; border-radius:6px;">加入</button>
+    </div>
+
+    <div id="game-ui" style="display:none; width:100%; text-align:center;">
+        <div id="log"></div>
+        <div class="chat-box">
+            <input type="text" id="chat-input" placeholder="打個招呼吧..." onkeypress="if(event.key==='Enter') sendChat()">
+            <button onclick="sendChat()" style="padding:8px 15px; background:#268bd2; color:white; border:none; border-radius:6px;">傳送</button>
+        </div>
+        <div id="board"></div>
+        <div id="my-hand" style="margin-top:20px; padding:15px; background:#002b36; border-radius:10px; width:90%; max-width:600px;">
+            <h3>我的手牌 (點擊卡片出牌)</h3>
+            <div id="tiles-container"></div>
+            <button id="hu-btn" class="main-btn" style="display:none; background:#dc322f; margin-top:10px;" onclick="checkWin(true)">胡牌！</button>
+        </div>
+    </div>
+
+<script>
+    const peer = new Peer(Math.floor(1000 + Math.random() * 9000).toString());
+    const pool = ["🀇","🀈","🀉","🀊","🀋","🀌","🀍","🀎","🀏","🀀","🀁","🀂","🀃"];
+    let conns = [], myConn, isHost = false, myIdx = -1;
+    let game = { players: [], logs: [], deck: [], lastDiscard: null };
+
+    peer.on('open', id => document.getElementById('my-id').innerText = id);
+    peer.on('connection', c => { isHost=true; conns.push(c); document.getElementById('peer-count').innerText=conns.length; c.on('data', d => handleData(d)); });
+
+    function connect() {
+        myConn = peer.connect(document.getElementById('join-id').value);
+        myConn.on('data', d => handleData(d));
+        document.getElementById('setup-ui').innerHTML = "<h3>✅ 已進入大廳</h3>";
+    }
+
+    function hostStart() {
+        isHost = true;
+        game.deck = []; pool.forEach(p => { for(let i=0; i<4; i++) game.deck.push(p); });
+        game.deck.sort(() => Math.random() - 0.5);
+        
+        game.players = Array.from({length: 12}, (_, i) => ({
+            id: i, name: i === 0 ? "小宥領主" : (i <= conns.length ? `朋友${i}` : `AI-${i+1}`),
+            hand: [], isAI: i > conns.length
+        }));
+        
+        game.players.forEach(p => { for(let j=0; j<4; j++) p.hand.push(game.deck.pop()); });
+        addLog("🀄 遊戲開始！每人發 4 張牌，湊齊兩對就贏了！");
+        broadcast();
+        if(isHost) aiCycle();
+    }
+
+    function handleData(data) {
+        if(data.type === "SYNC") { game = data.game; myIdx = data.idx; updateUI(); }
+        else if(data.type === "CHAT") { addLog(`💬 ${data.sender}: ${data.msg}`); }
+        else if(data.type === "DISCARD") { processDiscard(data.idx, data.tile); }
+    }
+
+    function broadcast() { if(!isHost) return; updateUI(); conns.forEach((c, i) => c.send({ type: "SYNC", game: game, idx: i+1 })); }
+
+    function addLog(m) { game.logs.push(`> ${m}`); if(game.logs.length > 15) game.logs.shift(); updateUI(); }
+
+    function sendChat() {
+        const input = document.getElementById('chat-input');
+        const chatData = { type: "CHAT", sender: game.players[myIdx].name, msg: input.value };
+        addLog(`💬 ${chatData.sender}: ${chatData.msg}`);
+        if(isHost) conns.forEach(c => c.send(chatData)); else myConn.send(chatData);
+        input.value = "";
+    }
+
+    function updateUI() {
+        document.getElementById('setup-ui').style.display = "none";
+        document.getElementById('game-ui').style.display = "block";
+        const me = game.players[myIdx];
+        
+        const board = document.getElementById('board'); board.innerHTML = "";
+        game.players.forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = `card ${i===myIdx?'my-card':''}`;
+            div.innerHTML = `<b>${p.name}</b><br>剩餘：${p.hand.length}張`;
+            board.appendChild(div);
+        });
+
+        const container = document.getElementById('tiles-container');
+        container.innerHTML = "";
+        me.hand.forEach((tile, i) => {
+            const span = document.createElement('span');
+            span.className = "mj-tile";
+            span.innerText = tile;
+            span.onclick = () => discard(i);
+            container.appendChild(span);
+        });
+
+        // 檢查是否胡牌
+        const counts = {}; me.hand.forEach(t => counts[t] = (counts[t]||0)+1);
+        const pairs = Object.values(counts).filter(v => v >= 2).length;
+        document.getElementById('hu-btn').style.display = (pairs >= 2) ? "inline-block" : "none";
+    }
+
+    function discard(cardIdx) {
+        const tile = game.players[myIdx].hand.splice(cardIdx, 1)[0];
+        if(isHost) processDiscard(myIdx, tile);
+        else myConn.send({ type: "DISCARD", idx: myIdx, tile: tile });
+    }
+
+    function processDiscard(playerIdx, tile) {
+        if(!isHost) return;
+        addLog(`${game.players[playerIdx].name} 丟出了 [${tile}]`);
+        game.players[playerIdx].hand.push(game.deck.pop());
+        broadcast();
+    }
+
+    function aiCycle() {
+        if(!isHost) return;
+        game.players.forEach(p => {
+            if(p.isAI) {
+                setTimeout(() => {
+                    const idx = Math.floor(Math.random()*p.hand.length);
+                    processDiscard(p.id, p.hand.splice(idx,1)[0]);
+                }, 5000 + Math.random()*5000);
+            }
+        });
+        setTimeout(aiCycle, 8000);
+    }
+
+    function checkWin(isManual) {
+        if(isManual) {
+            alert("🎊 恭喜小宥領主！你胡牌了！");
+            location.reload();
+        }
+    }
+</script>
+</body>
+</html>
