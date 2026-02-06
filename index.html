@@ -12,6 +12,7 @@
             --red: #ff4757;
             --gold: #f1c40f;
             --purple: #8e44ad;
+            --cyan: #00d2ff;
             --text: #c9d1d9;
         }
 
@@ -57,6 +58,7 @@
         .novel-card { border-color: var(--red); }
         .cat-card { border-color: var(--gold); }
         .wolf-card { border-color: var(--purple); }
+        .taiko-card { border-color: var(--cyan); }
 
         .icon { font-size: 40px; margin-bottom: 8px; }
         .title { font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 4px; }
@@ -92,6 +94,13 @@
             <div class="desc">3-6人連線對局</div>
         </div>
 
+        <div class="card taiko-card" onclick="location.href='太古大戰.html'">
+            <span class="tag" style="background: var(--cyan);">NEW</span>
+            <div class="icon">🥁</div>
+            <div class="title" style="color: var(--cyan);">太鼓達人</div>
+            <div class="desc">節奏對決</div>
+        </div>
+
         <div class="card" onclick="location.href='數字炸彈.html'">
             <div class="icon">💣</div>
             <div class="title">數字炸彈</div>
@@ -119,9 +128,8 @@
     </div>
 
     <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
-        © 2026 小宥領主基地 | 系統版本：V1.2 多人連線版
+        © 2026 小宥領主基地 | 系統版本：V1.3 節奏對決更新
     </footer>
 
 </body>
 </html>
-
