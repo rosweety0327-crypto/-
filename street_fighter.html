@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>領主格鬥：連線快打</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #222; color: white; text-align: center; font-family: sans-serif; overflow: hidden; }
+        #game-stage { width: 800px; height: 400px; background: linear-gradient(to bottom, #444, #111); margin: 20px auto; position: relative; border: 4px solid #f39c12; overflow: hidden; }
+        .player { width: 60px; height: 120px; position: absolute; bottom: 0; transition: transform 0.1s; }
+        #p1 { background: #ff4757; left: 100px; }
+        #p2 { background: #58a6ff; right: 100px; }
+        .hp-bar { width: 350px; height: 20px; background: #555; border: 2px solid white; position: absolute; top: 20px; }
+        #hp1-fill { height: 100%; background: #2ecc71; width: 100%; float: right; }
+        #hp2-fill { height: 100%; background: #2ecc71; width: 100%; }
+        .effect { position: absolute; color: yellow; font-weight: bold; font-size: 24px; animation: up 0.5s forwards; }
+        @keyframes up { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-50px); } }
+    </style>
+</head>
+<body>
+    <h2>領主格鬥：連線對戰</h2>
+    <input type="text" id="target-id" placeholder="輸入對手 ID">
+    <button onclick="connect()">連線挑戰</button>
+    <p>我的 ID: <span id="my-id">...</span></p>
+
+    <div id="game-stage">
+        <div class="hp-bar" style="left:20px;"><div id="hp1-fill"></div></div>
+        <div class="hp-bar" style="right:20px;"><div id="hp2-fill"></div></div>
+        <div id="p1" class="player">領主</div>
+        <div id="p2" class="player">對手</div>
+    </div>
+
+    <script>
+        const peer = new Peer(Math.floor(1000+Math.random()*9000).toString());
+        let conn, isHost = true, p1x = 100, p2x = 640, hp1 = 100, hp2 = 100;
+        
+        peer.on('open', id => document.getElementById('my-id').innerText = id);
+        peer.on('connection', c => { conn = c; isHost = true; setupConn(); });
+
+        function connect() {
+            conn = peer.connect(document.getElementById('target-id').value);
+            isHost = false; setupConn();
+        }
+
+        function setupConn() {
+            conn.on('data', data => {
+                if(data.type === 'move') { if(isHost) p2x = data.x; else p1x = data.x; update(); }
+                if(data.type === 'hit') { 
+                    if(isHost) { hp1 -= 10; showHit('p1'); } else { hp2 -= 10; showHit('p2'); }
+                    update();
+                }
+            });
+        }
+
+        window.addEventListener('keydown', e => {
+            if(!conn) return;
+            if(e.key === 'a') move(-20);
+            if(e.key === 'd') move(20);
+            if(e.key === 'g') attack();
+        });
+
+        function move(dir) {
+            if(isHost) p1x += dir; else p2x += dir;
+            conn.send({type: 'move', x: isHost ? p1x : p2x});
+            update();
+        }
+
+        function attack() {
+            const dist = Math.abs(p1x - (800 - p2x - 60));
+            if(dist < 80) {
+                conn.send({type: 'hit'});
+                if(isHost) { hp2 -= 10; showHit('p2'); } else { hp1 -= 10; showHit('p1'); }
+                update();
+            }
+        }
+
+        function update() {
+            document.getElementById('p1').style.left = p1x + 'px';
+            document.getElementById('p2').style.right = p2x + 'px';
+            document.getElementById('hp1-fill').style.width = hp1 + '%';
+            document.getElementById('hp2-fill').style.width = hp2 + '%';
+            if(hp1 <= 0 || hp2 <= 0) alert("戰鬥結束！");
+        }
+
+        function showHit(id) {
+            const p = document.getElementById(id);
+            const eff = document.createElement('div');
+            eff.className = 'effect'; eff.innerText = 'HIT!';
+            eff.style.left = '20px'; p.appendChild(eff);
+            setTimeout(() => eff.remove(), 500);
+        }
+    </script>
+</body>
+</html>
