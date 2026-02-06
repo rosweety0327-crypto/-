@@ -14,7 +14,8 @@
             --purple: #8e44ad;
             --cyan: #00d2ff;
             --pink: #ff79c6;
-            --yt-red: #ff0000; /* YouTube 專屬紅 */
+            --yt-red: #ff0000;
+            --green: #2ecc71;
             --text: #c9d1d9;
         }
 
@@ -57,12 +58,13 @@
         .card:active { transform: scale(0.95); background: #21262d; }
 
         /* 特殊卡片樣式 */
-        .novel-card { border-color: var(--red); }
+        .yt-card { border-color: var(--yt-red); box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
+        .music-card { border-color: var(--pink); }
         .cat-card { border-color: var(--gold); }
         .wolf-card { border-color: var(--purple); }
         .taiko-card { border-color: var(--cyan); }
-        .music-card { border-color: var(--pink); }
-        .yt-card { border-color: var(--yt-red); box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
+        .novel-card { border-color: var(--red); }
+        .logic-card { border-color: var(--green); }
 
         .icon { font-size: 40px; margin-bottom: 8px; }
         .title { font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 4px; }
@@ -87,8 +89,6 @@
             backdrop-filter: blur(10px);
         }
         .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: white; font-size: 20px; }
-        .music-anim { animation: rotate 3s linear infinite; display: none; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -101,14 +101,14 @@
             <span class="tag" style="background: var(--yt-red);">LIVE</span>
             <div class="icon">📺</div>
             <div class="title" style="color: var(--yt-red);">小魚 YouTube</div>
-            <div class="desc">麥塊實況與音樂</div>
+            <div class="desc">訂閱按讚開啟小鈴鐺</div>
         </div>
 
         <div class="card music-card" onclick="toggleMusic()">
-            <span class="tag" style="background: var(--pink);">MUSIC</span>
+            <span class="tag" style="background: var(--pink);">BGM</span>
             <div class="icon">🎵</div>
             <div class="title" style="color: var(--pink);">閃光射線</div>
-            <div class="desc">背景音樂播放</div>
+            <div class="desc">聽音樂模式</div>
         </div>
 
         <div class="card cat-card" onclick="location.href='race.html'">
@@ -119,10 +119,10 @@
         </div>
 
         <div class="card wolf-card" onclick="location.href='wolf.html'">
-            <span class="tag" style="background: var(--purple);">連線版</span>
+            <span class="tag" style="background: var(--purple);">多人</span>
             <div class="icon">🐺</div>
-            <div class="title" style="color: var(--purple);">多人狼人殺</div>
-            <div class="desc">3-6人對局</div>
+            <div class="title" style="color: var(--purple);">連線狼人殺</div>
+            <div class="desc">策略心理戰</div>
         </div>
 
         <div class="card taiko-card" onclick="location.href='太古大戰.html'">
@@ -132,11 +132,16 @@
             <div class="desc">節奏對決</div>
         </div>
 
-        <div class="card novel-card" onclick="location.href='library.html'">
-            <span class="tag" style="background: var(--red);">NOVEL</span>
-            <div class="icon">📖</div>
-            <div class="title" style="color: var(--red);">血之遺痕</div>
-            <div class="desc">小說全集</div>
+        <div class="card logic-card" onclick="location.href='數獨.html'">
+            <div class="icon">🔢</div>
+            <div class="title" style="color: var(--green);">終極數獨</div>
+            <div class="desc">邏輯挑戰</div>
+        </div>
+
+        <div class="card logic-card" onclick="location.href='四子棋.html'">
+            <div class="icon">🔴</div>
+            <div class="title" style="color: var(--green);">連線四子棋</div>
+            <div class="desc">策略棋盤</div>
         </div>
 
         <div class="card" onclick="location.href='槍戰 2.html'">
@@ -145,14 +150,22 @@
             <div class="desc">3D 射擊生存</div>
         </div>
 
+        <div class="card" onclick="location.href='數字炸彈.html'">
+            <div class="icon">💣</div>
+            <div class="title">數字炸彈</div>
+            <div class="desc">運氣挑戰</div>
+        </div>
+
+        <div class="card novel-card" onclick="location.href='library.html'">
+            <div class="icon">📖</div>
+            <div class="title" style="color: var(--red);">血之遺痕</div>
+            <div class="desc">小說基地</div>
+        </div>
+
     </div>
 
     <div id="music-player">
-        <div class="icon music-anim" id="anim-icon">💿</div>
-        <div style="text-align: left;">
-            <div style="font-size: 12px; font-weight: bold; color: var(--pink);">Now Playing</div>
-            <div style="font-size: 14px; color: #fff;">《全力展開！閃光射線》</div>
-        </div>
+        <div style="font-size: 14px; color: #fff;">🎵 《全力展開！閃光射線》</div>
         <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
     </div>
 
@@ -161,34 +174,22 @@
     </audio>
 
     <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
-        © 2026 小宥領主基地 | 系統版本：V1.5 YouTube 連結更新
+        © 2026 小宥領主基地 | V1.6 全能基地完全體
     </footer>
 
     <script>
         const audio = document.getElementById('bgm');
         const player = document.getElementById('music-player');
         const ctrlBtn = document.getElementById('ctrl-btn');
-        const animIcon = document.getElementById('anim-icon');
 
         function toggleMusic() {
             player.style.display = 'flex';
-            if (audio.paused) {
-                audio.play();
-                updateUI(true);
-            } else {
-                audio.pause();
-                updateUI(false);
-            }
+            controlAudio();
         }
 
         function controlAudio() {
-            if (audio.paused) { audio.play(); updateUI(true); }
-            else { audio.pause(); updateUI(false); }
-        }
-
-        function updateUI(isPlaying) {
-            ctrlBtn.innerText = isPlaying ? '⏸' : '▶';
-            animIcon.style.display = isPlaying ? 'block' : 'none';
+            if (audio.paused) { audio.play(); ctrlBtn.innerText = '⏸'; }
+            else { audio.pause(); ctrlBtn.innerText = '▶'; }
         }
     </script>
 </body>
