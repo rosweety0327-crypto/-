@@ -58,8 +58,8 @@
         .card:active { transform: scale(0.95); background: #21262d; }
 
         /* 特殊卡片樣式 */
-        .yt-card { border-color: var(--yt-red); box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
-        .music-card { border-color: var(--pink); }
+        .yt-card { border-color: var(--yt-red); }
+        .music-card { border-color: var(--pink); box-shadow: 0 0 15px rgba(255, 121, 198, 0.1); }
         .cat-card { border-color: var(--gold); }
         .wolf-card { border-color: var(--purple); }
         .taiko-card { border-color: var(--cyan); }
@@ -72,7 +72,7 @@
         
         .tag { position: absolute; top: 10px; right: -25px; color: white; font-size: 9px; padding: 2px 25px; transform: rotate(45deg); }
 
-        /* 音樂播放器 UI */
+        /* 進化版播放器 */
         #music-player {
             position: fixed;
             bottom: 20px;
@@ -81,14 +81,16 @@
             background: rgba(22, 27, 34, 0.95);
             border: 2px solid var(--pink);
             border-radius: 50px;
-            padding: 10px 25px;
+            padding: 10px 20px;
             display: none;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             z-index: 1000;
             backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
-        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: white; font-size: 20px; }
+        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; }
+        .switch-btn { background: transparent; border: 1px solid var(--pink); color: var(--pink); border-radius: 20px; padding: 4px 10px; font-size: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -101,14 +103,14 @@
             <span class="tag" style="background: var(--yt-red);">LIVE</span>
             <div class="icon">📺</div>
             <div class="title" style="color: var(--yt-red);">小魚 YouTube</div>
-            <div class="desc">訂閱按讚開啟小鈴鐺</div>
+            <div class="desc">實況頻道</div>
         </div>
 
         <div class="card music-card" onclick="toggleMusic()">
-            <span class="tag" style="background: var(--pink);">BGM</span>
-            <div class="icon">🎵</div>
-            <div class="title" style="color: var(--pink);">閃光射線</div>
-            <div class="desc">聽音樂模式</div>
+            <span class="tag" style="background: var(--pink);">HOT</span>
+            <div class="icon">🎧</div>
+            <div class="title" style="color: var(--pink);">音樂電台</div>
+            <div class="desc">雙曲切換模式</div>
         </div>
 
         <div class="card cat-card" onclick="location.href='race.html'">
@@ -119,14 +121,12 @@
         </div>
 
         <div class="card wolf-card" onclick="location.href='wolf.html'">
-            <span class="tag" style="background: var(--purple);">多人</span>
             <div class="icon">🐺</div>
             <div class="title" style="color: var(--purple);">連線狼人殺</div>
-            <div class="desc">策略心理戰</div>
+            <div class="desc">多人對局</div>
         </div>
 
         <div class="card taiko-card" onclick="location.href='太古大戰.html'">
-            <span class="tag" style="background: var(--cyan);">NEW</span>
             <div class="icon">🥁</div>
             <div class="title" style="color: var(--cyan);">太鼓達人</div>
             <div class="desc">節奏對決</div>
@@ -134,20 +134,27 @@
 
         <div class="card logic-card" onclick="location.href='數獨.html'">
             <div class="icon">🔢</div>
-            <div class="title" style="color: var(--green);">終極數獨</div>
-            <div class="desc">邏輯挑戰</div>
+            <div class="title">終極數獨</div>
+            <div class="desc">邏輯腦力</div>
         </div>
 
         <div class="card logic-card" onclick="location.href='四子棋.html'">
             <div class="icon">🔴</div>
-            <div class="title" style="color: var(--green);">連線四子棋</div>
-            <div class="desc">策略棋盤</div>
+            <div class="title">連線四子棋</div>
+            <div class="desc">策略對戰</div>
         </div>
 
         <div class="card" onclick="location.href='槍戰 2.html'">
             <div class="icon">🔫</div>
             <div class="title">草原槍戰</div>
-            <div class="desc">3D 射擊生存</div>
+            <div class="desc">3D射擊</div>
+        </div>
+
+        <div class="card novel-card" onclick="location.href='library.html'">
+            <span class="tag" style="background: var(--red);">BOOK</span>
+            <div class="icon">📖</div>
+            <div class="title" style="color: var(--red);">血之遺痕</div>
+            <div class="desc">小說全集</div>
         </div>
 
         <div class="card" onclick="location.href='數字炸彈.html'">
@@ -156,40 +163,55 @@
             <div class="desc">運氣挑戰</div>
         </div>
 
-        <div class="card novel-card" onclick="location.href='library.html'">
-            <div class="icon">📖</div>
-            <div class="title" style="color: var(--red);">血之遺痕</div>
-            <div class="desc">小說基地</div>
-        </div>
-
     </div>
 
     <div id="music-player">
-        <div style="font-size: 14px; color: #fff;">🎵 《全力展開！閃光射線》</div>
+        <div style="text-align: left; min-width: 120px;">
+            <div style="font-size: 10px; color: var(--pink); font-weight: bold;">NOW PLAYING</div>
+            <div id="song-title" style="font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">《閃光射線》</div>
+        </div>
+        <button class="switch-btn" onclick="switchSong()">切換歌曲</button>
         <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
     </div>
 
     <audio id="bgm" loop>
-        <source src="《全力展開！閃光射線》.mp3" type="audio/mpeg">
+        <source id="audio-source" src="《全力展開！閃光射線》.mp3" type="audio/mpeg">
     </audio>
 
     <footer style="margin-top: 50px; color: #484f58; font-size: 12px;">
-        © 2026 小宥領主基地 | V1.6 全能基地完全體
+        © 2026 小宥領主基地 | V1.7 音樂庫擴充
     </footer>
 
     <script>
         const audio = document.getElementById('bgm');
+        const source = document.getElementById('audio-source');
         const player = document.getElementById('music-player');
         const ctrlBtn = document.getElementById('ctrl-btn');
+        const songTitle = document.getElementById('song-title');
+
+        const songs = [
+            { title: "《全力展開！閃光射線》", file: "《全力展開！閃光射線》.mp3" },
+            { title: "赤き月の欠片 (1)", file: "赤き月の欠片 (1).mp3" }
+        ];
+        let currentIdx = 0;
 
         function toggleMusic() {
             player.style.display = 'flex';
-            controlAudio();
+            if (audio.paused) { audio.play(); ctrlBtn.innerText = '⏸'; }
         }
 
         function controlAudio() {
             if (audio.paused) { audio.play(); ctrlBtn.innerText = '⏸'; }
             else { audio.pause(); ctrlBtn.innerText = '▶'; }
+        }
+
+        function switchSong() {
+            currentIdx = (currentIdx + 1) % songs.length;
+            source.src = songs[currentIdx].file;
+            songTitle.innerText = songs[currentIdx].title;
+            audio.load();
+            audio.play();
+            ctrlBtn.innerText = '⏸';
         }
     </script>
 </body>
