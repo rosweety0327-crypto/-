@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>太鼓達人：節奏對決</title>
+    <style>
+        body { background: #121212; color: white; font-family: 'Arial Black', sans-serif; text-align: center; margin: 0; }
+        .game-wrapper { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        /* 目標分數 UI */
+        #goal-ui { background: #f1c40f; color: #000; padding: 10px 30px; border-radius: 50px; font-size: 24px; margin-bottom: 20px; box-shadow: 0 0 20px #f1c40f; }
+
+        .track-container { position: relative; width: 850px; height: 100px; margin: 10px auto; border-radius: 50px; overflow: hidden; border: 4px solid; }
+        #track1 { background: #2a0000; border-color: #ff4757; }
+        #track2 { background: #001a33; border-color: #1e90ff; }
+
+        .judge-line { position: absolute; left: 80px; top: 0; width: 80px; height: 100%; border: 4px dashed rgba(255,255,255,0.4); border-radius: 50%; z-index: 5; }
+
+        /* 音符 */
+        .note { position: absolute; width: 60px; height: 60px; border-radius: 50%; top: 20px; line-height: 60px; font-size: 20px; font-weight: bold; text-align: center; color: white; }
+        .p1-note { background: radial-gradient(circle, #ff6b81, #ff4757); box-shadow: 0 0 10px #ff4757; }
+        .p2-note { background: radial-gradient(circle, #70a1ff, #1e90ff); box-shadow: 0 0 10px #1e90ff; }
+
+        #ui-panel { display: flex; justify-content: space-around; width: 900px; margin-bottom: 10px; }
+        .p-info { padding: 10px; border-radius: 15px; width: 45%; border-bottom: 5px solid; }
+        .p1-border { border-color: #ff4757; background: #3d1414; }
+        .p2-border { border-color: #1e90ff; background: #14263d; }
+
+        .score { font-size: 32px; }
+        .win-count { font-size: 14px; color: #aaa; margin-top: 5px; }
+        
+        #start-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        button { padding: 15px 40px; font-size: 24px; cursor: pointer; border-radius: 10px; border: none; background: #2ecc71; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="start-mask">
+        <h1>🥁 準備好開始對決了嗎？</h1>
+        <p>這將會播放節奏音樂，請開啟聲音</p>
+        <button onclick="startGame()">點擊開始遊戲</button>
+    </div>
+
+    <div class="game-wrapper">
+        <div id="goal-ui">目標分數：<span id="target-score">3000</span></div>
+
+        <div id="ui-panel">
+            <div class="p-info p1-border">
+                <span id="p1-icon" style="font-size: 40px;">🔥</span>
+                <div>玩家 1 (F)</div>
+                <div class="score" id="s1">0</div>
+                <div class="win-count">總勝場: <span id="w1">0</span></div>
+            </div>
+            <div class="p-info p2-border">
+                <span id="p2-icon" style="font-size: 40px;">❄️</span>
+                <div>玩家 2 (J)</div>
+                <div class="score" id="s2">0</div>
+                <div class="win-count">總勝場: <span id="w2">0</span></div>
+            </div>
+        </div>
+
+        <div class="track-container" id="track1"><div class="judge-line"></div></div>
+        <div class="track-container" id="track2"><div class="judge-line"></div></div>
+        
+        <button style="background:#555; margin-top:20px; font-size: 14px; padding: 8px 15px;" onclick="updateCharacters()">✨ 更新新角色 (保留紀錄)</button>
+    </div>
+
+    <script>
+        let audioCtx, targetScore = 3000;
+        let gameActive = false;
+        let data = {
+            p1: { score: 0, wins: parseInt(localStorage.getItem('tk_win1')) || 0, notes: [] },
+            p2: { score: 0, wins: parseInt(localStorage.getItem('tk_win2')) || 0, notes: [] }
+        };
+
+        function startGame() {
+            document.getElementById('start-mask').style.display = 'none';
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            gameActive = true;
+            updateUI();
+            playMusicLoop();
+            gameLoop();
+        }
+
+        // 音樂合成器 (Web Audio API)
+        function playMusicLoop() {
+            if(!gameActive) return;
+            // 模擬鼓點節奏
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+            setTimeout(playMusicLoop, 500); // 120 BPM
+        }
+
+        function spawnNote(p) {
+            const note = { id: Math.random(), pos: 850, dom: document.createElement('div') };
+            note.dom.className = `note p${p}-note`;
+            note.dom.innerText = p === 1 ? '🔥' : '❄️';
+            document.getElementById(`track${p}`).appendChild(note.dom);
+            data[`p${p}`].notes.push(note);
+        }
+
+        function gameLoop() {
+            if(!gameActive) return;
+
+            // P1 樂譜 (慢節奏)
+            if(Math.random() < 0.03) spawnNote(1);
+            // P2 樂譜 (快節奏但音符多)
+            if(Math.random() < 0.05) spawnNote(2);
+
+            [1, 2].forEach(p => {
+                data[`p${p}`].notes.forEach((n, idx) => {
+                    n.pos -= (p === 1 ? 6 : 8); // 兩邊速度也不同
+                    n.dom.style.left = n.pos + 'px';
+                    if(n.pos < 0) {
+                        n.dom.remove();
+                        data[`p${p}`].notes.splice(idx, 1);
+                    }
+                });
+            });
+
+            checkWinner();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(!gameActive) return;
+            if(e.key.toLowerCase() === 'f') hit(1);
+            if(e.key.toLowerCase() === 'j') hit(2);
+        });
+
+        function hit(p) {
+            const n = data[`p${p}`].notes.find(n => n.pos > 60 && n.pos < 120);
+            if(n) {
+                data[`p${p}`].score += 100;
+                n.dom.remove();
+                data[`p${p}`].notes = data[`p${p}`].notes.filter(x => x.id !== n.id);
+                updateUI();
+            }
+        }
+
+        function checkWinner() {
+            [1, 2].forEach(p => {
+                if(data[`p${p}`].score >= targetScore) {
+                    gameActive = false;
+                    data[`p${p}`].wins++;
+                    localStorage.setItem(`tk_win${p}`, data[`p${p}`].wins);
+                    alert(`🏁 玩家 ${p} 率先達到目標分數，獲得勝利！`);
+                    location.reload();
+                }
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('s1').innerText = data.p1.score;
+            document.getElementById('s2').innerText = data.p2.score;
+            document.getElementById('w1').innerText = data.p1.wins;
+            document.getElementById('w2').innerText = data.p2.wins;
+        }
+
+        function updateCharacters() {
+            const set1 = ['🦁', '🐯', '🌋'];
+            const set2 = ['🦅', '🐺', '❄️'];
+            document.getElementById('p1-icon').innerText = set1[Math.floor(Math.random()*3)];
+            document.getElementById('p2-icon').innerText = set2[Math.floor(Math.random()*3)];
+            alert("角色與曲目風格已更新，紀錄保留。");
+        }
+    </script>
+</body>
+</html>
