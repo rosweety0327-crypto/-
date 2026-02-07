@@ -14,7 +14,7 @@
         h1 { color: #ffffff; text-shadow: 0 0 15px rgba(88,166,255,0.4); margin-bottom: 5px; }
         .version-tag { font-size: 11px; color: var(--gold); margin-bottom: 25px; display: block; letter-spacing: 1px; }
         
-        /* 遊戲按鈕區網格 */
+        /* 按鈕網格佈局 */
         .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; padding-bottom: 120px; }
         
         .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 120px; justify-content: center; }
@@ -40,7 +40,7 @@
 <body>
 
     <h1>🏰 小宥領主的基地</h1>
-    <span class="version-tag">SYSTEM V3.0 | 2026 終極整合版</span>
+    <span class="version-tag">SYSTEM V3.0 | 2026 終極完全整合版</span>
 
     <div class="container">
         <div class="card" style="border-color: var(--yt-red);" onclick="window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
@@ -58,13 +58,13 @@
         <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
             <div class="icon">🎧</div>
             <div class="title" style="color: var(--pink);">音樂庫</div>
-            <div class="desc">含《光のキセキ》</div>
+            <div class="desc">切換三首神曲</div>
         </div>
 
         <div class="card" style="border-color: #bd93f9;" onclick="goTo('tetris.html')">
             <div class="icon">🧱</div>
             <div class="title" style="color: #bd93f9;">俄羅斯方塊</div>
-            <div class="desc">基地特供版</div>
+            <div class="desc">經典方塊對決</div>
         </div>
 
         <div class="card" style="border-color: var(--gold);" onclick="goTo('競賽貓站.html')">
@@ -76,37 +76,37 @@
         <div class="card" style="border-color: var(--purple);" onclick="goTo('狼人殺.html')">
             <div class="icon">🐺</div>
             <div class="title" style="color: var(--purple);">連線狼人殺</div>
-            <div class="desc">智力對決</div>
+            <div class="desc">智力與口才</div>
         </div>
 
         <div class="card" style="border-color: var(--cyan);" onclick="goTo('太古大戰.html')">
             <div class="icon">🥁</div>
             <div class="title" style="color: var(--cyan);">太鼓達人</div>
-            <div class="desc">節奏挑戰</div>
+            <div class="desc">節奏感挑戰</div>
         </div>
 
         <div class="card" style="border-color: var(--green);" onclick="goTo('數獨.html')">
             <div class="icon">🔢</div>
             <div class="title" style="color: var(--green);">終極數獨</div>
-            <div class="desc">邏輯訓練</div>
+            <div class="desc">邏輯腦力開發</div>
         </div>
 
         <div class="card" style="border-color: var(--blue);" onclick="goTo('四子棋.html')">
             <div class="icon">🔴</div>
             <div class="title" style="color: var(--blue);">連線四子棋</div>
-            <div class="desc">雙人策略</div>
+            <div class="desc">策略方塊對抗</div>
         </div>
 
         <div class="card" onclick="goTo('槍戰 2.html')">
             <div class="icon">🔫</div>
             <div class="title">草原槍戰 2</div>
-            <div class="desc">生存射擊</div>
+            <div class="desc">生存射擊遊戲</div>
         </div>
     </div>
 
     <div id="music-player">
         <span id="song-title">載入中...</span>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 10px;">
             <button class="play-btn" onclick="switchSong(-1)">⏮</button>
             <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
             <button class="play-btn" onclick="switchSong(1)">⏭</button>
@@ -116,12 +116,12 @@
     <audio id="bgm" loop><source id="audio-source" src="《全力展開！閃光射線》.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // 核心跳轉邏輯：自動處理中文編碼防止 404
+        // 跳轉邏輯：自動將中文名稱編碼，解決 GitHub Pages 404 問題
         function goTo(page) {
             window.location.href = './' + encodeURIComponent(page);
         }
 
-        // 音樂控制邏輯
+        // 音樂控制器
         const audio = document.getElementById('bgm');
         const source = document.getElementById('audio-source');
         const ctrlBtn = document.getElementById('ctrl-btn');
@@ -135,8 +135,7 @@
         let currentIdx = 0;
 
         function toggleMusic() { 
-            const player = document.getElementById('music-player');
-            player.style.display = 'flex';
+            document.getElementById('music-player').style.display = 'flex';
             titleText.innerText = playlist[currentIdx].name;
         }
 
