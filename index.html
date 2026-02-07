@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主的基地 V2.4</title>
+    <title>小宥領主的基地 V2.5</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -17,71 +17,70 @@
         .icon { font-size: 40px; margin-bottom: 8px; }
         .title { font-weight: bold; font-size: 14px; color: #fff; }
         #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; }
-        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; }
+        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
     <h1>🏰 小宥領主的基地</h1>
-    <p style="font-size: 12px; color: var(--gold);">修復 404 專用版本</p>
+    <p style="font-size: 11px; color: var(--gold);">⚡ 核心路徑修復版 ⚡</p>
 
     <div class="container">
         <div class="card" style="border-color: var(--yt-red);" onclick="window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
-            <div class="icon">📺</div>
-            <div class="title" style="color: var(--yt-red);">小魚 YouTube</div>
+            <div class="icon">📺</div><div class="title">小魚 YouTube</div>
         </div>
 
-        <div class="card" style="border-color: var(--red);" onclick="location.href='library.html'">
-            <div class="icon">📖</div>
-            <div class="title" style="color: var(--red);">血之遺痕</div>
+        <div class="card" style="border-color: var(--red);" onclick="goTo('library.html')">
+            <div class="icon">📖</div><div class="title">血之遺痕</div>
         </div>
 
         <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
-            <div class="icon">🎧</div>
-            <div class="title" style="color: var(--pink);">音樂庫</div>
+            <div class="icon">🎧</div><div class="title">音樂庫</div>
         </div>
 
-        <div class="card" style="border-color: var(--gold);" onclick="location.href=encodeURI('競賽貓站.html')">
-            <div class="icon">🐈</div>
-            <div class="title" style="color: var(--gold);">競賽貓站</div>
+        <div class="card" style="border-color: var(--gold);" onclick="goTo('競賽貓站.html')">
+            <div class="icon">🐈</div><div class="title">競賽貓站</div>
         </div>
 
-        <div class="card" style="border-color: var(--purple);" onclick="location.href=encodeURI('狼人殺.html')">
-            <div class="icon">🐺</div>
-            <div class="title" style="color: var(--purple);">連線狼人殺</div>
+        <div class="card" style="border-color: var(--purple);" onclick="goTo('狼人殺.html')">
+            <div class="icon">🐺</div><div class="title">連線狼人殺</div>
         </div>
 
-        <div class="card" style="border-color: var(--cyan);" onclick="location.href=encodeURI('太古大戰.html')">
-            <div class="icon">🥁</div>
-            <div class="title" style="color: var(--cyan);">太鼓達人</div>
+        <div class="card" style="border-color: var(--cyan);" onclick="goTo('太古大戰.html')">
+            <div class="icon">🥁</div><div class="title">太鼓達人</div>
         </div>
 
-        <div class="card" style="border-color: var(--green);" onclick="location.href=encodeURI('數獨.html')">
-            <div class="icon">🔢</div>
-            <div class="title" style="color: var(--green);">終極數獨</div>
+        <div class="card" style="border-color: var(--green);" onclick="goTo('數獨.html')">
+            <div class="icon">🔢</div><div class="title">終極數獨</div>
         </div>
 
-        <div class="card" style="border-color: var(--blue);" onclick="location.href=encodeURI('四子棋.html')">
-            <div class="icon">🔴</div>
-            <div class="title" style="color: var(--blue);">連線四子棋</div>
+        <div class="card" style="border-color: var(--blue);" onclick="goTo('四子棋.html')">
+            <div class="icon">🔴</div><div class="title">連線四子棋</div>
         </div>
 
-        <div class="card" onclick="location.href=encodeURI('槍戰 2.html')">
-            <div class="icon">🔫</div>
-            <div class="title">草原槍戰 2</div>
+        <div class="card" onclick="goTo('槍戰 2.html')">
+            <div class="icon">🔫</div><div class="title">草原槍戰 2</div>
         </div>
     </div>
 
     <div id="music-player">
-        <span id="song-title" style="font-size:12px;">載入中...</span>
-        <button class="play-btn" onclick="switchSong(-1)">⏮</button>
-        <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
-        <button class="play-btn" onclick="switchSong(1)">⏭</button>
+        <span id="song-title" style="font-size:12px; font-weight:bold;">載入中...</span>
+        <div style="display:flex; gap:8px;">
+            <button class="play-btn" onclick="switchSong(-1)">⏮</button>
+            <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
+            <button class="play-btn" onclick="switchSong(1)">⏭</button>
+        </div>
     </div>
 
     <audio id="bgm" loop><source id="audio-source" src="《全力展開！閃光射線》.mp3" type="audio/mpeg"></audio>
 
     <script>
+        // 核心跳轉函數：自動處理中文與路徑
+        function goTo(page) {
+            // 使用 encodeURIComponent 確保中文檔名能被 GitHub 正確讀取
+            window.location.href = './' + encodeURIComponent(page);
+        }
+
         const audio = document.getElementById('bgm');
         const source = document.getElementById('audio-source');
         const ctrlBtn = document.getElementById('ctrl-btn');
@@ -91,11 +90,20 @@
             { name: "光のキセキ", file: "光のキセキ.mp3" }
         ];
         let currentIdx = 0;
-        function toggleMusic() { document.getElementById('music-player').style.display='flex'; document.getElementById('song-title').innerText=playlist[0].name; }
-        function controlAudio() { if(audio.paused){ audio.play(); ctrlBtn.innerText='⏸'; }else{ audio.pause(); ctrlBtn.innerText='▶'; } }
+
+        function toggleMusic() { 
+            document.getElementById('music-player').style.display='flex'; 
+            document.getElementById('song-title').innerText=playlist[currentIdx].name; 
+        }
+
+        function controlAudio() { 
+            if(audio.paused){ audio.play(); ctrlBtn.innerText='⏸'; }
+            else{ audio.pause(); ctrlBtn.innerText='▶'; } 
+        }
+
         function switchSong(dir) {
             currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
-            source.src = playlist[currentIdx].file;
+            source.src = encodeURIComponent(playlist[currentIdx].file);
             document.getElementById('song-title').innerText = playlist[currentIdx].name;
             audio.load(); audio.play(); ctrlBtn.innerText='⏸';
         }
