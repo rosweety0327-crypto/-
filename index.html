@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主的數位基地 V3.2</title>
+    <title>小宥領主的數位基地 V3.3</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -38,42 +38,47 @@
 <body>
 
     <h1>🏰 小宥領主的基地</h1>
-    <span class="version-tag">SYSTEM V3.2 | SPRING PARADE UPDATE</span>
+    <span class="version-tag">SYSTEM V3.3 | BATTLE ADVENTURE</span>
 
     <div class="container">
         <div class="card" style="border-color: var(--yt-red);" onclick="window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
-            <div class="icon">📺</div><div class="title">小魚 YouTube</div><div class="desc">前往頻道</div>
+            <div class="icon">📺</div><div class="title">小魚 YouTube</div><div class="desc">領主官方頻道</div>
         </div>
+        
         <div class="card" style="border-color: var(--red);" onclick="goTo('library.html')">
-            <div class="icon">📖</div><div class="title">血之遺痕</div><div class="desc">圖書館</div>
-        </div>
-        <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
-            <div class="icon">🎧</div><div class="title">音樂庫</div><div class="desc">5 首神曲</div>
+            <div class="icon">📖</div><div class="title">血之遺痕</div><div class="desc">長篇小說連載</div>
         </div>
 
-        <div class="card" style="border-color: var(--pink);" onclick="goTo('pretty_cure.html')">
-            <div class="icon">✨</div><div class="title">光之美少女</div><div class="desc">雙人對決</div>
+        <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
+            <div class="icon">🎧</div><div class="title">音樂庫</div><div class="desc">含 5 首熱血神曲</div>
         </div>
+
         <div class="card" style="border-color: #bd93f9;" onclick="goTo('tetris.html')">
-            <div class="icon">🧱</div><div class="title">俄羅斯方塊</div><div class="desc">經典方塊</div>
+            <div class="icon">🧱</div><div class="title">俄羅斯方塊</div><div class="desc">方塊極限挑戰</div>
         </div>
+
         <div class="card" style="border-color: var(--gold);" onclick="goTo('競賽貓站.html')">
             <div class="icon">🐈</div><div class="title">競賽貓站</div><div class="desc">貓咪大戰爭</div>
         </div>
+
         <div class="card" style="border-color: var(--purple);" onclick="goTo('狼人殺.html')">
-            <div class="icon">🐺</div><div class="title">連線狼人殺</div><div class="desc">智力對決</div>
+            <div class="icon">🐺</div><div class="title">連線狼人殺</div><div class="desc">策略心理戰</div>
         </div>
+
         <div class="card" style="border-color: var(--cyan);" onclick="goTo('太古大戰.html')">
-            <div class="icon">🥁</div><div class="title">太鼓達人</div><div class="desc">節奏挑戰</div>
+            <div class="icon">🥁</div><div class="title">太鼓達人</div><div class="desc">音樂節奏挑戰</div>
         </div>
+
         <div class="card" style="border-color: var(--green);" onclick="goTo('數獨.html')">
-            <div class="icon">🔢</div><div class="title">終極數獨</div><div class="desc">邏輯訓練</div>
+            <div class="icon">🔢</div><div class="title">終極數獨</div><div class="desc">邏輯腦力開發</div>
         </div>
+
         <div class="card" style="border-color: var(--blue);" onclick="goTo('四子棋.html')">
-            <div class="icon">🔴</div><div class="title">連線四子棋</div><div class="desc">雙人策略</div>
+            <div class="icon">🔴</div><div class="title">連線四子棋</div><div class="desc">雙人策略對決</div>
         </div>
+
         <div class="card" onclick="goTo('槍戰 2.html')">
-            <div class="icon">🔫</div><div class="title">草原槍戰 2</div><div class="desc">生存射擊</div>
+            <div class="icon">🔫</div><div class="title">草原槍戰 2</div><div class="desc">生存射擊遊戲</div>
         </div>
     </div>
 
@@ -96,12 +101,11 @@
         const ctrlBtn = document.getElementById('ctrl-btn');
         const titleText = document.getElementById('song-title');
 
-        // 音樂清單更新：加入了 春のパレード
         const playlist = [
             { name: "閃光射線", file: "《全力展開！閃光射線》.mp3" },
             { name: "赤き月的欠片", file: "赤き月的欠片 (1).mp3" },
             { name: "光のキセキ", file: "光のキセキ.mp3" },
-            { name: "冒險更新", file: "冒険のアップデート.mp3" },
+            { name: "冒險更新", file: "冒換のアップデート.mp3" },
             { name: "春のパレード", file: "春のパレード.mp3" }
         ];
         let currentIdx = 0;
@@ -125,4 +129,3 @@
     </script>
 </body>
 </html>
-
