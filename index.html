@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主的數位基地 | 貓咪回歸版</title>
+    <title>小宥領主的數位基地 | 領主大賭場</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -22,17 +22,20 @@
         .section-title { margin: 40px 0 20px; color: var(--cyan); border-bottom: 1px solid #30363d; padding-bottom: 10px; font-size: 1.2em; }
 
         .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 110px; justify-content: center; position: relative; }
-        .card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(88,166,255,0.2); }
+        .card:hover { border-color: var(--blue); transform: translateY(-3px); }
         
-        .character-card { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; cursor: default; }
-        .character-card.unlocked { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); background: rgba(255, 121, 198, 0.1); cursor: pointer; }
+        /* 賭場專用樣式 */
+        .gamble-box { background: #1c2128; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; max-width: 400px; margin: 0 auto 30px; }
+        input[type="number"] { background: #0d1117; border: 1px solid var(--gold); color: white; padding: 10px; border-radius: 10px; width: 100px; text-align: center; font-size: 18px; margin-bottom: 15px; }
+        .gamble-btn { background: var(--gold); color: black; border: none; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .gamble-btn:hover { background: #fff; transform: scale(1.05); }
+
+        .character-card { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; }
+        .character-card.unlocked { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); background: rgba(255, 121, 198, 0.1); }
         .ach-card { opacity: 0.3; filter: brightness(0.5); }
         .ach-card.unlocked { opacity: 1; filter: brightness(1); border-color: var(--green); }
 
-        .title { font-weight: bold; font-size: 14px; color: #fff; }
-        .price { font-size: 11px; color: var(--gold); margin-top: 5px; }
         .dl-btn { display: none; background: var(--gold); color: #000; text-decoration: none; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 8px; margin-top: 10px; }
-
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 12px 30px; border-radius: 50px; display: none; z-index: 3000; font-weight: bold; }
 
         #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; }
@@ -51,6 +54,15 @@
             <div class="badge">⚔️ 訪客：<img src="https://profile-counter.glitch.me/rosweety0327-crypto/count.svg" height="18" style="vertical-align:middle; filter:hue-rotate(200deg);"></div>
             <div class="badge points-badge">💎 點數：<span id="display-points">0</span></div>
         </div>
+    </div>
+
+    <div class="gamble-box">
+        <h3 style="color:var(--gold); margin-top:0;">🎲 領主大輪盤</h3>
+        <p style="font-size:12px; color:#8b949e;">押下點數，挑戰翻倍！(最高翻 5 倍)</p>
+        <input type="number" id="bet-amount" placeholder="押金" min="10">
+        <br>
+        <button class="gamble-btn" onclick="gamble()">開始轉動！</button>
+        <p id="gamble-result" style="margin-top:15px; font-weight:bold; height:20px;"></p>
     </div>
 
     <div class="container">
@@ -125,7 +137,7 @@
 
     <script>
         let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {
-            pts: 0, title: '新進冒險者', chars: [], titles: ['新進冒險者'], achs: [], clicks: 0
+            pts: 100, title: '新進冒險者', chars: [], titles: ['新進冒險者'], achs: [], clicks: 0
         };
 
         const playlist = [
@@ -139,10 +151,50 @@
 
         refresh();
 
+        // --- 🎲 賭博功能邏輯 ---
+        function gamble() {
+            const betInput = document.getElementById('bet-amount');
+            const bet = parseInt(betInput.value);
+            const resDisplay = document.getElementById('gamble-result');
+
+            if (isNaN(bet) || bet <= 0) return alert("請輸入有效的下注點數！");
+            if (bet > db.pts) return alert("你的點數不夠押這麼多！");
+
+            db.pts -= bet; // 先扣除下注金
+            resDisplay.innerText = "轉動中...🎰";
+            resDisplay.style.color = "white";
+
+            setTimeout(() => {
+                const rand = Math.random();
+                let win = 0;
+                let msg = "";
+
+                if (rand < 0.1) { // 10% 機率翻 5 倍
+                    win = bet * 5;
+                    msg = "💥 大爆炸！5倍回饋！(+" + win + ")";
+                    resDisplay.style.color = "var(--gold)";
+                } else if (rand < 0.4) { // 30% 機率翻 2 倍
+                    win = bet * 2;
+                    msg = "🎉 恭喜翻倍！(+" + win + ")";
+                    resDisplay.style.color = "var(--green)";
+                } else if (rand < 0.6) { // 20% 機率平手
+                    win = bet;
+                    msg = "😐 平手，點數退還。";
+                    resDisplay.style.color = "var(--blue)";
+                } else { // 40% 機率沒收
+                    win = 0;
+                    msg = "💀 慘了...點數被沒收了！";
+                    resDisplay.style.color = "var(--red)";
+                }
+
+                db.pts += win;
+                resDisplay.innerText = msg;
+                save();
+            }, 800);
+        }
+
         function action(url, tab) {
-            db.clicks++; 
-            db.pts += 50; // 給老弟的特別福利：點一次給 50 點！
-            check(); save();
+            db.clicks++; db.pts += 50; check(); save();
             if(tab) window.open(url, '_blank'); else window.location.href = url;
         }
 
@@ -167,7 +219,7 @@
         }
 
         function unlock(id, name, cost, type) {
-            if(type === 'char' && db.chars.includes(id)) return alert("此角色已在展示館解鎖！");
+            if(type === 'char' && db.chars.includes(id)) return alert("已解鎖！");
             if(type === 'title' && db.titles.includes(id)) { db.title = id; save(); return alert("稱號已更換！"); }
             if(db.pts >= cost) {
                 db.pts -= cost;
