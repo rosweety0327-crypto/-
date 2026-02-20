@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V5.6 旗艦廳</title>
+    <title>小宥領主的基地 | V5.7 旗艦大廳</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
@@ -11,14 +11,12 @@
         }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
         
-        /* 頂部發光面板 */
         .lord-panel { background: linear-gradient(135deg, #161b22 0%, #0d1117 100%); border: 1px solid #30363d; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top: 3px solid var(--blue); }
         .pts-counter { font-size: 36px; color: var(--gold); font-weight: bold; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
         .section-header { text-align: left; max-width: 1000px; margin: 40px auto 15px; color: var(--blue); border-left: 5px solid var(--blue); padding-left: 15px; font-weight: bold; }
 
-        /* 遊戲卡片 */
         .game-card { background: var(--card); border: 1px solid #30363d; border-radius: 18px; padding: 20px; transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
         .game-card:hover { transform: translateY(-8px); border-color: var(--blue); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
         .game-card .icon { font-size: 40px; margin-bottom: 10px; }
@@ -35,25 +33,25 @@
 <body>
 
     <div class="lord-panel">
-        <div style="color:var(--blue); font-size: 14px; letter-spacing: 2px;">LORD BASE V5.6</div>
+        <div style="color:var(--blue); font-size: 14px; letter-spacing: 2px;">LORD BASE V5.7</div>
         <h1 style="margin: 10px 0;">🏰 小宥領主的基地</h1>
-        <div id="display-title" style="color: var(--pink); margin-bottom: 10px;">稱號：冒險者</div>
+        <div id="display-title" style="color: var(--pink); margin-bottom: 10px;">稱號：載入中...</div>
         <div class="pts-counter">💎 <span id="display-points">0</span></div>
     </div>
 
-    <div class="section-header">💎 點數收割專區</div>
+    <div class="section-header">🔥 本日最推薦</div>
     <div class="grid">
-        <div class="game-card" style="border-color: var(--gold);" onclick="location.href='gamble.html'">
-            <div class="tag" style="background:var(--gold); color:black;">High Risk</div>
-            <div class="icon">🎡</div><div class="title">黃金轉盤</div>
+        <div class="game-card" style="border-color: var(--red);" onclick="play('狼人殺.html')">
+            <div class="tag" style="background:var(--red);">New Design</div>
+            <div class="icon">🐺</div><div class="title">狼人殺大廳</div>
         </div>
         <div class="game-card" style="border-color: var(--pink);" onclick="location.href='jump.html'">
             <div class="tag">Flagship</div>
             <div class="icon">🐟</div><div class="title">小魚跳跳</div>
         </div>
-        <div class="game-card" style="border-color: var(--green);" onclick="location.href='clicker.html'">
-            <div class="tag">Idle</div>
-            <div class="icon">🚜</div><div class="title">收割工廠</div>
+        <div class="game-card" style="border-color: var(--gold);" onclick="location.href='gamble.html'">
+            <div class="tag" style="background:var(--gold); color:black;">Jackpot</div>
+            <div class="icon">🎡</div><div class="title">黃金轉盤</div>
         </div>
     </div>
 
@@ -61,10 +59,10 @@
     <div class="grid">
         <div class="game-card" onclick="play('競賽貓站.html')"><div class="icon">🐈</div><div class="title">競賽貓站</div></div>
         <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">🥁</div><div class="title">太鼓達人</div></div>
+        <div class="game-card" onclick="play('clicker.html')"><div class="icon">🚜</div><div class="title">收割工廠</div></div>
         <div class="game-card" onclick="play('tetris.html')"><div class="icon">🧱</div><div class="title">方塊挑戰</div></div>
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
         <div class="game-card" onclick="play('槍戰 2.html')"><div class="icon">🔫</div><div class="title">草原槍戰</div></div>
-        <div class="game-card" onclick="window.open('https://www.youtube.com/@小魚-v9e')"><div class="icon">📺</div><div class="title">小魚 YT</div></div>
     </div>
 
     <div class="section-header">🛒 領主特選商店</div>
@@ -75,8 +73,8 @@
 
     <div class="section-header">🖼️ 角色展示 (VRM)</div>
     <div class="grid">
-        <div id="char-1" class="game-card char-slot">🐟 小魚<br><a href="小魚.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none;">[點此下載]</a></div>
-        <div id="char-2" class="game-card char-slot">🎀 希<br><a href="希.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none;">[點此下載]</a></div>
+        <div id="char-1" class="game-card char-slot">🐟 小魚<br><a href="小魚.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none;">[下載]</a></div>
+        <div id="char-2" class="game-card char-slot">🎀 希<br><a href="希.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none;">[下載]</a></div>
     </div>
 
     <div id="music-bar">
