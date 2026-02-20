@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血之遺痕 | 完整故事全集</title>
+    <style>
+        :root {
+            --bg: #0a0e14; --panel: #161b22; --text: #d1d7dd;
+            --blood: #990000; --bright: #ff4d4d; --gold: #f1c40f;
+        }
+        body { background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; display: flex; height: 100vh; }
+        
+        /* 側邊導覽 */
+        .sidebar { width: 280px; background: var(--panel); border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .sidebar-title { padding: 25px; color: var(--bright); font-size: 24px; font-weight: bold; border-bottom: 3px solid var(--blood); text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+        .menu { flex: 1; overflow-y: auto; padding: 15px; }
+        .menu-item { padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 15px; border-left: 3px solid transparent; }
+        .menu-item:hover { background: rgba(255, 77, 77, 0.1); border-left-color: var(--blood); }
+        .menu-item.active { background: var(--blood); color: white; border-left-color: var(--bright); }
+
+        /* 內容顯示區 */
+        .main { flex: 1; display: flex; flex-direction: column; background: #0d1117; }
+        .header { padding: 15px 30px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .content { flex: 1; overflow-y: auto; padding: 50px 12%; line-height: 2; font-size: 19px; white-space: pre-wrap; word-wrap: break-word; }
+        
+        .story-h1 { color: var(--bright); font-size: 36px; margin-bottom: 30px; text-align: center; }
+        .story-h2 { color: var(--gold); font-size: 24px; margin-top: 40px; border-left: 5px solid var(--gold); padding-left: 15px; }
+        .highlight { color: var(--bright); font-weight: bold; }
+        
+        .btn { background: #30363d; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: var(--blood); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-title">🩸 血之遺痕</div>
+        <div class="menu" id="menu">
+            <div class="menu-item active" onclick="show(0)">第一集：市場與紅蓮</div>
+            <div class="menu-item" onclick="show(1)">第二集：紅心診所</div>
+            <div class="menu-item" onclick="show(2)">第二集：鐘塔大決戰</div>
+            <div class="menu-item" onclick="show(3)">續集：血與日之詩</div>
+            <div class="menu-item" onclick="show(4)">番外：診所休假日</div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <span id="nav-title" style="color:var(--gold)">當前章節：第一集</span>
+            <a href="index.html" class="btn">🏰 返回基地</a>
+        </div>
+        <div class="content" id="viewer">
+            </div>
+    </div>
+
+    <script>
+        const stories = [
+            {
+                title: "第一集：市場與紅蓮",
+                html: `<h1 class="story-h1">第一章：市場奇遇</h1>
+從前從前，在星空の村裡有一個非常有趣的家庭。有一天小宥和他的家人（媽媽、小宥、小羿、小喬和小粉）一起去逛市場。「好多人喔」小粉說。小宥左手抱著2歲的小粉，右手牽著小喬，媽媽則牽著小羿。
+
+正當他們買完菜要回家的路上，突然有黑衣人用【麻布】把媽媽頭套住，拉到巷子裡準備刺中媽媽的心臟！這時一條用血做的鞭子打中了黑衣人的手。原來小宥能控制自己的血變硬當鞭子。雖然黑衣人落荒而逃，但媽媽受了重傷，小粉趕緊用<span class="highlight">【回復球】</span>幫媽媽治療。
+
+<h2 class="story-h2">第二章：紅蓮中的真相</h2>
+當晚，火災突然爆發！「快醒醒！小喬、小粉！」小宥抱起小粉衝出煙霧。在逃難中，他們遇到了「影獵犬」。小宥雙手一甩，掌心血液凝結成兩把暗紅色的<span class="highlight">【血晶長劍】</span>！
+
+小羿大喊：「大哥，讓我的血流進你的劍裡！」兄弟聯手，劍刃閃爍著熾紅的光芒，直接將虛幻的獵犬斬碎！`
+            },
+            {
+                title: "第二集：紅心診所",
+                html: `<h1 class="story-h1">第二集：紅心診所的晨光</h1>
+在都市邊緣的「紅心診所」裡，每天早晨喚醒大家的是小粉奶聲奶氣的聲音。「大、大哥……抱……」兩歲的小粉穿著兔子連身睡衣爬上小宥的床。
+
+「要球球……綠色球球……」小粉手指一彈，一顆散發綠光的<span class="highlight">【回復球】</span>就冒了出來。雖然她才兩歲，但她的治癒天賦是全家最強的。診所裡的病人只要被她的綠光照到，傷口就會奇蹟般癒合。`
+            },
+            {
+                title: "第二集：鐘塔大決戰",
+                html: `<h1 class="story-h1">第四章：血脈與虛空的對決</h1>
+在黑暗的鐘塔頂端，魔王莫爾德冷冷地看著小宥一家：「你們願意獻出全家人的血嗎？」
+「我們是來帶爸爸回家的！」小宥舉起大劍。
+
+戰鬥爆發，莫爾德發動影子利刃。小宥使出<span class="highlight">【血晶之圓】</span>形成護盾。小粉看見黑乎乎的大個子欺負爸爸，生氣地扔出一顆金色球球：「壞蛋，走開！」這顆球竟然開始吞噬魔王的魔力！`
+            },
+            {
+                title: "續集：血與日之詩",
+                html: `<h1 class="story-h1">續集：櫻花落下的無敵少女</h1>
+自從鐘塔大戰結束後半年，生活歸於平凡。小宥換上高中制服，迎接新學期。
+
+在星空高中門口，他看見了一名黑長髮、紫色瞳孔的少女——<span class="highlight">小希</span>。她正掛著燦爛笑容，單手推著裝滿重物的平板車。小宥靠近她時，體內的血液竟然像被煮沸般滾燙。這不是敵意，而是一種「屬性互補」的共鳴！當赤月遇上初陽，新的命運開始轉動...`
+            },
+            {
+                title: "番外：診所休假日",
+                html: `<h1 class="story-h1">番外：非典型的休假日</h1>
+診所的早晨充滿了藥草與小粉的奶香味。「大哥哥，這個……苦苦！」小粉皺著眉頭看著小宥搗碎的藥草。
+
+「讓開讓開！快遞到啦！」一道紅光閃過，那是小羿發動<span class="highlight">【血液加速】</span>在做家事。他一邊揹著小粉，一邊換燈泡、一邊攪拌熱粥。對他來說，照顧妹妹永遠是第一優先！`
+            }
+        ];
+
+        function show(index) {
+            const viewer = document.getElementById('viewer');
+            viewer.innerHTML = stories[index].html;
+            document.getElementById('nav-title').innerText = "當前章節：" + stories[index].title;
+
+            // 切換 active 樣式
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach((item, i) => {
+                if(i === index) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+            viewer.scrollTop = 0;
+        }
+
+        // 初始化顯示第一章
+        show(0);
+    </script>
+</body>
+</html>
