@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小宥領主 - 命運大轉盤</title>
+    <style>
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        .back-btn { position: absolute; top: 20px; left: 20px; background: #30363d; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        
+        .wheel-container { position: relative; width: 320px; height: 320px; margin: 50px auto; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 10px solid #f1c40f; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); }
+        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; z-index: 10; font-size: 30px; }
+
+        .ui-box { background: #161b22; padding: 20px; border-radius: 20px; display: inline-block; border: 1px solid #30363d; margin-top: 20px; }
+        .pts-display { font-size: 24px; color: #f1c40f; margin-bottom: 15px; font-weight: bold; }
+        input { background: #0d1117; border: 1px solid #f1c40f; color: white; padding: 10px; width: 100px; text-align: center; border-radius: 5px; }
+        .spin-btn { background: #f1c40f; color: black; border: none; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .spin-btn:disabled { background: #555; cursor: not-allowed; }
+        
+        #result-msg { font-size: 20px; margin-top: 20px; font-weight: bold; height: 30px; }
+    </style>
+</head>
+<body>
+
+    <button class="back-btn" onclick="location.href='index.html'">🏰 返回基地</button>
+
+    <h1 style="color:#f1c40f; margin-top:60px;">🎲 命運大轉盤</h1>
+
+    <div class="wheel-container">
+        <div class="pointer">▼</div>
+        <canvas id="wheel" width="500" height="500"></canvas>
+    </div>
+
+    <div class="ui-box">
+        <div class="pts-display">💎 點數：<span id="pts">0</span></div>
+        <input type="number" id="bet" placeholder="下注額" min="10">
+        <br>
+        <button id="spin-btn" class="spin-btn" onclick="spinWheel()">啟動轉盤！</button>
+        <div id="result-msg"></div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100 };
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const sections = [
+            { label: "沒收", color: "#ff4757", mul: 0 },
+            { label: "2倍", color: "#2ecc71", mul: 2 },
+            { label: "平手", color: "#58a6ff", mul: 1 },
+            { label: "沒收", color: "#ff4757", mul: 0 },
+            { label: "5倍", color: "#f1c40f", mul: 5 },
+            { label: "平手", color: "#58a6ff", mul: 1 }
+        ];
+
+        // 畫出轉盤
+        function drawWheel() {
+            const arc = (Math.PI * 2) / sections.length;
+            sections.forEach((s, i) => {
+                ctx.beginPath();
+                ctx.fillStyle = s.color;
+                ctx.moveTo(250, 250);
+                ctx.arc(250, 250, 250, i * arc, (i + 1) * arc);
+                ctx.fill();
+                ctx.save();
+                ctx.translate(250, 250);
+                ctx.rotate(i * arc + arc / 2);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 40px sans-serif";
+                ctx.fillText(s.label, 120, 10);
+                ctx.restore();
+            });
+        }
+        drawWheel();
+
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        function updateUI() { document.getElementById('pts').innerText = db.pts; }
+        updateUI();
+
+        function spinWheel() {
+            if (isSpinning) return;
+            const bet = parseInt(document.getElementById('bet').value);
+            if (isNaN(bet) || bet <= 0) return alert("請輸入有效的下注點數！");
+            if (bet > db.pts) return alert("點數不足！");
+
+            db.pts -= bet;
+            updateUI();
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('result-msg').innerText = "運氣流轉中...";
+
+            const wheel = document.getElementById('wheel');
+            const randomExtra = Math.floor(Math.random() * 360);
+            const totalSpin = (360 * 5) + randomExtra; // 轉 5 圈以上
+            currentRotation += totalSpin;
+            
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                
+                // 計算結果 (轉盤是順時針轉，指針在上方，所以要計算落點)
+                const actualDeg = currentRotation % 360;
+                const sectionDeg = 360 / sections.length;
+                // 修正角度計算 (指針在 top)
+                const resultIndex = Math.floor(((360 - actualDeg + 270) % 360) / sectionDeg);
+                const result = sections[resultIndex];
+                
+                const winAmount = bet * result.mul;
+                db.pts += winAmount;
+                localStorage.setItem('lord_mega_db_v5', JSON.stringify(db));
+                updateUI();
+
+                const msg = document.getElementById('result-msg');
+                if (result.mul > 1) msg.innerHTML = `🔥 ${result.label}！贏得 ${winAmount} 點！`;
+                else if (result.mul === 1) msg.innerHTML = `😐 平手，拿回 ${winAmount} 點。`;
+                else msg.innerHTML = `💀 沒收！下次會更好...`;
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
