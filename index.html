@@ -3,16 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>小宥領主的數位基地 | 小魚 YouTube 官方網站</title>
-    <meta name="description" content="歡迎來到小宥領主的數位基地。這裡有小魚 YouTube 官方連結、原創小說《血之遺痕》全集、經典俄羅斯方塊、坦克大戰及多款熱門小遊戲。">
-    <meta name="keywords" content="小宥領主, 小魚 YouTube, 小魚弟弟, 血之遺痕, 數位基地, 遊戲大廳, 俄羅斯方塊, 競賽貓站">
-    <meta name="author" content="小宥領主">
-    
-    <meta property="og:title" content="小宥領主的數位基地">
-    <meta property="og:description" content="包含小說、音樂與多款經典小遊戲的秘密基地！">
-    <meta property="og:type" content="website">
-
+    <title>小宥領主的數位基地 | 點數冒險系統</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -20,79 +11,85 @@
             --yt-red: #ff0000; --green: #2ecc71; --text: #c9d1d9;
         }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #ffffff; text-shadow: 0 0 15px rgba(88,166,255,0.4); margin-bottom: 5px; }
-        .version-tag { font-size: 11px; color: var(--gold); margin-bottom: 25px; display: block; letter-spacing: 1px; }
         
-        .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; padding-bottom: 120px; }
+        .stats-bar { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
         
-        .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 120px; justify-content: center; }
-        .card:hover { border-color: var(--blue); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(88,166,255,0.2); }
-        .card:active { transform: scale(0.95); }
-        
-        .icon { font-size: 40px; margin-bottom: 8px; }
-        .title { font-weight: bold; font-size: 14px; color: #fff; margin-bottom: 4px; }
-        .desc { font-size: 10px; color: #8b949e; }
+        .badge { background: rgba(88, 166, 255, 0.1); border: 1px solid var(--blue); padding: 5px 15px; border-radius: 20px; font-size: 13px; color: var(--blue); display: flex; align-items: center; }
+        .points-badge { border-color: var(--gold); color: var(--gold); background: rgba(241, 196, 15, 0.1); }
 
-        #music-player { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            background: rgba(22,27,34,0.98); border: 2px solid var(--pink); 
-            border-radius: 50px; padding: 10px 25px; display: none; 
-            align-items: center; gap: 15px; z-index: 1000; box-shadow: 0 0 25px rgba(255, 121, 198, 0.4);
-            backdrop-filter: blur(10px);
-        }
-        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        #song-title { font-size: 12px; color: white; min-width: 140px; font-weight: bold; }
+        .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; padding-bottom: 120px; }
+        .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 120px; justify-content: center; position: relative; }
+        .card:hover { border-color: var(--blue); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(88,166,255,0.2); }
+        
+        /* 鎖定遊戲樣式 */
+        .locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 18px; }
+
+        .icon { font-size: 40px; margin-bottom: 8px; }
+        .title { font-weight: bold; font-size: 14px; color: #fff; }
+        
+        #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; }
+        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <h1>🏰 小宥領主的數位基地</h1>
-    <span class="version-tag">SYSTEM V3.4 | SEARCH OPTIMIZED</span>
+    <h1>🏰 小宥領主的基地</h1>
+    
+    <div class="stats-bar">
+        <div class="badge">
+            ⚔️ 訪客：<img src="https://profile-counter.glitch.me/rosweety0327-crypto/count.svg" height="20" style="margin-left:5px; filter: hue-rotate(200deg);">
+        </div>
+        <div class="badge points-badge">
+            💎 冒險點數：<span id="point-display">0</span>
+        </div>
+    </div>
 
     <div class="container">
-        <div class="card" style="border-color: var(--yt-red);" onclick="window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
-            <div class="icon">📺</div><div class="title">小魚 YouTube</div><div class="desc">訂閱領主頻道</div>
+        <div class="card" style="border-color: var(--yt-red);" onclick="earnPoints(); window.open('https://www.youtube.com/@小魚-v9e', '_blank')">
+            <div class="icon">📺</div><div class="title">小魚 YouTube</div>
         </div>
-        
-        <div class="card" style="border-color: var(--red);" onclick="goTo('library.html')">
-            <div class="icon">📖</div><div class="title">血之遺痕</div><div class="desc">奇幻小說連載</div>
+        <div class="card" style="border-color: var(--red);" onclick="earnPoints(); goTo('library.html')">
+            <div class="icon">📖</div><div class="title">血之遺痕</div>
         </div>
-
         <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
-            <div class="icon">🎧</div><div class="title">音樂庫</div><div class="desc">5 首熱血神曲</div>
+            <div class="icon">🎧</div><div class="title">音樂庫</div>
         </div>
 
-        <div class="card" style="border-color: #bd93f9;" onclick="goTo('tetris.html')">
-            <div class="icon">🧱</div><div class="title">俄羅斯方塊</div><div class="desc">經典方塊對戰</div>
+        <div class="card" style="border-color: #bd93f9;" onclick="earnPoints(); goTo('tetris.html')">
+            <div class="icon">🧱</div><div class="title">俄羅斯方塊</div>
+        </div>
+        <div class="card" style="border-color: var(--gold);" onclick="earnPoints(); goTo('競賽貓站.html')">
+            <div class="icon">🐈</div><div class="title">競賽貓站</div>
+        </div>
+        <div class="card" style="border-color: var(--purple);" onclick="earnPoints(); goTo('狼人殺.html')">
+            <div class="icon">🐺</div><div class="title">狼人殺大廳</div>
+        </div>
+        <div class="card" style="border-color: var(--cyan);" onclick="earnPoints(); goTo('太古大戰.html')">
+            <div class="icon">🥁</div><div class="title">太鼓達人</div>
+        </div>
+        <div class="card" style="border-color: var(--green);" onclick="earnPoints(); goTo('數獨.html')">
+            <div class="icon">🔢</div><div class="title">數獨</div>
+        </div>
+        <div class="card" style="border-color: #27ae60;" onclick="earnPoints(); goTo('數字炸彈.html')">
+            <div class="icon">💣</div><div class="title">數字炸彈</div>
+        </div>
+        <div class="card" style="border-color: #2980b9;" onclick="earnPoints(); goTo('四子棋.html')">
+            <div class="icon">🔴</div><div class="title">四子棋</div>
+        </div>
+        <div class="card" onclick="earnPoints(); goTo('槍戰 2.html')">
+            <div class="icon">🔫</div><div class="title">草原槍戰 2</div>
         </div>
 
-        <div class="card" style="border-color: var(--gold);" onclick="goTo('競賽貓站.html')">
-            <div class="icon">🐈</div><div class="title">競賽貓站</div><div class="desc">貓咪大戰爭</div>
-        </div>
-
-        <div class="card" style="border-color: var(--purple);" onclick="goTo('狼人殺.html')">
-            <div class="icon">🐺</div><div class="title">連線狼人殺</div><div class="desc">心理邏輯遊戲</div>
-        </div>
-
-        <div class="card" style="border-color: var(--cyan);" onclick="goTo('太古大戰.html')">
-            <div class="icon">🥁</div><div class="title">太鼓達人</div><div class="desc">節奏律動挑戰</div>
-        </div>
-
-        <div class="card" style="border-color: var(--green);" onclick="goTo('數獨.html')">
-            <div class="icon">🔢</div><div class="title">終極數獨</div><div class="desc">腦力邏輯開發</div>
-        </div>
-
-        <div class="card" style="border-color: var(--blue);" onclick="goTo('四子棋.html')">
-            <div class="icon">🔴</div><div class="title">連線四子棋</div><div class="desc">雙人策略競技</div>
-        </div>
-
-        <div class="card" onclick="goTo('槍戰 2.html')">
-            <div class="icon">🔫</div><div class="title">草原槍戰 2</div><div class="desc">射擊生存對決</div>
+        <div class="card locked" onclick="checkUnlock(500, '神祕新角色')">
+            <div class="lock-icon">🔒</div>
+            <div class="icon">👤</div>
+            <div class="title">500 點解鎖</div>
         </div>
     </div>
 
     <div id="music-player">
-        <span id="song-title">載入中...</span>
+        <span id="song-title" style="color:white; font-size:11px;">載入中...</span>
         <div style="display: flex; gap: 8px;">
             <button class="play-btn" onclick="switchSong(-1)">⏮</button>
             <button class="play-btn" id="ctrl-btn" onclick="controlAudio()">▶</button>
@@ -103,38 +100,47 @@
     <audio id="bgm" loop><source id="audio-source" src="《全力展開！閃光射線》.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // 自動轉換路徑，避免 GitHub 404
-        function goTo(page) { window.location.href = './' + encodeURIComponent(page); }
+        // --- 💎 點數系統核心邏輯 ---
+        let points = parseInt(localStorage.getItem('adventurer_points')) || 0;
+        updateDisplay();
 
+        function earnPoints() {
+            points += 10;
+            savePoints();
+            updateDisplay();
+        }
+
+        function checkUnlock(cost, name) {
+            if(points >= cost) {
+                alert("恭喜！你已解鎖 " + name + "！(此為預告功能，敬請期待領主更新)");
+            } else {
+                alert("點數不足！還差 " + (cost - points) + " 點即可解鎖。快去玩遊戲賺點數吧！");
+            }
+        }
+
+        function savePoints() { localStorage.setItem('adventurer_points', points); }
+        function updateDisplay() { document.getElementById('point-display').innerText = points; }
+        
+        // --- 原有功能 ---
+        function goTo(page) { window.location.href = './' + encodeURIComponent(page); }
         const audio = document.getElementById('bgm');
         const source = document.getElementById('audio-source');
-        const ctrlBtn = document.getElementById('ctrl-btn');
         const titleText = document.getElementById('song-title');
-
         const playlist = [
             { name: "閃光射線", file: "《全力展開！閃光射線》.mp3" },
             { name: "赤き月的欠片", file: "赤き月的欠片 (1).mp3" },
             { name: "光のキセキ", file: "光のキセキ.mp3" },
-            { name: "冒險更新", file: "冒険のアップデート.mp3" },
+            { name: "冒險更新", file: "冒險のアップデート.mp3" },
             { name: "春のパレード", file: "春のパレード.mp3" }
         ];
         let currentIdx = 0;
-
-        function toggleMusic() { 
-            document.getElementById('music-player').style.display = 'flex';
-            titleText.innerText = playlist[currentIdx].name;
-        }
-
-        function controlAudio() { 
-            if(audio.paused) { audio.play(); ctrlBtn.innerText = '⏸'; } 
-            else { audio.pause(); ctrlBtn.innerText = '▶'; }
-        }
-
-        function switchSong(direction) {
-            currentIdx = (currentIdx + direction + playlist.length) % playlist.length;
+        function toggleMusic() { document.getElementById('music-player').style.display = 'flex'; titleText.innerText = playlist[currentIdx].name; }
+        function controlAudio() { if(audio.paused) { audio.play(); document.getElementById('ctrl-btn').innerText = '⏸'; } else { audio.pause(); document.getElementById('ctrl-btn').innerText = '▶'; } }
+        function switchSong(dir) {
+            currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
             source.src = encodeURIComponent(playlist[currentIdx].file);
             titleText.innerText = playlist[currentIdx].name;
-            audio.load(); audio.play(); ctrlBtn.innerText = '⏸';
+            audio.load(); audio.play(); document.getElementById('ctrl-btn').innerText = '⏸';
         }
     </script>
 </body>
