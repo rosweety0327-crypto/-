@@ -3,114 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V5.8 旗艦大廳</title>
+    <title>小宥領主的基地 | V6.0 旗艦大廳</title>
+    
+    <meta name="description" content="小宥領主的數位基地，收錄小魚跳跳、狼人殺、血之遺痕等精彩遊戲！">
+    <meta name="keywords" content="小宥領主, 小魚領主, 小魚YT, 小魚跳跳, 狼人殺, 血之遺痕, 遊戲基地">
+    <meta name="author" content="小宥領主">
+
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
-            --red: #ff4757; --green: #2ecc71; --pink: #ff79c6; --text: #c9d1d9;
+            --red: #ff4757; --green: #2ecc71; --pink: #ff79c6; --text: #c9d1d9; --blood: #880000;
         }
         
-        /* 修正：確保 html 和 body 允許滾動，不限制高度 */
+        /* 基礎版面修正：確保可滑動 */
         html, body { 
             height: auto; 
             min-height: 100%; 
             background: var(--bg); 
             color: var(--text); 
-            font-family: 'Segoe UI', sans-serif; 
+            font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; 
             margin: 0; 
             padding: 0; 
-            overflow-x: hidden; /* 防止左右晃動 */
-            overflow-y: auto;   /* 確保上下可以滾動 */
+            overflow-x: hidden; 
+            overflow-y: auto;
         }
 
-        body {
-            padding: 20px;
-            text-align: center;
-            /* 修正：增加底部內距，避免被音樂列擋住最後一個區塊 */
-            padding-bottom: 120px; 
+        body { padding-bottom: 120px; text-align: center; }
+
+        /* 宣傳列動畫 */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
         }
-        
+
+        .promo-bar { 
+            background: linear-gradient(90deg, #ff0000, #b20000); 
+            color: white; padding: 12px; font-weight: bold; cursor: pointer; 
+            display: flex; justify-content: center; align-items: center; gap: 15px; 
+            animation: pulse 2s infinite; position: sticky; top: 0; z-index: 3000;
+        }
+
+        /* 領主面板 */
         .lord-panel { 
             background: linear-gradient(135deg, #161b22 0%, #0d1117 100%); 
-            border: 1px solid #30363d; 
-            border-radius: 20px; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            border-top: 3px solid var(--blue); 
+            border: 1px solid #30363d; border-radius: 20px; padding: 30px; 
+            margin: 20px auto; max-width: 900px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border-top: 4px solid var(--blue); 
         }
-        
-        .pts-counter { font-size: 36px; color: var(--gold); font-weight: bold; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 20px; 
-            max-width: 1000px; 
-            margin: 0 auto; 
-        }
+        .pts-counter { font-size: 42px; color: var(--gold); font-weight: bold; text-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
 
+        /* 搜尋框 */
+        .search-container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        #gameSearch { 
+            width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #30363d; 
+            background: #161b22; color: white; font-size: 18px; outline: none; transition: 0.3s; 
+        }
+        #gameSearch:focus { border-color: var(--blue); box-shadow: 0 0 20px rgba(88, 166, 255, 0.3); }
+
+        /* 網格系統 */
         .section-header { 
-            text-align: left; 
-            max-width: 1000px; 
-            margin: 40px auto 15px; 
-            color: var(--blue); 
-            border-left: 5px solid var(--blue); 
-            padding-left: 15px; 
-            font-weight: bold; 
+            text-align: left; max-width: 1000px; margin: 40px auto 15px; 
+            color: var(--blue); border-left: 5px solid var(--blue); padding-left: 15px; font-weight: bold; font-size: 20px;
         }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
+        /* 卡片樣式 */
         .game-card { 
-            background: var(--card); 
-            border: 1px solid #30363d; 
-            border-radius: 18px; 
-            padding: 20px; 
-            transition: 0.3s; 
-            cursor: pointer; 
-            position: relative; 
-            overflow: hidden; 
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: var(--card); border: 1px solid #30363d; border-radius: 18px; 
+            padding: 20px; transition: 0.3s; cursor: pointer; position: relative; 
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;
         }
-
-        .game-card:hover { transform: translateY(-8px); border-color: var(--blue); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
-        .game-card .icon { font-size: 40px; margin-bottom: 10px; }
-        .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 10px; padding: 4px 10px; border-bottom-left-radius: 12px; }
+        .game-card:hover { transform: translateY(-8px); border-color: var(--blue); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .game-card .icon { font-size: 45px; margin-bottom: 10px; }
+        .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 11px; padding: 5px 12px; border-bottom-left-radius: 15px; font-weight: bold; }
 
         .store-card { border-color: #3e331b; background: linear-gradient(to bottom, #1c1910, #161b22); }
         .char-slot { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; }
         .char-slot.active { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); background: rgba(255, 121, 198, 0.05); }
 
-        /* 固定在底部的音樂列 */
+        /* 底部音樂列 */
         #music-bar { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            background: rgba(22, 27, 34, 0.95); 
-            backdrop-filter: blur(10px); 
-            padding: 15px 0; 
-            border-top: 1px solid var(--pink); 
-            display: flex; 
-            justify-content: center; 
-            gap: 20px; 
-            align-items: center; 
-            z-index: 2000; 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); 
+            padding: 15px 0; border-top: 2px solid var(--pink); 
+            display: flex; justify-content: center; gap: 25px; align-items: center; z-index: 4000; 
         }
-        .control-btn { background: #30363d; border: none; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
-        .control-btn:hover { background: var(--pink); }
+        .control-btn { background: #30363d; border: none; color: white; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .control-btn:hover { background: var(--pink); color: black; }
     </style>
 </head>
 <body>
 
+    <div class="promo-bar" onclick="window.open('https://www.youtube.com/@小魚-v9e?sub_confirmation=1')">
+        <span>📺 領主正在招募隊員！訂閱頻道解鎖隱藏福利</span>
+        <button style="background: white; color: red; border: none; padding: 5px 15px; border-radius: 50px; font-weight: bold; cursor: pointer;">立即訂閱</button>
+    </div>
+
     <div class="lord-panel">
-        <div style="color:var(--blue); font-size: 14px; letter-spacing: 2px;">LORD BASE V5.8</div>
+        <div style="color:var(--blue); font-size: 14px; letter-spacing: 3px;">LORD BASE SYSTEM V6.0</div>
         <h1 style="margin: 10px 0;">🏰 小宥領主的基地</h1>
-        <div id="display-title" style="color: var(--pink); margin-bottom: 10px;">稱號：冒險者</div>
+        <div id="display-title" style="color: var(--pink); margin-bottom: 10px; font-weight: bold;">稱號：傳說級領主</div>
         <div class="pts-counter">💎 <span id="display-points">0</span></div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="gameSearch" placeholder="🔍 搜尋遊戲或故事... (例如: 狼人、血、跳跳)">
     </div>
 
     <div class="section-header">🔥 本日最推薦</div>
@@ -119,18 +117,22 @@
             <div class="tag" style="background:var(--red);">New</div>
             <div class="icon">🐺</div><div class="title">狼人殺大廳</div>
         </div>
-        <div class="game-card" style="border-color: var(--pink);" onclick="location.href='jump.html'">
+        <div class="game-card" style="border-color: var(--pink);" onclick="play('jump.html')">
             <div class="tag">Flagship</div>
             <div class="icon">🐟</div><div class="title">小魚跳跳</div>
         </div>
-        <div class="game-card" style="border-color: var(--gold);" onclick="location.href='gamble.html'">
+        <div class="game-card" style="border-color: var(--gold);" onclick="play('gamble.html')">
             <div class="tag" style="background:var(--gold); color:black;">Jackpot</div>
             <div class="icon">🎡</div><div class="title">黃金轉盤</div>
         </div>
     </div>
 
-    <div class="section-header">🎮 經典娛樂中心</div>
+    <div class="section-header">🎮 經典娛樂與故事</div>
     <div class="grid">
+        <div class="game-card" style="border-color: var(--blood); background: linear-gradient(135deg, #2a0000 0%, #161b22 100%);" onclick="location.href='story.html'">
+            <div class="tag" style="background:var(--blood);">Novels</div>
+            <div class="icon">🩸</div><div class="title">血之遺痕：全集</div>
+        </div>
         <div class="game-card" onclick="play('競賽貓站.html')"><div class="icon">🐈</div><div class="title">競賽貓站</div></div>
         <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">🥁</div><div class="title">太鼓達人</div></div>
         <div class="game-card" onclick="play('clicker.html')"><div class="icon">🚜</div><div class="title">收割工廠</div></div>
@@ -141,34 +143,35 @@
 
     <div class="section-header">🛒 領主特選商店</div>
     <div class="grid">
-        <div id="buy-char-1" class="game-card store-card" onclick="unlock('char-1', '小魚', 500, 'char')">👤 解鎖小魚<br><span style="color:var(--gold);">500 💎</span></div>
-        <div id="buy-char-2" class="game-card store-card" onclick="unlock('char-2', '希', 500, 'char')">👧 解鎖希<br><span style="color:var(--gold);">500 💎</span></div>
+        <div id="buy-char-1" class="game-card store-card" onclick="unlock('char-1', '小魚', 500)">👤 解鎖小魚<br><span style="color:var(--gold);">500 💎</span></div>
+        <div id="buy-char-2" class="game-card store-card" onclick="unlock('char-2', '希', 500)">👧 解鎖希 (姊姊)<br><span style="color:var(--gold);">500 💎</span></div>
+        <div class="game-card store-card" onclick="window.open('https://www.youtube.com/@小魚-v9e')">☕ 贊助領主<br><span style="color:var(--red);">支持創作者</span></div>
     </div>
 
     <div class="section-header">🖼️ 角色展示 (VRM)</div>
     <div class="grid">
         <div id="char-1" class="game-card char-slot">
-            <div class="icon">🐟</div>
-            <div class="title">小魚</div>
+            <div class="icon">🐟</div><div class="title">小魚</div>
             <a href="小魚.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none; margin-top:10px;">[下載模型]</a>
         </div>
         <div id="char-2" class="game-card char-slot">
-            <div class="icon">🎀</div>
-            <div class="title">希 (姊姊)</div>
+            <div class="icon">🎀</div><div class="title">希 (姊姊)</div>
             <a href="希.vrm" download style="color:var(--gold); font-size:11px; text-decoration:none; margin-top:10px;">[下載模型]</a>
         </div>
     </div>
 
     <div id="music-bar">
-        <div id="track-name" style="font-size:13px; color:var(--pink); font-weight:bold;">🎵 音樂播放中...</div>
-        <button class="control-btn" onclick="switchTrack()">⏭</button>
-        <button class="control-btn" onclick="playPause()">▶/⏸</button>
+        <div id="track-name" style="font-size:14px; color:var(--pink); font-weight:bold;">🎵 點擊播放音樂</div>
+        <button class="control-btn" onclick="switchTrack()">下、下、下一首</button>
+        <button class="control-btn" onclick="playPause()">暫停/播放</button>
     </div>
 
     <audio id="audio" loop><source id="audio-src" src="《全力展開！閃光射線》.mp3"></audio>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '新進冒險者', chars: [] };
+        // 核心資料庫 (V5 版本相容)
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '初級冒險者', chars: [] };
+        
         const playlist = [
             {n: "閃光射線", f: "《全力展開！閃光射線》.mp3"}, 
             {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"}, 
@@ -176,32 +179,64 @@
         ];
         let curT = 0;
 
-        function play(url) { db.pts += 50; save(); location.href = url; }
-        function save() { localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); refresh(); }
+        // 搜尋引擎
+        const searchInput = document.getElementById('gameSearch');
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach(card => {
+                const title = card.querySelector('.title').innerText.toLowerCase();
+                card.style.display = title.includes(filter) ? "" : "none";
+            });
+        });
+
+        // 遊戲與系統功能
+        function play(url) { 
+            db.pts += 50; 
+            save(); 
+            location.href = url; 
+        }
+
+        function save() { 
+            localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); 
+            refresh(); 
+        }
+
         function refresh() {
             document.getElementById('display-points').innerText = Math.floor(db.pts);
             document.getElementById('display-title').innerText = "稱號：" + db.title;
             db.chars.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) { el.classList.add('active'); el.style.opacity = "1"; el.style.filter = "none"; }
+                if(el) { el.classList.add('active'); }
                 const buyBtn = document.getElementById('buy-'+id);
                 if(buyBtn) buyBtn.innerHTML = "✅ 已擁有";
             });
         }
-        function unlock(id, name, cost, type) {
+
+        function unlock(id, name, cost) {
             if(db.pts >= cost && !db.chars.includes(id)) {
                 db.pts -= cost; db.chars.push(id); save();
                 alert("🎉 恭喜解鎖 " + name + "！");
             } else if(db.chars.includes(id)) { alert("已經買過囉！"); }
-            else { alert("錢不夠啦，再去玩小魚跳跳！"); }
+            else { alert("點數不足！去小魚跳跳賺錢吧！"); }
         }
-        function playPause() { const a = document.getElementById('audio'); if(a.paused) a.play(); else a.pause(); }
+
+        // 音樂邏輯
+        function playPause() { 
+            const a = document.getElementById('audio'); 
+            if(a.paused) a.play(); else a.pause(); 
+            document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n;
+        }
+
         function switchTrack() {
             curT = (curT + 1) % playlist.length;
+            const a = document.getElementById('audio');
             document.getElementById('audio-src').src = encodeURIComponent(playlist[curT].f);
             document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n;
-            document.getElementById('audio').load(); document.getElementById('audio').play();
+            a.load(); a.play();
         }
+
+        // 啟動
         refresh();
     </script>
 </body>
