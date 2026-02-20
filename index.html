@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主的數位基地 | 終極合體版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小宥領主的數位基地 | 領主娛樂城</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -12,215 +12,112 @@
         }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
         
-        /* 狀態列 */
-        .stats-bar { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 25px; }
-        .badge-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .badge { background: rgba(88, 166, 255, 0.1); border: 1px solid var(--blue); padding: 5px 15px; border-radius: 20px; font-size: 13px; color: var(--blue); }
-        .points-badge { border-color: var(--gold); color: var(--gold); background: rgba(241, 196, 15, 0.1); font-weight: bold; }
-        .title-badge { border-color: var(--pink); color: var(--pink); background: rgba(255, 121, 198, 0.1); font-weight: bold; }
-
-        /* 網格佈局 */
-        .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; }
-        .section-title { margin: 40px 0 20px; color: var(--cyan); border-bottom: 1px solid #30363d; padding-bottom: 10px; font-size: 1.2em; }
-
-        /* 卡片設計 */
-        .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 110px; justify-content: center; position: relative; overflow: hidden; }
-        .card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(88,166,255,0.2); }
+        .stats-bar { background: rgba(22, 27, 34, 0.8); padding: 15px; border-radius: 20px; border: 1px solid #30363d; margin-bottom: 25px; position: sticky; top: 10px; z-index: 100; backdrop-filter: blur(10px); }
+        .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; margin: 5px; border: 1px solid var(--blue); font-size: 14px; }
         
-        /* 賭場入口大卡片 */
-        .gamble-entrance { grid-column: 1 / -1; background: linear-gradient(45deg, #161b22, #2c220a); border: 2px solid var(--gold); min-height: 80px; }
-        .gamble-entrance:hover { border-color: #fff; box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); }
+        .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; }
+        .section-title { margin: 40px 0 20px; color: var(--cyan); border-bottom: 1px solid #30363d; padding-bottom: 10px; text-align: left; }
 
-        /* 展示卡與成就卡 */
-        .character-card { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; }
+        .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .card:hover { border-color: var(--blue); transform: scale(1.05); box-shadow: 0 0 20px rgba(88,166,255,0.2); }
+        .card.hot::after { content: "HOT"; position: absolute; top: 5px; right: 5px; background: var(--red); font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+
+        .character-card { opacity: 0.3; filter: grayscale(1); border: 2px dashed #444; }
         .character-card.unlocked { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); background: rgba(255, 121, 198, 0.1); }
-        .ach-card { opacity: 0.3; filter: brightness(0.5); }
-        .ach-card.unlocked { opacity: 1; filter: brightness(1); border-color: var(--green); }
+        .dl-btn { display: none; background: var(--gold); color: #000; text-decoration: none; font-size: 11px; padding: 5px; border-radius: 5px; margin-top: 10px; }
 
-        .title { font-weight: bold; font-size: 14px; color: #fff; }
-        .price { font-size: 11px; color: var(--gold); margin-top: 5px; }
-        .dl-btn { display: none; background: var(--gold); color: #000; text-decoration: none; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 8px; margin-top: 10px; }
-
-        /* 提示通知 */
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 12px 30px; border-radius: 50px; display: none; z-index: 3000; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-
-        /* 音樂播放器 */
-        #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; box-shadow: 0 0 20px rgba(255, 121, 198, 0.3); }
-        .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
+        #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #161b22; border: 2px solid var(--pink); border-radius: 50px; padding: 10px 20px; display: none; align-items: center; gap: 15px; }
     </style>
 </head>
 <body>
 
-    <div id="toast">🏆 解鎖成就！</div>
-
-    <h1>🏰 小宥領主的基地</h1>
-    
     <div class="stats-bar">
-        <div class="title-badge" id="display-title">🔰 稱號：載入中...</div>
-        <div class="badge-row">
-            <div class="badge">⚔️ 訪客：<img src="https://profile-counter.glitch.me/rosweety0327-crypto/count.svg" height="18" style="vertical-align:middle; filter:hue-rotate(200deg);"></div>
-            <div class="badge points-badge">💎 點數：<span id="display-points">0</span></div>
-        </div>
+        <h1>🏰 小宥領主的基地</h1>
+        <div class="badge" id="display-title" style="border-color:var(--pink);">稱號載入中...</div>
+        <div class="badge" style="border-color:var(--gold);">💎 點數：<span id="display-points">0</span></div>
     </div>
 
-    <div class="container" style="margin-bottom: 20px;">
-        <div class="card gamble-entrance" onclick="location.href='gamble.html'">
-            <div style="font-size:30px;">🎰</div>
-            <div class="title" style="font-size:18px;">【黃金大賭場】點擊進入轉盤抽獎</div>
-            <div style="font-size:11px; color:var(--gold);">* 挑戰 5 倍翻倍，或是一無所有 *</div>
-        </div>
-    </div>
-
+    <h2 class="section-title">🎰 點數狂熱區 (最新功能)</h2>
     <div class="container">
-        <div class="card" style="border-color: var(--gold);" onclick="action('競賽貓站.html')">
-            <div class="icon" style="font-size:35px;">🐈</div><div class="title">競賽貓站</div>
+        <div class="card hot" style="border-color: var(--gold); grid-column: 1 / -1;" onclick="location.href='gamble.html'">
+            <div style="font-size:30px;">🎡</div><div class="title">黃金大轉盤</div><small>拚上一切的勇氣！</small>
         </div>
-        <div class="card" style="border-color: var(--yt-red);" onclick="action('https://www.youtube.com/@小魚-v9e', true)">
-            <div class="icon" style="font-size:35px;">📺</div><div class="title">小魚 YouTube</div>
+        <div class="card" style="border-color: var(--green);" onclick="location.href='clicker.html'">
+            <div style="font-size:30px;">🚜</div><div class="title">點數收割機</div><small>自動生產點數</small>
         </div>
-        <div class="card" style="border-color: var(--red);" onclick="action('library.html')">
-            <div class="icon" style="font-size:35px;">📖</div><div class="title">血之遺痕</div>
+        <div class="card" style="border-color: var(--pink);" onclick="location.href='jump.html'">
+            <div style="font-size:30px;">🐟</div><div class="title">小魚跳跳</div><small>技術賺錢</small>
         </div>
-        <div class="card" style="border-color: #bd93f9;" onclick="action('tetris.html')">
-            <div class="icon" style="font-size:35px;">🧱</div><div class="title">俄羅斯方塊</div>
-        </div>
-        <div class="card" style="border-color: var(--purple);" onclick="action('狼人殺.html')">
-            <div class="icon" style="font-size:35px;">🐺</div><div class="title">狼人殺大廳</div>
-        </div>
-        <div class="card" style="border-color: var(--gold);" onclick="action('太古大戰.html')">
-            <div class="icon" style="font-size:35px;">🥁</div><div class="title">太鼓達人</div>
-        </div>
-        <div class="card" style="border-color: var(--blue);" onclick="action('四子棋.html')">
-            <div class="icon" style="font-size:35px;">🔴</div><div class="title">四子棋</div>
-        </div>
-        <div class="card" style="border-color: #5c2d91;" onclick="action('槍戰 2.html')">
-            <div class="icon" style="font-size:35px;">🔫</div><div class="title">草原槍戰 2</div>
-        </div>
-        <div class="card" style="border-color: var(--pink);" onclick="toggleMusic()">
-            <div class="icon" style="font-size:35px;">🎧</div><div class="title">音樂播放</div>
-        </div>
+    </div>
+
+    <h2 class="section-title">🎮 經典遊戲庫</h2>
+    <div class="container">
+        <div class="card" onclick="action('競賽貓站.html')">🐈<div class="title">競賽貓站</div></div>
+        <div class="card" onclick="action('太古大戰.html')">🥁<div class="title">太鼓達人</div></div>
+        <div class="card" onclick="action('tetris.html')">🧱<div class="title">俄羅斯方塊</div></div>
+        <div class="card" onclick="action('四子棋.html')">🔴<div class="title">四子棋</div></div>
+        <div class="card" onclick="action('槍戰 2.html')">🔫<div class="title">草原槍戰 2</div></div>
+        <div class="card" onclick="action('狼人殺.html')">🐺<div class="title">狼人殺</div></div>
+        <div class="card" style="border-color: var(--yt-red);" onclick="action('https://www.youtube.com/@小魚-v9e', true)">📺<div class="title">小魚 YT</div></div>
+        <div class="card" onclick="toggleMusic()">🎧<div class="title">音樂播放</div></div>
     </div>
 
     <h2 class="section-title">🛒 領主商店</h2>
     <div class="container">
-        <div id="buy-char-1" class="card" onclick="unlock('char-1', '小魚角色', 500, 'char')">
-            <div class="icon" style="font-size:30px;">👤</div><div class="title">解鎖【小魚】</div><div class="price">500 💎</div>
-        </div>
-        <div id="buy-char-2" class="card" onclick="unlock('char-2', '希角色', 500, 'char')">
-            <div class="icon" style="font-size:30px;">👧</div><div class="title">解鎖【希】</div><div class="price">500 💎</div>
-        </div>
-        <div id="buy-title-1" class="card" onclick="unlock('傳說領主', '稱號', 1000, 'title')">
-            <div class="icon" style="font-size:30px;">👑</div><div class="title">傳說領主</div><div class="price">1000 💎</div>
-        </div>
+        <div id="buy-char-1" class="card" onclick="unlock('char-1', '小魚角色', 500, 'char')">👤 解鎖小魚<div class="price">500 💎</div></div>
+        <div id="buy-char-2" class="card" onclick="unlock('char-2', '希角色', 500, 'char')">👧 解鎖希<div class="price">500 💎</div></div>
+        <div id="buy-title-1" class="card" onclick="unlock('傳說領主', '稱號', 1000, 'title')">👑 傳說領主<div class="price">1000 💎</div></div>
     </div>
 
-    <h2 class="section-title">🖼️ 角色展示館 (.VRM)</h2>
+    <h2 class="section-title">🖼️ 角色展示館</h2>
     <div class="container">
-        <div id="char-1" class="card character-card">
-            <div style="font-size:40px;">🐟</div><div class="title">小魚</div>
-            <a id="dl-1" href="小魚.vrm" download class="dl-btn">💾 下載模型</a>
-        </div>
-        <div id="char-2" class="card character-card">
-            <div style="font-size:40px;">🎀</div><div class="title">希 (姊姊)</div>
-            <a id="dl-2" href="希.vrm" download class="dl-btn">💾 下載模型</a>
-        </div>
-    </div>
-
-    <h2 class="section-title">🏅 冒險成就</h2>
-    <div class="container">
-        <div id="ach-1" class="card ach-card">🐣<div class="title" style="margin-top:5px;">初試啼聲</div></div>
-        <div id="ach-2" class="card ach-card">💰<div class="title" style="margin-top:5px;">點數大亨</div></div>
+        <div id="char-1" class="card character-card">🐟 小魚<a id="dl-1" href="小魚.vrm" download class="dl-btn">💾 下載 VRM</a></div>
+        <div id="char-2" class="card character-card">🎀 希 (姊姊)<a id="dl-2" href="希.vrm" download class="dl-btn">💾 下載 VRM</a></div>
     </div>
 
     <div id="music-player">
-        <span id="track-name" style="font-size:11px; color:white;">載入中...</span>
-        <button class="play-btn" onclick="switchTrack()">⏭</button>
-        <button class="play-btn" onclick="playPause()" id="p-btn">▶</button>
-        <button class="play-btn" onclick="toggleMusic()" style="background:#444;">✖</button>
+        <span id="track-name">音樂...</span>
+        <button onclick="switchTrack()">⏭</button>
+        <button onclick="playPause()" id="p-btn">▶</button>
+        <button onclick="toggleMusic()" style="background:#444;">✖</button>
     </div>
-
     <audio id="audio" loop><source id="audio-src" src="《全力展開！閃光射線》.mp3"></audio>
 
     <script>
-        // --- 💾 核心數據引擎 (與賭場共用 lord_mega_db_v5) ---
-        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {
-            pts: 0, title: '新進冒險者', chars: [], titles: ['新進冒險者'], achs: [], clicks: 0
-        };
-
-        const playlist = [
-            {n: "閃光射線", f: "《全力展開！閃光射線》.mp3"},
-            {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"},
-            {n: "光のキセキ", f: "光のキセキ.mp3"},
-            {n: "冒險更新", f: "冒險のアップデート.mp3"},
-            {n: "春のパレード", f: "春のパレード.mp3"}
-        ];
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 0, title: '新進冒險者', chars: [], titles: ['新進冒險者'], clicks: 0 };
+        const playlist = [{n: "閃光射線", f: "《全力展開！閃光射線》.mp3"}, {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"}, {n: "光のキセキ", f: "光のキセキ.mp3"}, {n: "冒險更新", f: "冒險のアップデート.mp3"}, {n: "春のパレード", f: "春のパレード.mp3"}];
         let curT = 0;
 
-        refresh();
-
-        function action(url, tab) {
-            db.clicks++; 
-            db.pts += 50; // 老弟專屬高額獎勵
-            check(); save();
-            if(tab) window.open(url, '_blank'); else window.location.href = url;
-        }
-
-        function toggleMusic() { 
-            let m = document.getElementById('music-player');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-            document.getElementById('track-name').innerText = playlist[curT].n;
-        }
-
-        function playPause() {
-            const a = document.getElementById('audio');
-            if(a.paused) { a.play(); document.getElementById('p-btn').innerText = '⏸'; }
-            else { a.pause(); document.getElementById('p-btn').innerText = '▶'; }
-        }
-
-        function switchTrack() {
-            curT = (curT + 1) % playlist.length;
-            document.getElementById('audio-src').src = encodeURIComponent(playlist[curT].f);
-            document.getElementById('track-name').innerText = playlist[curT].n;
-            const a = document.getElementById('audio');
-            a.load(); a.play(); document.getElementById('p-btn').innerText = '⏸';
-        }
-
+        function action(url, tab) { db.pts += 50; save(); if(tab) window.open(url, '_blank'); else window.location.href = url; }
         function unlock(id, name, cost, type) {
-            if(type === 'char' && db.chars.includes(id)) return alert("此角色已在展示館解鎖！");
-            if(type === 'title' && db.titles.includes(id)) { db.title = id; save(); return alert("稱號已更換！"); }
             if(db.pts >= cost) {
                 db.pts -= cost;
-                if(type === 'char') db.chars.push(id);
-                if(type === 'title') { db.titles.push(id); db.title = id; }
-                pop("✨ 獲得：" + name); check(); save();
-            } else alert("點數不足！還差 " + (cost - db.pts) + " 點");
+                if(type==='char') db.chars.push(id);
+                if(type==='title') { db.titles.push(id); db.title = id; }
+                save(); refresh();
+            } else alert("錢不夠！");
         }
-
-        function check() {
-            if(!db.achs.includes('ach-1') && db.clicks >= 1) { db.achs.push('ach-1'); pop("🏅 解鎖：初試啼聲"); }
-            if(!db.achs.includes('ach-2') && db.pts >= 500) { db.achs.push('ach-2'); pop("🏅 解鎖：點數大亨"); }
-        }
-
-        function pop(m) {
-            const t = document.getElementById('toast'); t.innerText = m;
-            t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2500);
-        }
-
         function save() { localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); refresh(); }
-
         function refresh() {
-            document.getElementById('display-points').innerText = db.pts;
+            document.getElementById('display-points').innerText = Math.floor(db.pts);
             document.getElementById('display-title').innerText = "🔰 稱號：" + db.title;
             db.chars.forEach(id => {
                 document.getElementById(id)?.classList.add('unlocked');
                 const dl = document.getElementById('dl-' + (id==='char-1'?'1':'2'));
-                if(dl) dl.style.display = 'inline-block';
-                const buyBtn = document.getElementById('buy-'+id);
-                if(buyBtn) buyBtn.innerHTML = "✅ 已擁有";
+                if(dl) dl.style.display = 'block';
             });
-            db.achs.forEach(id => document.getElementById(id)?.classList.add('unlocked'));
-            if(db.titles.includes('傳說領主')) document.getElementById('buy-title-1').style.borderColor = 'var(--green)';
         }
+        function toggleMusic() { 
+            let m = document.getElementById('music-player');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        }
+        function playPause() { const a = document.getElementById('audio'); if(a.paused) a.play(); else a.pause(); }
+        function switchTrack() {
+            curT = (curT + 1) % playlist.length;
+            document.getElementById('audio-src').src = encodeURIComponent(playlist[curT].f);
+            document.getElementById('audio').load(); document.getElementById('audio').play();
+        }
+        refresh();
     </script>
 </body>
 </html>
