@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8"><title>小魚跳跳</title>
+    <style>
+        body { background: #0d1117; color: white; text-align: center; overflow: hidden; }
+        #gameCanvas { background: #161b22; border: 4px solid #58a6ff; display: block; margin: 20px auto; }
+    </style>
+</head>
+<body>
+    <h1>🐟 小魚跳跳 (點擊跳躍)</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <p>避開紅柱！每過一根 +100 點，撞到 -50 點！</p>
+    <button onclick="location.href='index.html'" style="padding:10px 20px;">回大廳</button>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {pts:0};
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let bird = { x: 50, y: 200, v: 0, g: 0.5 };
+        let pipes = [];
+        let score = 0;
+
+        function spawnPipe() { pipes.push({ x: 400, y: Math.random() * 200 + 50 }); }
+        function draw() {
+            ctx.clearRect(0, 0, 400, 400);
+            bird.v += bird.g; bird.y += bird.v;
+            ctx.fillStyle = "#ff79c6"; ctx.fillRect(bird.x, bird.y, 20, 20); // 小魚
+
+            pipes.forEach((p, i) => {
+                p.x -= 3;
+                ctx.fillStyle = "#ff4757";
+                ctx.fillRect(p.x, 0, 30, p.y); // 上管
+                ctx.fillRect(p.x, p.y + 100, 30, 400); // 下管
+                
+                if(p.x < -30) { pipes.splice(i, 1); score += 100; db.pts += 100; save(); }
+                if(bird.x < p.x+30 && bird.x+20 > p.x && (bird.y < p.y || bird.y+20 > p.y+100)) {
+                    db.pts = Math.max(0, db.pts - 50); save(); location.reload();
+                }
+            });
+            if(bird.y > 400 || bird.y < 0) { location.reload(); }
+            requestAnimationFrame(draw);
+        }
+        function save() { localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); }
+        window.onclick = () => bird.v = -8;
+        setInterval(spawnPipe, 1500);
+        draw();
+    </script>
+</body>
+</html>
