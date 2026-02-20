@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主的數位基地 | 全能巔峰版</title>
+    <title>小宥領主的數位基地 | 貓咪回歸版</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --red: #ff4757;
@@ -12,7 +12,6 @@
         }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
         
-        /* 狀態列 */
         .stats-bar { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 25px; }
         .badge-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         .badge { background: rgba(88, 166, 255, 0.1); border: 1px solid var(--blue); padding: 5px 15px; border-radius: 20px; font-size: 13px; color: var(--blue); }
@@ -22,11 +21,9 @@
         .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto; }
         .section-title { margin: 40px 0 20px; color: var(--cyan); border-bottom: 1px solid #30363d; padding-bottom: 10px; font-size: 1.2em; }
 
-        /* 卡片 */
         .card { background: var(--card); border: 2px solid #30363d; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; min-height: 110px; justify-content: center; position: relative; }
         .card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(88,166,255,0.2); }
         
-        /* 展示卡與成就卡 */
         .character-card { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; cursor: default; }
         .character-card.unlocked { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); background: rgba(255, 121, 198, 0.1); cursor: pointer; }
         .ach-card { opacity: 0.3; filter: brightness(0.5); }
@@ -38,8 +35,7 @@
 
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 12px 30px; border-radius: 50px; display: none; z-index: 3000; font-weight: bold; }
 
-        /* 音樂播放器 */
-        #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; box-shadow: 0 0 20px rgba(255, 121, 198, 0.3); }
+        #music-player { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(22,27,34,0.95); border: 2px solid var(--pink); border-radius: 50px; padding: 10px 25px; display: none; align-items: center; gap: 15px; z-index: 1000; }
         .play-btn { background: var(--pink); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -58,6 +54,9 @@
     </div>
 
     <div class="container">
+        <div class="card" style="border-color: var(--gold);" onclick="action('競賽貓站.html')">
+            <div class="icon" style="font-size:35px;">🐈</div><div class="title">競賽貓站</div>
+        </div>
         <div class="card" style="border-color: var(--yt-red);" onclick="action('https://www.youtube.com/@小魚-v9e', true)">
             <div class="icon" style="font-size:35px;">📺</div><div class="title">小魚 YouTube</div>
         </div>
@@ -101,11 +100,11 @@
     <div class="container">
         <div id="char-1" class="card character-card">
             <div style="font-size:40px;">🐟</div><div class="title">小魚</div>
-            <a id="dl-1" href="小魚.vrm" download class="dl-btn">💾 下載模型使用教學在頻道裡</a>
+            <a id="dl-1" href="小魚.vrm" download class="dl-btn">💾 下載模型</a>
         </div>
         <div id="char-2" class="card character-card">
             <div style="font-size:40px;">🎀</div><div class="title">希 (姊姊)</div>
-            <a id="dl-2" href="希.vrm" download class="dl-btn">💾 下載模型使用教學在頻道裡</a>
+            <a id="dl-2" href="希.vrm" download class="dl-btn">💾 下載模型</a>
         </div>
     </div>
 
@@ -116,7 +115,7 @@
     </div>
 
     <div id="music-player">
-        <span id="track-name" style="font-size:11px; color:white;">點擊切換曲目</span>
+        <span id="track-name" style="font-size:11px; color:white;">載入中...</span>
         <button class="play-btn" onclick="switchTrack()">⏭</button>
         <button class="play-btn" onclick="playPause()" id="p-btn">▶</button>
         <button class="play-btn" onclick="toggleMusic()" style="background:#444;">✖</button>
@@ -125,8 +124,7 @@
     <audio id="audio" loop><source id="audio-src" src="《全力展開！閃光射線》.mp3"></audio>
 
     <script>
-        // --- 💾 核心存檔資料 ---
-        let db = JSON.parse(localStorage.getItem('lord_mega_db')) || {
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {
             pts: 0, title: '新進冒險者', chars: [], titles: ['新進冒險者'], achs: [], clicks: 0
         };
 
@@ -142,7 +140,9 @@
         refresh();
 
         function action(url, tab) {
-            db.clicks++; db.pts += 20; check(); save();
+            db.clicks++; 
+            db.pts += 50; // 給老弟的特別福利：點一次給 50 點！
+            check(); save();
             if(tab) window.open(url, '_blank'); else window.location.href = url;
         }
 
@@ -174,7 +174,7 @@
                 if(type === 'char') db.chars.push(id);
                 if(type === 'title') { db.titles.push(id); db.title = id; }
                 pop("✨ 獲得：" + name); check(); save();
-            } else alert("點數不足！還差 " + (cost - db.pts) + " 點");
+            } else alert("點數不足！");
         }
 
         function check() {
@@ -187,7 +187,7 @@
             t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2500);
         }
 
-        function save() { localStorage.setItem('lord_mega_db', JSON.stringify(db)); refresh(); }
+        function save() { localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); refresh(); }
 
         function refresh() {
             document.getElementById('display-points').innerText = db.pts;
@@ -205,4 +205,3 @@
     </script>
 </body>
 </html>
-
