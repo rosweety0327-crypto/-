@@ -3,26 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小魚跳跳：旗艦大冒險</title>
+    <title>小魚跳跳：輕盈版</title>
     <style>
-        body { background: #050a10; color: white; text-align: center; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        body { background: #050a10; color: white; text-align: center; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
         canvas { background: linear-gradient(to bottom, #111d2b 0%, #050a10 100%); border: 4px solid #58a6ff; border-radius: 15px; box-shadow: 0 0 30px rgba(88, 166, 255, 0.3); cursor: pointer; }
         .ui { position: absolute; top: 20px; width: 100%; pointer-events: none; }
         .score-board { font-size: 32px; font-weight: bold; color: #58a6ff; text-shadow: 0 0 10px rgba(88,166,255,0.5); }
-        .hint { font-size: 14px; color: #8b949e; margin-top: 5px; }
-        .btn-group { margin-top: 15px; pointer-events: auto; }
-        button { background: #161b22; color: #58a6ff; border: 1px solid #30363d; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        button:hover { background: #58a6ff; color: white; }
+        button { background: #161b22; color: #58a6ff; border: 1px solid #30363d; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; pointer-events: auto; }
     </style>
 </head>
 <body>
 
     <div class="ui">
-        <div class="score-board">SCORE: <span id="current-score">0</span></div>
-        <div class="hint">💎 點數：<span id="pts">載入中...</span> | 每過一根 +50</div>
-        <div class="btn-group">
-            <button onclick="location.href='index.html'">🏰 回基地</button>
-        </div>
+        <div class="score-board" id="current-score">0</div>
+        <div style="color: #8b949e;">💎 點數：<span id="pts">...</span></div>
+        <div style="margin-top: 10px;"><button onclick="location.href='index.html'">🏰 返回基地</button></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -33,41 +28,18 @@
         canvas.width = 400; canvas.height = 500;
 
         let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {pts: 0};
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        // 遊戲參數
-        let bird = { x: 80, y: 250, v: 0, g: 0.45, jump: -7, radius: 15, angle: 0 };
+        
+        // 🔹 參數修正：掉落變慢，手感變好
+        let bird = { x: 80, y: 250, v: 0, g: 0.35, jump: -6.5, angle: 0 };
         let pipes = [];
-        let bubbles = [];
-        let particles = [];
         let score = 0;
         let gameActive = true;
         let frame = 0;
-        let speed = 2.5;
-
-        // 初始化背景氣泡
-        for(let i=0; i<15; i++) { bubbles.push({ x: Math.random()*400, y: Math.random()*500, r: Math.random()*3, s: Math.random()*0.5+0.2 }); }
-
-        function playSound(freq, type, duration) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
-        }
-
-        function createParticles(x, y, color) {
-            for(let i=0; i<10; i++) {
-                particles.push({ x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1, color });
-            }
-        }
+        let speed = 2.0; // 🔹 速度變慢，反應時間變長
 
         function spawnPipe() {
-            const gap = 130;
-            const minH = 50;
-            const h = Math.random() * (canvas.height - gap - minH * 2) + minH;
+            const gap = 150; // 🔹 洞口稍微變大一點點
+            const h = Math.random() * (canvas.height - gap - 100) + 50;
             pipes.push({ x: canvas.width, topH: h, bottomY: h + gap, passed: false });
         }
 
@@ -76,74 +48,45 @@
             frame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. 畫背景氣泡
-            ctx.fillStyle = "rgba(255,255,255,0.2)";
-            bubbles.forEach(b => {
-                b.y -= b.s; if(b.y < -10) b.y = 510;
-                ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
-            });
-
-            // 2. 物理運算
-            bird.v += bird.g; bird.y += bird.v;
+            // 物理運動
+            bird.v += bird.g;
+            bird.y += bird.v;
             bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.1));
 
-            // 3. 畫障礙物
+            // 繪製柱子
             ctx.fillStyle = "#30363d";
             ctx.strokeStyle = "#58a6ff";
-            ctx.lineWidth = 2;
             pipes.forEach((p, i) => {
                 p.x -= speed;
-                // 上管
                 ctx.fillRect(p.x, 0, 50, p.topH);
                 ctx.strokeRect(p.x, 0, 50, p.topH);
-                // 下管
                 ctx.fillRect(p.x, p.bottomY, 50, canvas.height - p.bottomY);
                 ctx.strokeRect(p.x, p.bottomY, 50, canvas.height - p.bottomY);
 
-                // 得分檢測
                 if(!p.passed && bird.x > p.x + 50) {
-                    p.passed = true; score++; speed += 0.05;
+                    p.passed = true; score++; 
+                    speed += 0.03; // 慢慢增加難度
                     db.pts += 50; save();
-                    playSound(800, 'square', 0.1);
                     document.getElementById('current-score').innerText = score;
                 }
 
-                // 碰撞檢測
                 if(bird.x + 12 > p.x && bird.x - 12 < p.x + 50) {
                     if(bird.y - 12 < p.topH || bird.y + 12 > p.bottomY) gameOver();
                 }
             });
 
             if(pipes.length > 0 && pipes[0].x < -60) pipes.shift();
-            if(frame % 100 === 0) spawnPipe();
+            if(frame % 110 === 0) spawnPipe(); // 生成間隔拉長
             if(bird.y > canvas.height || bird.y < 0) gameOver();
 
-            // 4. 畫粒子
-            particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-                if(p.life <= 0) particles.splice(i, 1);
-                ctx.fillStyle = `rgba(88, 166, 255, ${p.life})`;
-                ctx.fillRect(p.x, p.y, 4, 4);
-            });
-
-            // 5. 畫小魚 (精緻版)
+            // 畫小魚
             ctx.save();
             ctx.translate(bird.x, bird.y);
             ctx.rotate(bird.angle);
-            // 魚身
             ctx.fillStyle = "#ff79c6";
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 18, 12, 0, 0, Math.PI*2);
-            ctx.fill();
-            // 魚尾
-            ctx.beginPath();
-            ctx.moveTo(-15, 0); ctx.lineTo(-25, -8); ctx.lineTo(-25, 8);
-            ctx.closePath(); ctx.fill();
-            // 眼睛
-            ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(8, -3, 4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "black";
-            ctx.beginPath(); ctx.arc(10, -3, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(0, 0, 18, 12, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(-25, -8); ctx.lineTo(-25, 8); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(8, -3, 4, 0, Math.PI*2); ctx.fill();
             ctx.restore();
 
             requestAnimationFrame(draw);
@@ -151,12 +94,7 @@
 
         function gameOver() {
             gameActive = false;
-            playSound(150, 'sawtooth', 0.5);
-            createParticles(bird.x, bird.y, "#ff4757");
-            setTimeout(() => {
-                alert(`遊戲結束！本次得分：${score}\n領主點數已保存。`);
-                location.reload();
-            }, 500);
+            setTimeout(() => { alert(`得分：${score}\n點數已儲存！`); location.reload(); }, 300);
         }
 
         function save() { 
@@ -164,15 +102,7 @@
             document.getElementById('pts').innerText = Math.floor(db.pts);
         }
 
-        window.addEventListener('mousedown', () => {
-            if(!gameActive) return;
-            bird.v = bird.jump;
-            playSound(400, 'sine', 0.05);
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-        });
-
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') bird.v = bird.jump; });
-
+        window.onclick = () => { bird.v = bird.jump; };
         document.getElementById('pts').innerText = db.pts;
         spawnPipe();
         draw();
