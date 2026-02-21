@@ -30,7 +30,8 @@
         let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {pts: 0};
         
         // 🔹 參數修正：掉落變慢，手感變好
-        let bird = { x: 80, y: 250, v: 0, g: 0.35, jump: -6.5, angle: 0 };
+        // let bird = { x: 80, y: 250, v: 0, g: 0.35, jump: -6.5, angle: 0 };
+        let bird = { x: 80, y: 250, v: 0, g: 0.1, jump: -6.5, angle: 0 };
         let pipes = [];
         let score = 0;
         let gameActive = true;
@@ -51,7 +52,7 @@
             // 物理運動
             bird.v += bird.g;
             bird.y += bird.v;
-            bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/16, bird.v * 0.1));
+            bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.1));
 
             // 繪製柱子
             ctx.fillStyle = "#30363d";
