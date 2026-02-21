@@ -51,7 +51,7 @@
             // 物理運動
             bird.v += bird.g;
             bird.y += bird.v;
-            bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.01));
+            bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/16, bird.v * 0.1));
 
             // 繪製柱子
             ctx.fillStyle = "#30363d";
