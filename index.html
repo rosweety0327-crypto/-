@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V7.1 頻道直通版</title>
+    <title>小宥領主的基地 | V7.5 旗艦版</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
-            --red: #ff4757; --pink: #ff79c6; --text: #c9d1d9; --blood: #880000;
+            --red: #ff4757; --pink: #ff79c6; --text: #c9d1d9; --blood: #880000; --star: #70a1ff;
         }
         html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
         body { padding-bottom: 160px; text-align: center; }
 
-        /* 📺 頻道宣傳列 - 網址修正版 */
+        /* 📺 頻道宣傳列 - 網址直通 */
         .promo-bar { 
             background: linear-gradient(90deg, #ff0000, #b20000); 
             color: white; padding: 12px; font-weight: bold; cursor: pointer; 
             display: flex; justify-content: center; align-items: center; gap: 15px; 
-            position: sticky; top: 0; z-index: 5000; transition: 0.3s;
+            position: sticky; top: 0; z-index: 5000;
         }
-        .promo-bar:hover { background: #ff4757; }
         .subscribe-btn { background: white; color: red; border: none; padding: 5px 15px; border-radius: 50px; font-weight: bold; cursor: pointer; }
 
         /* 領主面板 */
@@ -29,17 +28,18 @@
         /* 網格系統 */
         .section-header { text-align: left; max-width: 1000px; margin: 40px auto 15px; color: var(--blue); border-left: 5px solid var(--blue); padding-left: 15px; font-weight: bold; font-size: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        
+        /* 卡片設計 */
         .game-card { background: var(--card); border: 1px solid #30363d; border-radius: 18px; padding: 20px; transition: 0.3s; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
-        .game-card:hover { transform: translateY(-8px); border-color: var(--blue); }
+        .game-card:hover { transform: translateY(-8px); border-color: var(--blue); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
         .game-card .icon { font-size: 45px; margin-bottom: 10px; }
-        .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 11px; padding: 5px 12px; border-bottom-left-radius: 15px; }
+        .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 11px; padding: 5px 12px; border-bottom-left-radius: 15px; font-weight: bold; }
 
-        /* 商店與展示 */
-        .store-card { border-color: #3e331b; background: linear-gradient(to bottom, #1c1910, #161b22); }
-        .char-slot { opacity: 0.2; filter: grayscale(1); border: 2px dashed #444; }
-        .char-slot.active { opacity: 1; filter: grayscale(0); border: 2px solid var(--pink); }
+        /* 小說專用深藍色 */
+        .star-card { border-color: var(--star); background: linear-gradient(145deg, #0d1a33, #161b22); }
+        .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
 
-        /* 音樂列 */
+        /* 底部音樂列 */
         #music-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); padding: 15px 0; border-top: 2px solid var(--pink); display: flex; justify-content: center; gap: 20px; align-items: center; z-index: 4000; }
         .control-btn { background: #30363d; border: none; color: white; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; }
     </style>
@@ -47,8 +47,8 @@
 <body>
 
     <div class="promo-bar" onclick="window.open('https://www.youtube.com/@%E5%B0%8F%E9%AD%9A-v9e', '_blank')">
-        <span>📺 領主正在招募隊員！訂閱「小魚 YT」解鎖隱藏福利</span>
-        <button class="subscribe-btn">點擊前往</button>
+        <span>📺 領主基地更新！訂閱「小魚 YT」支持新小說連載</span>
+        <button class="subscribe-btn">前往頻道</button>
     </div>
 
     <div class="lord-panel">
@@ -57,37 +57,31 @@
         <div class="pts-counter">💎 <span id="display-points">0</span></div>
     </div>
 
+    <div class="section-header">✨ 星光閃爍之時 (五集全)</div>
+    <div class="grid">
+        <div class="game-card star-card" onclick="location.href='star_ch1.html'"><div class="tag">Ch 1</div><div class="icon">🌃</div><div class="title">星與光</div></div>
+        <div class="game-card star-card" onclick="location.href='star_ch2.html'"><div class="tag">Ch 2</div><div class="icon">🌈</div><div class="title">虹光之約</div></div>
+        <div class="game-card star-card" onclick="location.href='star_ch3.html'"><div class="tag">Ch 3</div><div class="icon">🏟️</div><div class="title">虹光之時</div></div>
+        <div class="game-card star-card" onclick="location.href='star_ch4.html'"><div class="tag">Ch 4</div><div class="icon">📱</div><div class="title">綻放序曲</div></div>
+        <div class="game-card star-card" onclick="location.href='star_ch5.html'"><div class="tag">Ch 5</div><div class="icon">🔥</div><div class="title">靈魂之火</div></div>
+    </div>
+
     <div class="section-header">🎮 領主核心遊戲 (10)</div>
     <div class="grid">
         <div class="game-card" onclick="play('jump.html')"><div class="tag">HOT</div><div class="icon">🐟</div><div class="title">小魚跳跳</div></div>
         <div class="game-card" onclick="play('狼人殺.html')"><div class="icon">🐺</div><div class="title">狼人殺</div></div>
-        <div class="game-card" style="border-color: var(--blood);" onclick="location.href='story.html'"><div class="icon">🩸</div><div class="title">血之遺痕</div></div>
+        <div class="game-card blood-card" onclick="location.href='story_blood.html'"><div class="tag">Series</div><div class="icon">🩸</div><div class="title">血之遺痕</div></div>
         <div class="game-card" onclick="play('gamble.html')"><div class="icon">🎡</div><div class="title">黃金轉盤</div></div>
         <div class="game-card" onclick="play('clicker.html')"><div class="icon">🚜</div><div class="title">收割工廠</div></div>
         <div class="game-card" onclick="play('tetris.html')"><div class="icon">🧱</div><div class="title">方塊挑戰</div></div>
-        <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">🥁</div><div class="title">太鼓達人</div></div>
+        <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">鼓</div><div class="title">太鼓達人</div></div>
         <div class="game-card" onclick="play('競賽貓站.html')"><div class="icon">🐈</div><div class="title">競賽貓站</div></div>
         <div class="game-card" onclick="play('槍戰 2.html')"><div class="icon">🔫</div><div class="title">草原槍戰</div></div>
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
     </div>
 
-    <div class="section-header">🛒 點數特權商店</div>
-    <div class="grid">
-        <div class="game-card store-card" onclick="buyTitle('暗紅之神', 2000, '#ff4757')">👑 稱號：暗紅之神<br>2000 💎</div>
-        <div id="buy-char-3" class="game-card store-card" onclick="unlock('char-3', '小王', 1000)">👑 解鎖小王<br>1000 💎</div>
-        <div id="buy-char-4" class="game-card store-card" onclick="unlock('char-4', '小星', 1500)">⭐ 解鎖小星<br>1500 💎</div>
-    </div>
-
-    <div class="section-header">🖼️ 角色展示櫃</div>
-    <div class="grid">
-        <div id="char-1" class="game-card char-slot"><div class="icon">🐟</div><div class="title">小魚</div><a href="小魚.vrm" download style="font-size:11px; color:var(--gold);">[下載]</a></div>
-        <div id="char-2" class="game-card char-slot"><div class="icon">🎀</div><div class="title">希 (姊姊)</div><a href="希.vrm" download style="font-size:11px; color:var(--gold);">[下載]</a></div>
-        <div id="char-3" class="game-card char-slot"><div class="icon">🤵</div><div class="title">小王</div><a href="小王OK.vrm" download style="font-size:11px; color:var(--gold);">[下載]</a></div>
-        <div id="char-4" class="game-card char-slot"><div class="icon">✨</div><div class="title">小星</div><a href="小星.vrm" download style="font-size:11px; color:var(--gold);">[下載]</a></div>
-    </div>
-
     <div id="music-bar">
-        <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 準備播放</div>
+        <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 點擊播放音樂</div>
         <button class="control-btn" onclick="switchTrack()">⏭ 下一首</button>
         <button class="control-btn" onclick="playPause()">▶/⏸</button>
     </div>
@@ -99,7 +93,9 @@
         const playlist = [
             {n: "閃光射線", f: "《全力展開！閃光射線》.mp3"}, 
             {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"}, 
-            {n: "光のキセキ", f: "光のキセキ.mp3"}
+            {n: "光のキセキ", f: "光のキセキ.mp3"},
+            {n: "戰鬥 BGM 1", f: "battle1.mp3"},
+            {n: "主題曲 2", f: "theme2.mp3"}
         ];
         let curT = 0;
 
@@ -107,26 +103,8 @@
         function refresh() {
             document.getElementById('display-points').innerText = Math.floor(db.pts);
             document.getElementById('display-title').innerText = "稱號：" + db.title;
-            db.chars.forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).classList.add('active');
-                if(document.getElementById('buy-'+id)) document.getElementById('buy-'+id).innerHTML = "✅ 已擁有";
-            });
         }
         function play(url) { db.pts += 50; save(); location.href = url; }
-        function unlock(id, name, cost) {
-            if(db.pts >= cost && !db.chars.includes(id)) {
-                db.pts -= cost; db.chars.push(id); save();
-                alert("🎉 解鎖成功！");
-            } else if(db.chars.includes(id)) { alert("已經擁有囉！"); }
-            else { alert("點數不足！"); }
-        }
-        function buyTitle(name, cost, color) {
-            if(db.pts >= cost) {
-                db.pts -= cost; db.title = name; save();
-                document.getElementById('display-title').style.color = color;
-                alert("👑 稱號更新為：" + name);
-            } else { alert("點數不夠買稱號喔！"); }
-        }
         function playPause() { const a = document.getElementById('audio'); if(a.paused) a.play(); else a.pause(); updateTrackName(); }
         function switchTrack() {
             curT = (curT + 1) % playlist.length;
