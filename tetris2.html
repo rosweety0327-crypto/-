@@ -2,64 +2,170 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>俄羅斯方塊 2 | 雙人對戰模式</title>
+    <title>俄羅斯方塊 2 | 雙人對戰旗艦版</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; }
-        .game-container { display: flex; justify-content: center; gap: 50px; margin-top: 20px; }
-        canvas { border: 4px solid #30363d; background: #000; box-shadow: 0 0 20px rgba(88, 166, 255, 0.2); }
-        .player-info { margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #58a6ff; }
-        .controls-hint { margin-top: 20px; color: #8b949e; font-size: 14px; }
-        .status { color: #f1c40f; height: 30px; }
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        .ui-layer { padding: 10px; background: #161b22; border-bottom: 2px solid #30363d; }
+        .game-area { display: flex; justify-content: center; gap: 40px; padding: 20px; }
+        canvas { border: 4px solid #30363d; background: #000; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 240px; height: 480px; }
+        .player-label { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #58a6ff; }
+        .status-ok { color: #238636; }
+        .status-wait { color: #f1c40f; }
     </style>
 </head>
 <body>
-    <h1>🎮 俄羅斯方塊 2：雙人對戰</h1>
-    <div id="controller-status" class="status">等待手把連線... (請按下手把上的任意鍵)</div>
 
-    <div class="game-container">
-        <div>
-            <div class="player-info">Player 1 (左手把/鍵盤 WASD)</div>
-            <canvas id="p1-canvas" width="240" height="400"></canvas>
-        </div>
-        <div>
-            <div class="player-info">Player 2 (右手把/鍵盤 方向鍵)</div>
-            <canvas id="p2-canvas" width="240" height="400"></canvas>
-        </div>
+    <div class="ui-layer">
+        <h1>⚔️ 俄羅斯方塊 2：雙人對戰</h1>
+        <div id="status" class="status-wait">等待手把連線... (請按下手把任意鍵)</div>
     </div>
 
-    <div class="controls-hint">
-        提示：Switch 手把連線後，可以使用搖桿移動，A/B 鍵旋轉。<br>
-        鍵盤：P1 (WASD + Space), P2 (↑↓←→ + Enter)
+    <div class="game-area">
+        <div>
+            <div class="player-label">PLAYER 1</div>
+            <canvas id="p1"></canvas>
+            <div id="score1">分數: 0</div>
+        </div>
+        <div>
+            <div class="player-label">PLAYER 2</div>
+            <canvas id="p2"></canvas>
+            <div id="score2">分數: 0</div>
+        </div>
     </div>
 
     <script>
-        // 這裡僅展示手把偵測核心邏輯，完整遊戲邏輯建議引用外部 js
-        window.addEventListener("gamepadconnected", (e) => {
-            document.getElementById('controller-status').innerText = `✅ 已偵測到控制器：${e.gamepad.id}`;
-            console.log("控制器已連線", e.gamepad);
+        const COLS = 10, ROWS = 20, BLOCK_SIZE = 24;
+        const SHAPES = [
+            [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]],
+            [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]
+        ];
+
+        class Tetris {
+            constructor(canvasId, scoreId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = COLS * BLOCK_SIZE;
+                this.canvas.height = ROWS * BLOCK_SIZE;
+                this.scoreElement = document.getElementById(scoreId);
+                this.reset();
+            }
+
+            reset() {
+                this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+                this.score = 0;
+                this.spawn();
+            }
+
+            spawn() {
+                const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+                this.piece = { pos: {x: 3, y: 0}, shape, color: '#58a6ff' };
+                if (this.collide()) this.reset();
+            }
+
+            collide() {
+                const {pos, shape} = this.piece;
+                for (let y = 0; y < shape.length; y++) {
+                    for (let x = 0; x < shape[y].length; x++) {
+                        if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
+                    }
+                }
+                return false;
+            }
+
+            rotate() {
+                const s = this.piece.shape;
+                const rotated = s[0].map((_, i) => s.map(row => row[i]).reverse());
+                const prev = this.piece.shape;
+                this.piece.shape = rotated;
+                if (this.collide()) this.piece.shape = prev;
+            }
+
+            move(dx, dy) {
+                this.piece.pos.x += dx;
+                this.piece.pos.y += dy;
+                if (this.collide()) {
+                    this.piece.pos.x -= dx;
+                    this.piece.pos.y -= dy;
+                    if (dy > 0) this.freeze();
+                    return false;
+                }
+                return true;
+            }
+
+            freeze() {
+                this.piece.shape.forEach((row, y) => {
+                    row.forEach((value, x) => {
+                        if (value) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = this.piece.color;
+                    });
+                });
+                this.clearLines();
+                this.spawn();
+            }
+
+            clearLines() {
+                let lines = 0;
+                this.grid = this.grid.filter(row => {
+                    if (row.every(cell => cell !== 0)) { lines++; return false; }
+                    return true;
+                });
+                while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
+                if (lines > 0) { this.score += lines * 100; this.scoreElement.innerText = `分數: ${this.score}`; }
+            }
+
+            draw() {
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.grid.forEach((row, y) => row.forEach((col, x) => {
+                    if (col) { this.ctx.fillStyle = col; this.ctx.fillRect(x*24, y*24, 23, 23); }
+                }));
+                this.ctx.fillStyle = this.piece.color;
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) this.ctx.fillRect((this.piece.pos.x + x)*24, (this.piece.pos.y + y)*24, 23, 23);
+                }));
+            }
+        }
+
+        const p1 = new Tetris('p1', 'score1');
+        const p2 = new Tetris('p2', 'score2');
+
+        // 手把輸入冷卻時間
+        let lastInput = [0, 0]; 
+
+        function gameLoop() {
+            const gamepads = navigator.getGamepads();
+            [0, 1].forEach(idx => {
+                const gp = gamepads[idx];
+                const player = idx === 0 ? p1 : p2;
+                if (gp) {
+                    document.getElementById('status').innerText = "✅ 手把已就緒";
+                    document.getElementById('status').className = "status-ok";
+                    
+                    const now = Date.now();
+                    if (now - lastInput[idx] > 100) {
+                        if (gp.axes[0] < -0.5 || gp.buttons[14].pressed) { player.move(-1, 0); lastInput[idx] = now; }
+                        if (gp.axes[0] > 0.5 || gp.buttons[15].pressed) { player.move(1, 0); lastInput[idx] = now; }
+                        if (gp.axes[1] > 0.5 || gp.buttons[13].pressed) { player.move(0, 1); lastInput[idx] = now; }
+                        if (gp.buttons[0].pressed || gp.buttons[2].pressed) { player.rotate(); lastInput[idx] = now; }
+                    }
+                }
+            });
+
+            p1.draw(); p2.draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 自動下落計時器
+        setInterval(() => { p1.move(0, 1); p2.move(0, 1); }, 1000);
+
+        // 鍵盤備份方案
+        window.addEventListener('keydown', e => {
+            if (e.key === 'a') p1.move(-1, 0); if (e.key === 'd') p1.move(1, 0);
+            if (e.key === 's') p1.move(0, 1); if (e.key === 'w') p1.rotate();
+            if (e.key === 'ArrowLeft') p2.move(-1, 0); if (e.key === 'ArrowRight') p2.move(1, 0);
+            if (e.key === 'ArrowDown') p2.move(0, 1); if (e.key === 'ArrowUp') p2.rotate();
         });
 
-        // 手把輸入偵測循環
-        function updateGamepad() {
-            const gamepads = navigator.getGamepads();
-            for (let i = 0; i < gamepads.length; i++) {
-                const gp = gamepads[i];
-                if (gp) {
-                    // 範例：偵測按鈕 0 (A 鍵)
-                    if (gp.buttons[0].pressed) {
-                        console.log(`玩家 ${i+1} 按下了旋轉`);
-                    }
-                    // 偵測搖桿或十字鍵 (gp.axes)
-                    if (gp.axes[0] < -0.5) { /* 向左移動 */ }
-                    if (gp.axes[0] > 0.5) { /* 向右移動 */ }
-                }
-            }
-            requestAnimationFrame(updateGamepad);
-        }
-        updateGamepad();
-
-        // 此處應加入 Tetris 遊戲繪圖與方塊邏輯...
-        // 為了節省篇幅，建議小宥領主可以將原本「方塊挑戰」的邏輯複製兩份進來
+        gameLoop();
     </script>
 </body>
 </html>
