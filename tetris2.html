@@ -1,69 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主基地 | 觸控與手把全支援</title>
-    <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        .header { background: #161b22; width: 100%; padding: 10px; border-bottom: 3px solid #f1c40f; text-align: center; }
-        .game-container { position: relative; margin-top: 10px; }
-        canvas { background: #000; border: 4px solid #30363d; border-radius: 8px; width: 250px; height: 500px; }
-        .score-box { font-size: 28px; color: #f1c40f; margin: 10px 0; }
-        
-        /* 📱 iPad 螢幕專用大按鈕 */
-        .touch-panel { display: grid; grid-template-columns: repeat(3, 80px); grid-template-rows: repeat(2, 80px); gap: 15px; margin-top: 10px; }
-        .btn { background: #21262d; border: 2px solid #30363d; color: white; display: flex; justify-content: center; align-items: center; font-size: 30px; border-radius: 15px; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .btn:active { background: #58a6ff; transform: scale(0.95); }
-        .btn-rotate { grid-column: 2; }
-        .btn-left { grid-column: 1; grid-row: 2; }
-        .btn-down { grid-column: 2; grid-row: 2; }
-        .btn-right { grid-column: 3; grid-row: 2; }
-        
-        .hint { font-size: 12px; color: #8b949e; margin-top: 10px; }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        🧱 俄羅斯方塊：領主特訓版
-        <div id="status" style="font-size:12px; color:#58a6ff;">偵測中...</div>
-    </div>
-
-    <div class="score-box">分數: <span id="score">0</span></div>
-
-    <div class="game-container">
-        <canvas id="tetris"></canvas>
-    </div>
-
-    <div class="touch-panel">
-        <div class="btn btn-rotate" onclick="game.rotate()">🔄</div>
-        <div class="btn btn-left" onclick="game.move(-1, 0)">⬅️</div>
-        <div class="btn btn-down" onclick="game.move(0, 1)">⬇️</div>
-        <div class="btn btn-right" onclick="game.move(1, 0)">➡️</div>
-    </div>
-
-    <div class="hint">手把移動冷卻：333ms | 螢幕按鍵：無延遲</div>
-
-    <script>
-        const canvas = document.getElementById('tetris');
-        const ctx = canvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
-        
-        const COLS = 10, ROWS = 20, BLOCK_SIZE = 25;
-        canvas.width = COLS * BLOCK_SIZE;
-        canvas.height = ROWS * BLOCK_SIZE;
-
-        const SHAPES = [
-            [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]],
-            [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]
-        ];
-
-        class TetrisGame {
+class TetrisGame {
             constructor() { this.reset(); }
             reset() {
                 this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
                 this.score = 0;
+                scoreElement.innerText = this.score; // 重置顯示
                 this.spawn();
             }
             spawn() {
@@ -102,19 +42,42 @@
                 this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
                     if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = '#58a6ff';
                 }));
-                this.clearLines();
+                this.clearLines(); // 這裡會檢查有沒有消行並給分
                 this.spawn();
             }
+            
+            // 🎯 核心修改：只有消行才給分
             clearLines() {
-                this.grid = this.grid.filter(row => !row.every(c => c !== 0));
-                while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
-                this.score += 100;
-                scoreElement.innerText = this.score;
+                let linesCleared = 0;
+                
+                // 檢查每一行是否全滿
+                this.grid = this.grid.filter(row => {
+                    const isFull = row.every(cell => cell !== 0);
+                    if (isFull) linesCleared++; // 記錄消了幾行
+                    return !isFull;
+                });
+
+                // 補回空行
+                while (this.grid.length < ROWS) {
+                    this.grid.unshift(Array(COLS).fill(0));
+                }
+
+                // 只有在 linesCleared > 0 時才加分
+                if (linesCleared > 0) {
+                    // 基礎得分：1行100, 2行300, 3行500, 4行800 (獎勵連消)
+                    const points = [0, 100, 300, 500, 800];
+                    this.score += points[linesCleared] || (linesCleared * 100);
+                    scoreElement.innerText = this.score;
+                }
             }
+
             draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 this.grid.forEach((row, y) => row.forEach((c, x) => {
-                    if (c) { ctx.fillStyle = c; ctx.fillRect(x*25, y*25, 24, 24); }
+                    if (c) { 
+                        ctx.fillStyle = c; 
+                        ctx.fillRect(x*25, y*25, 24, 24); 
+                    }
                 }));
                 ctx.fillStyle = this.piece.color;
                 this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
@@ -122,45 +85,3 @@
                 }));
             }
         }
-
-        const game = new TetrisGame();
-        let lastPadTime = 0;
-        const PAD_COOLDOWN = 333; // ⏳ 手把專用：1/3 秒冷卻
-
-        function gameLoop() {
-            // 手把偵測部分
-            const pads = navigator.getGamepads();
-            const gp = pads[0] || pads[1];
-
-            if (gp) {
-                const now = Date.now();
-                if (now - lastPadTime > PAD_COOLDOWN) {
-                    let act = false;
-                    if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { game.move(-1, 0); act = true; }
-                    if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { game.move(1, 0); act = true; }
-                    if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { game.move(0, 1); act = true; }
-                    if (gp.buttons[0].pressed || gp.buttons[1].pressed) { game.rotate(); act = true; }
-                    if (act) lastPadTime = now;
-                }
-                document.getElementById('status').innerText = "✅ 手把已連線";
-            }
-
-            game.draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // 自動下落速度
-        setInterval(() => game.move(0, 1), 1000);
-
-        // 鍵盤支援 (無冷卻，反應最快)
-        window.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') game.move(-1, 0);
-            if (e.key === 'ArrowRight' || e.key === 'd') game.move(1, 0);
-            if (e.key === 'ArrowDown' || e.key === 's') game.move(0, 1);
-            if (e.key === 'ArrowUp' || e.key === 'w') game.rotate();
-        });
-
-        gameLoop();
-    </script>
-</body>
-</html>
