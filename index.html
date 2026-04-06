@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V7.5 旗艦版</title>
+    <title>小宥領主的基地 | V8.0 旗艦大廳</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
@@ -12,7 +12,7 @@
         html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
         body { padding-bottom: 160px; text-align: center; }
 
-        /* 📺 頻道宣傳列 - 網址直通 */
+        /* 📺 頻道宣傳列 (點擊直通 YT) */
         .promo-bar { 
             background: linear-gradient(90deg, #ff0000, #b20000); 
             color: white; padding: 12px; font-weight: bold; cursor: pointer; 
@@ -35,8 +35,9 @@
         .game-card .icon { font-size: 45px; margin-bottom: 10px; }
         .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 11px; padding: 5px 12px; border-bottom-left-radius: 15px; font-weight: bold; }
 
-        /* 小說專用深藍色 */
+        /* 特殊卡片顏色 */
         .star-card { border-color: var(--star); background: linear-gradient(145deg, #0d1a33, #161b22); }
+        .battle-card { border-color: var(--gold); background: linear-gradient(145deg, #2c2500, #161b22); }
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
 
         /* 底部音樂列 */
@@ -47,7 +48,7 @@
 <body>
 
     <div class="promo-bar" onclick="window.open('https://www.youtube.com/@%E5%B0%8F%E9%AD%9A-v9e', '_blank')">
-        <span>📺 領主基地更新！訂閱「小魚 YT」支持新小說連載</span>
+        <span>📺 領主基地正式開放！訂閱「小魚 YT」解鎖更多隱藏角色</span>
         <button class="subscribe-btn">前往頻道</button>
     </div>
 
@@ -57,7 +58,16 @@
         <div class="pts-counter">💎 <span id="display-points">0</span></div>
     </div>
 
-    <div class="section-header">✨ 星光閃爍之時 (五集全)</div>
+    <div class="section-header">⚔️ 雙人對戰特區 (Switch 手把支援)</div>
+    <div class="grid">
+        <div class="game-card battle-card" onclick="location.href='tetris2.html'">
+            <div class="tag" style="background:var(--gold); color:black;">2 PLAYER</div>
+            <div class="icon">🧱</div>
+            <div class="title">俄羅斯方塊 2</div>
+        </div>
+    </div>
+
+    <div class="section-header">✨ 星光閃爍之時 (小說全集)</div>
     <div class="grid">
         <div class="game-card star-card" onclick="location.href='star_ch1.html'"><div class="tag">Ch 1</div><div class="icon">🌃</div><div class="title">星與光</div></div>
         <div class="game-card star-card" onclick="location.href='star_ch2.html'"><div class="tag">Ch 2</div><div class="icon">🌈</div><div class="title">虹光之約</div></div>
@@ -74,14 +84,14 @@
         <div class="game-card" onclick="play('gamble.html')"><div class="icon">🎡</div><div class="title">黃金轉盤</div></div>
         <div class="game-card" onclick="play('clicker.html')"><div class="icon">🚜</div><div class="title">收割工廠</div></div>
         <div class="game-card" onclick="play('tetris.html')"><div class="icon">🧱</div><div class="title">方塊挑戰</div></div>
-        <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">鼓</div><div class="title">太鼓達人</div></div>
+        <div class="game-card" onclick="play('太古大戰.html')"><div class="icon">🥁</div><div class="title">太鼓達人</div></div>
         <div class="game-card" onclick="play('競賽貓站.html')"><div class="icon">🐈</div><div class="title">競賽貓站</div></div>
         <div class="game-card" onclick="play('槍戰 2.html')"><div class="icon">🔫</div><div class="title">草原槍戰</div></div>
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
     </div>
 
     <div id="music-bar">
-        <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 點擊播放音樂</div>
+        <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 準備播放</div>
         <button class="control-btn" onclick="switchTrack()">⏭ 下一首</button>
         <button class="control-btn" onclick="playPause()">▶/⏸</button>
     </div>
@@ -89,7 +99,7 @@
     <audio id="audio" loop><source id="audio-src" src="《全力展開！閃光射線》.mp3"></audio>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '初級冒險者', chars: [] };
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '初級冒險者' };
         const playlist = [
             {n: "閃光射線", f: "《全力展開！閃光射線》.mp3"}, 
             {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"}, 
