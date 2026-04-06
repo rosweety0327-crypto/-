@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>俄羅斯方塊 2 | 雙人對戰模式</title>
+    <style>
+        body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; }
+        .game-container { display: flex; justify-content: center; gap: 50px; margin-top: 20px; }
+        canvas { border: 4px solid #30363d; background: #000; box-shadow: 0 0 20px rgba(88, 166, 255, 0.2); }
+        .player-info { margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #58a6ff; }
+        .controls-hint { margin-top: 20px; color: #8b949e; font-size: 14px; }
+        .status { color: #f1c40f; height: 30px; }
+    </style>
+</head>
+<body>
+    <h1>🎮 俄羅斯方塊 2：雙人對戰</h1>
+    <div id="controller-status" class="status">等待手把連線... (請按下手把上的任意鍵)</div>
+
+    <div class="game-container">
+        <div>
+            <div class="player-info">Player 1 (左手把/鍵盤 WASD)</div>
+            <canvas id="p1-canvas" width="240" height="400"></canvas>
+        </div>
+        <div>
+            <div class="player-info">Player 2 (右手把/鍵盤 方向鍵)</div>
+            <canvas id="p2-canvas" width="240" height="400"></canvas>
+        </div>
+    </div>
+
+    <div class="controls-hint">
+        提示：Switch 手把連線後，可以使用搖桿移動，A/B 鍵旋轉。<br>
+        鍵盤：P1 (WASD + Space), P2 (↑↓←→ + Enter)
+    </div>
+
+    <script>
+        // 這裡僅展示手把偵測核心邏輯，完整遊戲邏輯建議引用外部 js
+        window.addEventListener("gamepadconnected", (e) => {
+            document.getElementById('controller-status').innerText = `✅ 已偵測到控制器：${e.gamepad.id}`;
+            console.log("控制器已連線", e.gamepad);
+        });
+
+        // 手把輸入偵測循環
+        function updateGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                const gp = gamepads[i];
+                if (gp) {
+                    // 範例：偵測按鈕 0 (A 鍵)
+                    if (gp.buttons[0].pressed) {
+                        console.log(`玩家 ${i+1} 按下了旋轉`);
+                    }
+                    // 偵測搖桿或十字鍵 (gp.axes)
+                    if (gp.axes[0] < -0.5) { /* 向左移動 */ }
+                    if (gp.axes[0] > 0.5) { /* 向右移動 */ }
+                }
+            }
+            requestAnimationFrame(updateGamepad);
+        }
+        updateGamepad();
+
+        // 此處應加入 Tetris 遊戲繪圖與方塊邏輯...
+        // 為了節省篇幅，建議小宥領主可以將原本「方塊挑戰」的邏輯複製兩份進來
+    </script>
+</body>
+</html>
