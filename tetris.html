@@ -3,209 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>俄羅斯方塊 - 基地特供</title>
+    <title>小宥領主基地 | 雙人手把對戰</title>
     <style>
-        :root {
-            --bg: #0d1117; --panel: #161b22; --text: #c9d1d9; --blue: #58a6ff; --red: #ff4757;
-        }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; touch-action: none; }
-        #game-container { position: relative; margin-top: 20px; border: 4px solid #30363d; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        canvas { display: block; background-color: #000; }
-        .stats { position: absolute; right: -120px; top: 0; text-align: left; width: 100px; }
-        .score-val { color: var(--blue); font-size: 24px; font-weight: bold; }
-        
-        /* 手機控制鈕 */
-        .controls { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 20px; }
-        .btn { width: 70px; height: 70px; background: var(--panel); border: 2px solid #30363d; border-radius: 10px; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
-        .btn:active { background: #30363d; transform: scale(0.9); }
-        .back-btn { margin-top: 20px; padding: 10px 20px; background: var(--red); color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        body { background: #0b0e14; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #161b22; padding: 15px; border-bottom: 3px solid #58a6ff; text-align: center; }
+        .game-area { display: flex; flex: 1; justify-content: space-around; align-items: center; padding: 10px; }
+        .player-container { flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 45%; }
+        canvas { background: #000; border: 4px solid #30363d; border-radius: 10px; width: 100%; max-height: 70vh; }
+        .score-board { font-size: 24px; color: #f1c40f; margin-top: 10px; background: #161b22; padding: 5px 20px; border-radius: 50px; }
+        #status { font-size: 14px; color: #f1c40f; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <h2 style="margin: 10px 0;">方塊挑戰</h2>
-    
-    <div id="game-container">
-        <canvas id="tetris" width="240" height="400"></canvas>
-        <div class="stats">
-            <div>分數</div>
-            <div id="score" class="score-val">0</div>
+    <div class="header">
+        ⚔️ 俄羅斯方塊 2：雙人對抗 (1/3s 冷卻)
+        <div id="status">等待連線... 請按手把任意鍵</div>
+    </div>
+
+    <div class="game-area" onclick="document.documentElement.requestFullscreen()">
+        <div class="player-container">
+            <div style="color:#58a6ff; font-size:22px;">PLAYER 1</div>
+            <canvas id="p1"></canvas>
+            <div class="score-board" id="score1">0</div>
+        </div>
+        <div class="player-container">
+            <div style="color:#ff79c6; font-size:22px;">PLAYER 2</div>
+            <canvas id="p2"></canvas>
+            <div class="score-board" id="score2">0</div>
         </div>
     </div>
 
-    <div class="controls">
-        <div></div>
-        <div class="btn" onclick="playerRotate(1)">🔄</div>
-        <div></div>
-        <div class="btn" onclick="playerMove(-1)">⬅️</div>
-        <div class="btn" onclick="playerDrop()">⬇️</div>
-        <div class="btn" onclick="playerMove(1)">➡️</div>
-    </div>
-
-    <a href="index.html" class="back-btn">回大廳</a>
-
     <script>
-        const canvas = document.getElementById('tetris');
-        const context = canvas.getContext('2d');
-        context.scale(20, 20);
+        const COLS = 10, ROWS = 20, BLOCK_SIZE = 30;
+        const SHAPES = [
+            [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]],
+            [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]
+        ];
 
-        function arenaSweep() {
-            let rowCount = 1;
-            outer: for (let y = arena.length - 1; y > 0; --y) {
-                for (let x = 0; x < arena[y].length; ++x) {
-                    if (arena[y][x] === 0) continue outer;
-                }
-                const row = arena.splice(y, 1)[0].fill(0);
-                arena.unshift(row);
-                ++y;
-                player.score += rowCount * 10;
-                rowCount *= 2;
+        class Tetris {
+            constructor(canvasId, scoreId, color) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = COLS * BLOCK_SIZE;
+                this.canvas.height = ROWS * BLOCK_SIZE;
+                this.scoreElement = document.getElementById(scoreId);
+                this.color = color;
+                this.reset();
             }
-            updateScore();
-        }
-
-        function collide(arena, player) {
-            const [m, o] = [player.matrix, player.pos];
-            for (let y = 0; y < m.length; ++y) {
-                for (let x = 0; x < m[y].length; ++x) {
-                    if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
-                }
+            reset() {
+                this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+                this.score = 0;
+                this.spawn();
             }
-            return false;
-        }
-
-        function createMatrix(w, h) {
-            const matrix = [];
-            while (h--) matrix.push(new Array(w).fill(0));
-            return matrix;
-        }
-
-        function createPiece(type) {
-            if (type === 'I') return [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]];
-            if (type === 'L') return [[0, 2, 0], [0, 2, 0], [0, 2, 2]];
-            if (type === 'J') return [[0, 3, 0], [0, 3, 0], [3, 3, 0]];
-            if (type === 'O') return [[4, 4], [4, 4]];
-            if (type === 'Z') return [[5, 5, 0], [0, 5, 5], [0, 0, 0]];
-            if (type === 'S') return [[0, 6, 6], [6, 6, 0], [0, 0, 0]];
-            if (type === 'T') return [[0, 7, 0], [7, 7, 7], [0, 0, 0]];
-        }
-
-        function draw() {
-            context.fillStyle = '#000';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            drawMatrix(arena, {x: 0, y: 0});
-            drawMatrix(player.matrix, player.pos);
-        }
-
-        const colors = [null, '#58a6ff', '#ff79c6', '#bd93f9', '#f1c40f', '#ff5555', '#50fa7b', '#ffb86c'];
-
-        function drawMatrix(matrix, offset) {
-            matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        context.fillStyle = colors[value];
-                        context.fillRect(x + offset.x, y + offset.y, 1, 1);
-                        context.lineWidth = 0.05;
-                        context.strokeStyle = 'white';
-                        context.strokeRect(x + offset.x, y + offset.y, 1, 1);
+            spawn() {
+                this.piece = { pos: {x: 3, y: 0}, shape: SHAPES[Math.floor(Math.random()*7)], color: this.color };
+                if (this.collide()) this.reset();
+            }
+            collide() {
+                const {pos, shape} = this.piece;
+                for (let y = 0; y < shape.length; y++) {
+                    for (let x = 0; x < shape[y].length; x++) {
+                        if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
                     }
-                });
-            });
-        }
-
-        function merge(arena, player) {
-            player.matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) arena[y + player.pos.y][x + player.pos.x] = value;
-                });
-            });
-        }
-
-        function rotate(matrix, dir) {
-            for (let y = 0; y < matrix.length; ++y) {
-                for (let x = 0; x < y; ++x) {
-                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
                 }
+                return false;
             }
-            if (dir > 0) matrix.forEach(row => row.reverse());
-            else matrix.reverse();
-        }
-
-        function playerDrop() {
-            player.pos.y++;
-            if (collide(arena, player)) {
-                player.pos.y--;
-                merge(arena, player);
-                playerReset();
-                arenaSweep();
-                updateScore();
+            rotate() {
+                const s = this.piece.shape;
+                const r = s[0].map((_, i) => s.map(row => row[i]).reverse());
+                const prev = this.piece.shape;
+                this.piece.shape = r;
+                if (this.collide()) this.piece.shape = prev;
             }
-            dropCounter = 0;
-        }
-
-        function playerMove(dir) {
-            player.pos.x += dir;
-            if (collide(arena, player)) player.pos.x -= dir;
-        }
-
-        function playerReset() {
-            const pieces = 'ILJOTSZ';
-            player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
-            player.pos.y = 0;
-            player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-            if (collide(arena, player)) {
-                arena.forEach(row => row.fill(0));
-                player.score = 0;
-                updateScore();
-            }
-        }
-
-        function playerRotate(dir) {
-            const pos = player.pos.x;
-            let offset = 1;
-            rotate(player.matrix, dir);
-            while (collide(arena, player)) {
-                player.pos.x += offset;
-                offset = -(offset + (offset > 0 ? 1 : -1));
-                if (offset > player.matrix[0].length) {
-                    rotate(player.matrix, -dir);
-                    player.pos.x = pos;
-                    return;
+            move(dx, dy) {
+                this.piece.pos.x += dx; this.piece.pos.y += dy;
+                if (this.collide()) {
+                    this.piece.pos.x -= dx; this.piece.pos.y -= dy;
+                    if (dy > 0) this.freeze();
+                    return false;
                 }
+                return true;
+            }
+            freeze() {
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = this.color;
+                }));
+                this.clearLines(); this.spawn();
+            }
+            clearLines() {
+                this.grid = this.grid.filter(row => !row.every(c => c !== 0));
+                while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
+                this.score += 10; this.scoreElement.innerText = this.score;
+            }
+            draw() {
+                this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                this.grid.forEach((row, y) => row.forEach((c, x) => {
+                    if (c) { this.ctx.fillStyle = c; this.ctx.fillRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE-1, BLOCK_SIZE-1); }
+                }));
+                this.ctx.fillStyle = this.color;
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) this.ctx.fillRect((this.piece.pos.x+x)*BLOCK_SIZE, (this.piece.pos.y+y)*BLOCK_SIZE, BLOCK_SIZE-1, BLOCK_SIZE-1);
+                }));
             }
         }
 
-        let dropCounter = 0;
-        let dropInterval = 1000;
-        let lastTime = 0;
+        const p1 = new Tetris('p1', 'score1', '#58a6ff');
+        const p2 = new Tetris('p2', 'score2', '#ff79c6');
+        let lastInput = [0, 0];
+        const COOLDOWN = 333; // ⏳ 設定為 1/3 秒
 
-        function update(time = 0) {
-            const deltaTime = time - lastTime;
-            lastTime = time;
-            dropCounter += deltaTime;
-            if (dropCounter > dropInterval) playerDrop();
-            draw();
-            requestAnimationFrame(update);
+        function handleGamepad() {
+            const allPads = navigator.getGamepads();
+            const activePads = [];
+            for (let i = 0; i < allPads.length; i++) {
+                if (allPads[i]) activePads.push(allPads[i]);
+            }
+
+            // 分配控制
+            [0, 1].forEach(i => {
+                const gp = activePads[i];
+                if (!gp) return;
+                
+                const player = i === 0 ? p1 : p2;
+                const now = Date.now();
+                
+                if (now - lastInput[i] > COOLDOWN) {
+                    let moved = false;
+                    // 左右移動 (相容橫拿 Joy-Con)
+                    if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { player.move(-1, 0); moved = true; }
+                    else if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { player.move(1, 0); moved = true; }
+                    
+                    // 下落
+                    if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { player.move(0, 1); moved = true; }
+                    
+                    // 旋轉
+                    if (gp.buttons[0].pressed || gp.buttons[1].pressed || gp.buttons[2].pressed || gp.buttons[3].pressed) { 
+                        player.rotate(); 
+                        moved = true; 
+                    }
+
+                    if (moved) lastInput[i] = now;
+                }
+            });
+
+            if (activePads.length > 0) {
+                document.getElementById('status').innerText = `🎮 已偵測到 ${activePads.length} 支手把連線中`;
+            }
+
+            p1.draw(); p2.draw();
+            requestAnimationFrame(handleGamepad);
         }
 
-        function updateScore() {
-            document.getElementById('score').innerText = player.score;
-        }
-
-        const arena = createMatrix(12, 20);
-        const player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
-
-        document.addEventListener('keydown', event => {
-            if (event.keyCode === 37) playerMove(-1);
-            else if (event.keyCode === 39) playerMove(1);
-            else if (event.keyCode === 40) playerDrop();
-            else if (event.keyCode === 81) playerRotate(-1);
-            else if (event.keyCode === 87) playerRotate(1);
-        });
-
-        playerReset();
-        updateScore();
-        update();
+        // 自動下落速度
+        setInterval(() => { p1.move(0, 1); p2.move(0, 1); }, 1000);
+        handleGamepad();
     </script>
 </body>
 </html>
