@@ -1,144 +1,153 @@
-const canvas = document.getElementById('tetris');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小宥領主基地 | 完美單人版</title>
+    <style>
+        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        .header { background: #161b22; width: 100%; padding: 15px; border-bottom: 3px solid #f1c40f; text-align: center; }
+        .score-box { font-size: 32px; color: #f1c40f; margin: 10px 0; font-weight: bold; }
+        canvas { background: #000; border: 4px solid #30363d; border-radius: 8px; width: 250px; height: 500px; }
+        .touch-panel { display: grid; grid-template-columns: repeat(3, 80px); gap: 15px; margin-top: 20px; }
+        .btn { background: #21262d; border: 2px solid #30363d; color: white; display: flex; justify-content: center; align-items: center; font-size: 30px; border-radius: 15px; height: 80px; user-select: none; }
+        .btn:active { background: #58a6ff; }
+        #status { font-size: 12px; color: #58a6ff; margin-top: 5px; }
+    </style>
+</head>
+<body>
 
-const COLS = 10, ROWS = 20, BLOCK_SIZE = 25;
-canvas.width = COLS * BLOCK_SIZE;
-canvas.height = ROWS * BLOCK_SIZE;
+    <div class="header">
+        🧱 領主特訓：精準消行模式
+        <div id="status">等待手把連線...</div>
+    </div>
 
-const SHAPES = [
-    [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]],
-    [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]
-];
+    <div class="score-box">分數: <span id="score">0</span></div>
 
-class TetrisGame {
-    constructor() { this.reset(); }
-    
-    reset() {
-        this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
-        this.score = 0;
-        if (scoreElement) scoreElement.innerText = this.score;
-        this.spawn();
-    }
+    <canvas id="tetris"></canvas>
 
-    spawn() {
-        const id = Math.floor(Math.random() * 7);
-        this.piece = { pos: {x: 3, y: 0}, shape: SHAPES[id], color: '#f1c40f' };
-        if (this.collide()) this.reset();
-    }
+    <div class="touch-panel">
+        <div class="btn" style="grid-column:2" onclick="game.rotate()">🔄</div>
+        <div class="btn" style="grid-column:1; grid-row:2" onclick="game.move(-1, 0)">⬅️</div>
+        <div class="btn" style="grid-column:2; grid-row:2" onclick="game.move(0, 1)">⬇️</div>
+        <div class="btn" style="grid-column:3; grid-row:2" onclick="game.move(1, 0)">➡️</div>
+    </div>
 
-    collide() {
-        const {pos, shape} = this.piece;
-        for (let y = 0; y < shape.length; y++) {
-            for (let x = 0; x < shape[y].length; x++) {
-                if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
+    <script>
+        const canvas = document.getElementById('tetris');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const COLS = 10, ROWS = 20, BLOCK_SIZE = 25;
+        canvas.width = COLS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
+
+        const SHAPES = [
+            [[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]],
+            [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]
+        ];
+
+        class TetrisGame {
+            constructor() { this.reset(); }
+            reset() {
+                this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+                this.score = 0;
+                scoreElement.innerText = "0";
+                this.spawn();
+            }
+            spawn() {
+                const id = Math.floor(Math.random() * 7);
+                this.piece = { pos: {x: 3, y: 0}, shape: SHAPES[id], color: '#f1c40f' };
+                if (this.collide()) this.reset();
+            }
+            collide() {
+                const {pos, shape} = this.piece;
+                for (let y = 0; y < shape.length; y++) {
+                    for (let x = 0; x < shape[y].length; x++) {
+                        if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
+                    }
+                }
+                return false;
+            }
+            rotate() {
+                const s = this.piece.shape;
+                const r = s[0].map((_, i) => s.map(row => row[i]).reverse());
+                const prev = this.piece.shape;
+                this.piece.shape = r;
+                if (this.collide()) this.piece.shape = prev;
+            }
+            move(dx, dy) {
+                this.piece.pos.x += dx;
+                this.piece.pos.y += dy;
+                if (this.collide()) {
+                    this.piece.pos.x -= dx;
+                    this.piece.pos.y -= dy;
+                    if (dy > 0) this.freeze();
+                    return false;
+                }
+                return true;
+            }
+            freeze() {
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = '#58a6ff';
+                }));
+                this.clearLines();
+                this.spawn();
+            }
+            clearLines() {
+                let count = 0;
+                this.grid = this.grid.filter(row => {
+                    const full = row.every(c => c !== 0);
+                    if (full) count++;
+                    return !full;
+                });
+                while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
+                
+                // 🎯 只有消行才加分
+                if (count > 0) {
+                    this.score += count * 100;
+                    scoreElement.innerText = this.score;
+                }
+            }
+            draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                this.grid.forEach((row, y) => row.forEach((c, x) => {
+                    if (c) { ctx.fillStyle = c; ctx.fillRect(x*25, y*25, 24, 24); }
+                }));
+                ctx.fillStyle = this.piece.color;
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) ctx.fillRect((this.piece.pos.x+x)*25, (this.piece.pos.y+y)*25, 24, 24);
+                }));
             }
         }
-        return false;
-    }
 
-    rotate() {
-        const s = this.piece.shape;
-        const r = s[0].map((_, i) => s.map(row => row[i]).reverse());
-        const prev = this.piece.shape;
-        this.piece.shape = r;
-        if (this.collide()) this.piece.shape = prev;
-    }
+        const game = new TetrisGame();
+        let lastPad = 0;
 
-    move(dx, dy) {
-        this.piece.pos.x += dx;
-        this.piece.pos.y += dy;
-        if (this.collide()) {
-            this.piece.pos.x -= dx;
-            this.piece.pos.y -= dy;
-            if (dy > 0) this.freeze();
-            return false;
+        function loop() {
+            const pads = navigator.getGamepads();
+            const gp = pads[0] || pads[1];
+            if (gp) {
+                const now = Date.now();
+                if (now - lastPad > 333) { // ⏳ 手把冷卻 1/3 秒
+                    if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { game.move(-1, 0); lastPad = now; }
+                    if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { game.move(1, 0); lastPad = now; }
+                    if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { game.move(0, 1); lastPad = now; }
+                    if (gp.buttons[0].pressed || gp.buttons[1].pressed) { game.rotate(); lastPad = now; }
+                }
+                document.getElementById('status').innerText = "✅ 手把已連線";
+            }
+            game.draw();
+            requestAnimationFrame(loop);
         }
-        return true;
-    }
 
-    freeze() {
-        this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
-            if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = '#58a6ff';
-        }));
-        this.clearLines(); // 👈 只有這裡會觸發得分
-        this.spawn();
-    }
-
-    clearLines() {
-        let linesCleared = 0;
-        // 檢查哪一行滿了
-        this.grid = this.grid.filter(row => {
-            const isFull = row.every(cell => cell !== 0);
-            if (isFull) linesCleared++;
-            return !isFull;
+        setInterval(() => game.move(0, 1), 1000);
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') game.move(-1, 0);
+            if (e.key === 'ArrowRight' || e.key === 'd') game.move(1, 0);
+            if (e.key === 'ArrowDown' || e.key === 's') game.move(0, 1);
+            if (e.key === 'ArrowUp' || e.key === 'w') game.rotate();
         });
-
-        // 補回頂部的空行
-        while (this.grid.length < ROWS) {
-            this.grid.unshift(Array(COLS).fill(0));
-        }
-
-        // 🎯 核心邏輯：只有消行才得分
-        if (linesCleared > 0) {
-            const points = [0, 100, 300, 500, 800];
-            this.score += points[linesCleared] || (linesCleared * 100);
-            if (scoreElement) scoreElement.innerText = this.score;
-        }
-    }
-
-    draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // 畫固定的方塊 (消完後留下的)
-        this.grid.forEach((row, y) => row.forEach((c, x) => {
-            if (c) {
-                ctx.fillStyle = c;
-                ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
-            }
-        }));
-        // 畫正在掉落的方塊
-        ctx.fillStyle = this.piece.color;
-        this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
-            if (v) {
-                ctx.fillRect((this.piece.pos.x + x) * BLOCK_SIZE, (this.piece.pos.y + y) * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
-            }
-        }));
-    }
-}
-
-const game = new TetrisGame();
-let lastPadTime = 0;
-const PAD_COOLDOWN = 333; // 手把 1/3 秒冷卻
-
-function gameLoop() {
-    const pads = navigator.getGamepads();
-    const gp = pads[0] || pads[1];
-
-    if (gp) {
-        const now = Date.now();
-        if (now - lastPadTime > PAD_COOLDOWN) {
-            let act = false;
-            if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { game.move(-1, 0); act = true; }
-            if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { game.move(1, 0); act = true; }
-            if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { game.move(0, 1); act = true; }
-            if (gp.buttons[0].pressed || gp.buttons[1].pressed) { game.rotate(); act = true; }
-            if (act) lastPadTime = now;
-        }
-    }
-
-    game.draw();
-    requestAnimationFrame(gameLoop);
-}
-
-// 自動下落
-setInterval(() => game.move(0, 1), 1000);
-
-// 鍵盤支援
-window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft' || e.key === 'a') game.move(-1, 0);
-    if (e.key === 'ArrowRight' || e.key === 'd') game.move(1, 0);
-    if (e.key === 'ArrowDown' || e.key === 's') game.move(0, 1);
-    if (e.key === 'ArrowUp' || e.key === 'w') game.rotate();
-});
-
-gameLoop();
+        loop();
+    </script>
+</body>
+</html>
