@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主：覺醒對戰基地</title>
+    <title>小宥領主：500分覺醒基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
@@ -22,7 +22,7 @@
         .p-box { display: flex; flex-direction: column; align-items: center; }
         canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 170px; height: 340px; }
         .score { font-size: 22px; color: #f1c40f; font-weight: bold; margin: 5px; }
-        .skill-notif { height: 20px; color: #ff79c6; font-size: 14px; font-weight: bold; }
+        .skill-notif { height: 20px; color: #ff79c6; font-size: 14px; font-weight: bold; text-align: center; }
 
         /* 觸控按鈕 */
         .touch-panel { display: grid; grid-template-columns: repeat(3, 75px); gap: 12px; margin-top: 15px; }
@@ -48,7 +48,7 @@
 
 <div id="sc-game" class="screen">
     <div class="game-header">
-        <span id="game-status">覺醒進度：2500分開啟技能</span>
+        <span id="game-status">覺醒進度：500分開啟技能</span>
     </div>
     <div class="skill-notif" id="skill-notif"></div>
     <div class="game-container">
@@ -130,7 +130,8 @@
             let lines=0, bonus=1;
             for(let y=ROWS-1; y>=0; y--){
                 if(this.grid[y].every(cell=>cell!==0)){
-                    if(this.score >= 2500) bonus = this.checkPoker(this.grid[y]);
+                    // 🎯 門檻修改為 500 分
+                    if(this.score >= 500) bonus = this.checkPoker(this.grid[y]);
                     this.grid.splice(y,1); this.grid.unshift(Array(COLS).fill(0));
                     lines++; y++;
                 }
@@ -142,7 +143,8 @@
                     setTimeout(()=>document.getElementById('skill-notif').innerText="",2000);
                 }
             }
-            if(this.score>=2500) document.getElementById('game-status').innerText="✨ 技能覺醒中 (同花順模式)";
+            // 🎯 狀態文字門檻也修改為 500 分
+            if(this.score>=500) document.getElementById('game-status').innerText="✨ 技能覺醒中 (同花順模式)";
         }
         checkPoker(row) {
             const colors = row.map(c=>c.c); const vals = row.map(c=>CVAL[c.v]).sort((a,b)=>a-b);
@@ -161,12 +163,12 @@
             this.ctx.fillStyle=c;
             if(!shape) {
                 this.ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
-                if(this.score>=2500) this.drawT(x,y,v);
+                if(this.score>=500) this.drawT(x,y,v);
             } else {
                 shape.forEach((row,ry)=>row.forEach((val,rx)=>{
                     if(val) {
                         this.ctx.fillRect((x+rx)*SIZE,(y+ry)*SIZE,SIZE-1,SIZE-1);
-                        if(this.score>=2500) this.drawT(x+rx,y+ry,v);
+                        if(this.score>=500) this.drawT(x+rx,y+ry,v);
                     }
                 }));
             }
