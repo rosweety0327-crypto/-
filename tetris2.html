@@ -3,60 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主：連線對戰基地</title>
+    <title>小宥領主：四位數對戰基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        .header { background: #161b22; width: 100%; padding: 10px; border-bottom: 3px solid #f1c40f; text-align: center; }
-        .lobby { background: rgba(22, 27, 34, 0.9); padding: 15px; border-radius: 10px; margin-top: 10px; z-index: 100; border: 1px solid #30363d; }
-        .game-area { display: flex; gap: 20px; margin-top: 10px; }
-        canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 180px; height: 360px; }
-        .score-box { font-size: 20px; color: #f1c40f; margin: 5px; }
-        .btn { background: #238636; border: none; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; font-weight: bold; }
-        .btn-blue { background: #1f6feb; }
-        input { padding: 10px; border-radius: 5px; border: none; width: 120px; text-align: center; }
-        .touch-panel { display: grid; grid-template-columns: repeat(3, 60px); gap: 10px; margin-top: 10px; }
-        .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 60px; display: flex; justify-content: center; align-items: center; border-radius: 10px; font-size: 24px; }
+        body { background: #0d1117; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        
+        /* 選單畫面 */
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top: 0; background: #0d1117; z-index: 10; }
+        .active { display: flex; }
+        
+        h1 { color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+        .menu-btn { background: #238636; border: none; color: white; padding: 20px 40px; border-radius: 15px; font-size: 24px; margin: 15px; width: 250px; box-shadow: 0 4px #1a6328; }
+        .menu-btn:active { box-shadow: 0 0; transform: translateY(4px); }
+        
+        input { padding: 15px; border-radius: 10px; border: 2px solid #30363d; background: #161b22; color: white; font-size: 30px; width: 150px; text-align: center; letter-spacing: 5px; }
+        
+        /* 遊戲畫面 */
+        .game-area { display: flex; gap: 10px; margin-top: 10px; justify-content: center; width: 100%; }
+        .player-box { display: flex; flex-direction: column; align-items: center; }
+        canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 170px; height: 340px; }
+        .score { font-size: 20px; color: #f1c40f; margin: 5px; }
+
+        .touch-panel { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; }
+        .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 70px; display: flex; justify-content: center; align-items: center; border-radius: 15px; font-size: 30px; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    ⚔️ 領主對戰：連線模式
-    <div id="my-id-display" style="color:#58a6ff; font-size:14px;">我的領主編號：取得中...</div>
+<div id="screen-start" class="screen active">
+    <h1>⚔️ 領主對戰基地</h1>
+    <button class="menu-btn" onclick="showScreen('screen-game'); isOnline=false;">👤 單人特訓</button>
+    <button class="menu-btn" style="background:#1f6feb; box-shadow: 0 4px #185adb;" onclick="showScreen('screen-id')">👥 雙人對戰</button>
 </div>
 
-<div class="lobby" id="lobby">
-    <div style="margin-bottom:10px;">輸入對方的領主編號來連線：</div>
-    <input type="text" id="peer-id-input" placeholder="ID 編號">
-    <button class="btn" onclick="connectToPeer()">發起挑戰</button>
-    <button class="btn btn-blue" onclick="startSinglePlayer()">獨自特訓</button>
-</div>
-
-<div class="game-area">
-    <div>
-        <div style="color:#58a6ff">我 (P1)</div>
-        <div class="score-box" id="score1">0</div>
-        <canvas id="canvas1"></canvas>
+<div id="screen-id" class="screen">
+    <h2>輸入 4 位數房間 ID</h2>
+    <input type="text" id="room-id" maxlength="4" placeholder="0000">
+    <div style="margin-top:20px;">
+        <button class="menu-btn" onclick="startOnline(true)">創建房間</button>
+        <button class="menu-btn" style="background:#8957e5; box-shadow: 0 4px #6e40c1;" onclick="startOnline(false)">加入對手</button>
     </div>
-    <div id="p2-area" style="opacity: 0.3;">
-        <div style="color:#ff79c6">對手 (P2)</div>
-        <div class="score-box" id="score2">0</div>
-        <canvas id="canvas2"></canvas>
-    </div>
+    <button onclick="showScreen('screen-start')" style="background:none; border:none; color:#8b949e; margin-top:10px;">返回主選單</button>
 </div>
 
-<div class="touch-panel">
-    <div class="t-btn" style="grid-column:2" onclick="p1.rotate()">🔄</div>
-    <div class="t-btn" style="grid-column:1; grid-row:2" onclick="p1.move(-1, 0)">⬅️</div>
-    <div class="t-btn" style="grid-column:2; grid-row:2" onclick="p1.move(0, 1)">⬇️</div>
-    <div class="t-btn" style="grid-column:3; grid-row:2" onclick="p1.move(1, 0)">➡️</div>
+<div id="screen-game" class="screen">
+    <div class="game-area">
+        <div class="player-box">
+            <div style="color:#58a6ff">我 (P1)</div>
+            <div class="score" id="score1">0</div>
+            <canvas id="canvas1"></canvas>
+        </div>
+        <div class="player-box" id="p2-ui" style="opacity:0.2">
+            <div style="color:#ff79c6">對手 (P2)</div>
+            <div class="score" id="score2">0</div>
+            <canvas id="canvas2"></canvas>
+        </div>
+    </div>
+    <div class="touch-panel">
+        <div class="t-btn" style="grid-column:2" onclick="p1.rotate()">🔄</div>
+        <div class="t-btn" style="grid-column:1; grid-row:2" onclick="p1.move(-1, 0)">⬅️</div>
+        <div class="t-btn" style="grid-column:2; grid-row:2" onclick="p1.move(0, 1)">⬇️</div>
+        <div class="t-btn" style="grid-column:3; grid-row:2" onclick="p1.move(1, 0)">➡️</div>
+    </div>
 </div>
 
 <script>
     const SHAPES = [[[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]]];
-    const COLS = 10, ROWS = 20, SIZE = 18;
-    let peer, conn;
+    const COLS = 10, ROWS = 20, SIZE = 17;
+    let peer, conn, isOnline = false;
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
     class Tetris {
         constructor(id, scoreId, color) {
@@ -75,8 +94,7 @@
             this.spawn();
         }
         spawn() {
-            const shape = SHAPES[Math.floor(Math.random() * 7)];
-            this.piece = { pos: {x: 3, y: 0}, shape };
+            this.piece = { pos: {x: 3, y: 0}, shape: SHAPES[Math.floor(Math.random() * 7)] };
             if (this.collide()) this.reset();
         }
         collide() {
@@ -92,7 +110,7 @@
             const r = this.piece.shape[0].map((_, i) => this.piece.shape.map(row => row[i]).reverse());
             const prev = this.piece.shape; this.piece.shape = r;
             if (this.collide()) this.piece.shape = prev;
-            syncGame();
+            sync();
         }
         move(dx, dy) {
             this.piece.pos.x += dx; this.piece.pos.y += dy;
@@ -101,29 +119,24 @@
                 if (dy > 0) this.freeze();
                 return false;
             }
-            syncGame();
-            return true;
+            sync(); return true;
         }
         freeze() {
             this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
                 if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = this.color;
             }));
-            this.clearLines(); this.spawn();
-            syncGame();
+            this.clearLines(); this.spawn(); sync();
         }
         clearLines() {
-            let count = 0;
-            this.grid = this.grid.filter(row => {
-                const full = row.every(c => c !== 0);
-                if (full) count++; return !full;
-            });
+            let c = 0;
+            this.grid = this.grid.filter(row => { const full = row.every(cell => cell !== 0); if(full) c++; return !full; });
             while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
-            if (count > 0) { this.score += count * 100; this.scoreEl.innerText = this.score; }
+            if (c > 0) { this.score += c * 100; this.scoreEl.innerText = this.score; }
         }
         draw() {
             this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-            this.grid.forEach((row, y) => row.forEach((c, x) => {
-                if (c) { this.ctx.fillStyle = c; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1); }
+            this.grid.forEach((row, y) => row.forEach((v, x) => {
+                if (v) { this.ctx.fillStyle = v; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1); }
             }));
             this.ctx.fillStyle = this.color;
             this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
@@ -135,51 +148,30 @@
     const p1 = new Tetris('canvas1', 'score1', '#58a6ff');
     const p2 = new Tetris('canvas2', 'score2', '#ff79c6');
 
-    // --- 連線邏輯 ---
-    peer = new Peer();
-    peer.on('open', (id) => {
-        document.getElementById('my-id-display').innerText = "我的領主編號：" + id;
-    });
-
-    peer.on('connection', (c) => {
-        conn = c;
-        setupConn();
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('p2-area').style.opacity = '1';
-    });
-
-    function connectToPeer() {
-        const peerId = document.getElementById('peer-id-input').value;
-        conn = peer.connect(peerId);
-        setupConn();
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('p2-area').style.opacity = '1';
+    function startOnline(isHost) {
+        const id = "YU-GAME-" + document.getElementById('room-id').value;
+        isOnline = true;
+        if (isHost) {
+            peer = new Peer(id);
+            peer.on('open', () => { alert("房間已建立，等待對方輸入同樣的 ID 加入！"); });
+            peer.on('connection', (c) => { conn = c; setupConn(); });
+        } else {
+            peer = new Peer();
+            peer.on('open', () => { conn = peer.connect(id); setupConn(); });
+        }
+        showScreen('screen-game');
     }
 
     function setupConn() {
-        conn.on('data', (data) => {
-            p2.grid = data.grid;
-            p2.piece = data.piece;
-            p2.score = data.score;
-            p2.scoreEl.innerText = p2.score;
-        });
+        document.getElementById('p2-ui').style.opacity = "1";
+        conn.on('data', (d) => { p2.grid = d.g; p2.piece = d.p; p2.score = d.s; p2.scoreEl.innerText = d.s; });
     }
 
-    function syncGame() {
-        if (conn && conn.open) {
-            conn.send({ grid: p1.grid, piece: p1.piece, score: p1.score });
-        }
-    }
+    function sync() { if (conn && conn.open) conn.send({ g: p1.grid, p: p1.piece, s: p1.score }); }
 
-    function startSinglePlayer() {
-        document.getElementById('lobby').style.display = 'none';
-    }
-
-    // --- 遊戲循環 ---
     let lastPad = 0;
     function loop() {
-        const pads = navigator.getGamepads();
-        const gp = pads[0];
+        const gp = navigator.getGamepads()[0];
         if (gp) {
             const now = Date.now();
             if (now - lastPad > 333) {
@@ -189,10 +181,8 @@
                 if (gp.buttons[0].pressed || gp.buttons[1].pressed) { p1.rotate(); lastPad = now; }
             }
         }
-        p1.draw(); p2.draw();
-        requestAnimationFrame(loop);
+        p1.draw(); p2.draw(); requestAnimationFrame(loop);
     }
-
     setInterval(() => p1.move(0, 1), 1000);
     loop();
 </script>
