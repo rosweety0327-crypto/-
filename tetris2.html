@@ -3,57 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主：1/8秒極速覺醒基地</title>
+    <title>小宥領主：時空煉金基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
         .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top: 0; background: #0d1117; z-index: 10; }
         .active { display: flex; }
-        h1 { color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); font-size: 32px; margin-bottom: 30px; }
-        .menu-btn { background: #238636; border: none; color: white; padding: 20px 40px; border-radius: 15px; font-size: 24px; margin: 15px; width: 280px; box-shadow: 0 4px #1a6328; }
-        .menu-btn:active { transform: translateY(4px); box-shadow: 0 0; }
-        input { padding: 15px; border-radius: 10px; border: 2px solid #30363d; background: #161b22; color: white; font-size: 30px; width: 180px; text-align: center; letter-spacing: 5px; margin: 20px; }
-        .game-header { background: #161b22; width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid #f1c40f; }
+        h1 { color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); font-size: 32px; margin-bottom: 20px; }
+        .menu-btn { background: #238636; border: none; color: white; padding: 20px 40px; border-radius: 15px; font-size: 24px; margin: 10px; width: 280px; box-shadow: 0 4px #1a6328; }
+        input { padding: 15px; border-radius: 10px; border: 2px solid #30363d; background: #161b22; color: white; font-size: 30px; width: 180px; text-align: center; margin: 20px; }
+        
+        .game-header { background: #161b22; width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; }
+        .timer { color: #58a6ff; font-family: monospace; font-size: 18px; font-weight: bold; }
+        
         .game-container { display: flex; gap: 10px; margin-top: 10px; }
-        .p-box { display: flex; flex-direction: column; align-items: center; }
         canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 170px; height: 340px; }
         .score { font-size: 22px; color: #f1c40f; font-weight: bold; margin: 5px; }
-        .skill-notif { height: 20px; color: #ff79c6; font-size: 14px; font-weight: bold; text-align: center; }
+        .skill-notif { height: 30px; color: #ff79c6; font-size: 15px; font-weight: bold; text-align: center; }
+        
         .touch-panel { display: grid; grid-template-columns: repeat(3, 75px); gap: 12px; margin-top: 15px; }
         .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 65px; display: flex; justify-content: center; align-items: center; border-radius: 15px; font-size: 28px; user-select: none; }
-        .t-btn:active { background: #58a6ff; }
     </style>
 </head>
 <body>
 
 <div id="sc-menu" class="screen active">
-    <h1>⚔️ 領主對戰基地</h1>
+    <h1>⚔️ 領主時空基地</h1>
     <button class="menu-btn" onclick="goSingle()">👤 單人特訓</button>
-    <button class="menu-btn" style="background:#1f6feb; box-shadow: 0 4px #185adb;" onclick="showSc('sc-id')">👥 雙人對戰</button>
+    <button class="menu-btn" style="background:#1f6feb;" onclick="showSc('sc-id')">👥 雙人對戰</button>
 </div>
 
 <div id="sc-id" class="screen">
     <h2>輸入 4 位數 ID</h2>
     <input type="text" id="rid" maxlength="4" placeholder="0000">
     <button class="menu-btn" onclick="startNet(true)">創建房間</button>
-    <button class="menu-btn" style="background:#8957e5; box-shadow: 0 4px #6e40c1;" onclick="startNet(false)">加入房間</button>
-    <button onclick="showSc('sc-menu')" style="background:none; border:none; color:#8b949e; margin-top:15px;">返回</button>
+    <button class="menu-btn" style="background:#8957e5;" onclick="startNet(false)">加入房間</button>
 </div>
 
 <div id="sc-game" class="screen">
     <div class="game-header">
-        <span id="game-status">覺醒進度：1000分開啟技能</span>
+        <div class="timer">⏳ <span id="time-val">00:00</span></div>
+        <div id="game-status" style="font-size: 12px;">覺醒進度：1000分開啟</div>
     </div>
     <div class="skill-notif" id="skill-notif"></div>
     <div class="game-container">
         <div class="p-box">
-            <div style="color:#58a6ff; font-size:14px;">我 (P1)</div>
-            <div class="score" id="s1">0</div>
+            <div style="color:#58a6ff; font-size:12px;">我 (P1)</div>
+            <div class="score" id="s1">0.0</div>
             <canvas id="c1"></canvas>
         </div>
         <div class="p-box" id="p2-ui" style="opacity:0.2">
-            <div style="color:#ff79c6; font-size:14px;">對手 (P2)</div>
-            <div class="score" id="s2">0</div>
+            <div style="color:#ff79c6; font-size:12px;">對手 (P2)</div>
+            <div class="score" id="s2">0.0</div>
             <canvas id="c2"></canvas>
         </div>
     </div>
@@ -73,22 +74,35 @@
         { s: [[0,0,1],[1,1,1]], c: '#f0a000' }
     ];
     const CARDS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    const CVAL = {'A':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13};
     const COLS=10, ROWS=20, SIZE=17;
-    let peer, conn, isOnline=false;
+    let peer, conn, isOnline=false, startTime, timerInt;
 
     function showSc(id){
         document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
+    function startTimer() {
+        startTime = Date.now();
+        clearInterval(timerInt);
+        timerInt = setInterval(() => {
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const m = String(Math.floor(diff / 60)).padStart(2, '0');
+            const s = String(diff % 60).padStart(2, '0');
+            document.getElementById('time-val').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
     class Game {
-        constructor(cid, sid, color) {
+        constructor(cid, sid) {
             this.cvs=document.getElementById(cid); this.ctx=this.cvs.getContext('2d');
             this.cvs.width=COLS*SIZE; this.cvs.height=ROWS*SIZE;
-            this.sel=document.getElementById(sid); this.color=color; this.reset();
+            this.sel=document.getElementById(sid); this.reset();
         }
-        reset() { this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0)); this.score=0; this.sel.innerText="0"; this.spawn(); }
+        reset() { 
+            this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0)); 
+            this.score=0.0; this.sel.innerText="0.0"; this.spawn(); 
+        }
         spawn() {
             const conf = SHAPES[Math.floor(Math.random()*7)];
             const cardShape = conf.s.map(row => row.map(val => val ? CARDS[Math.floor(Math.random()*13)] : 0));
@@ -121,72 +135,109 @@
             this.clearLines(); this.spawn(); sync();
         }
         clearLines() {
-            let lines=0, bonus=1;
+            let linesCleared = 0;
             for(let y=ROWS-1; y>=0; y--){
                 if(this.grid[y].every(cell=>cell!==0)){
-                    if(this.score >= 1000) bonus = this.checkPoker(this.grid[y]);
-                    this.grid.splice(y,1); this.grid.unshift(Array(COLS).fill(0));
-                    lines++; y++;
+                    if(this.score >= 1000) this.triggerCombo(this.grid[y], y);
+                    this.grid.splice(y,1);
+                    this.grid.unshift(Array(COLS).fill(0));
+                    linesCleared++;
+                    y++; 
                 }
             }
-            if(lines>0){
-                this.score += lines * 100 * bonus; this.sel.innerText=this.score;
-                if(bonus>1) { 
-                    document.getElementById('skill-notif').innerText = `🔥 覺醒加倍 x${bonus}!`;
-                    setTimeout(()=>document.getElementById('skill-notif').innerText="",2000);
-                }
+            if(linesCleared > 0) {
+                this.score += linesCleared * 100;
+                this.sel.innerText = this.score.toFixed(1);
+                if(this.score >= 1000) document.getElementById('game-status').innerText="✨ 合成覺醒中";
             }
-            if(this.score>=1000) document.getElementById('game-status').innerText="✨ 技能覺醒中 (1000分門檻)";
         }
-        checkPoker(row) {
-            const colors = row.map(c=>c.c); const vals = row.map(c=>CVAL[c.v]).sort((a,b)=>a-b);
-            const isFlush = colors.every(c=>c===colors[0]);
-            let isStr = true; for(let i=0;i<vals.length-1;i++) if(vals[i+1]!==vals[i]+1) isStr=false;
-            if(isFlush && isStr) return 10; if(isFlush || isStr) return 3; return 1;
+        
+        triggerCombo(row, rowIdx) {
+            const colorSet = new Set(row.map(cell => cell.c));
+            const count = colorSet.size;
+            let msg = "";
+
+            if (count === 2) { this.score += 200; msg = "🌓 雙子之力：+200"; }
+            else if (count === 3) { this.score += 500; msg = "🌈 三原色爆發：+500"; }
+            else if (count === 4) { 
+                let removed = 0;
+                for(let y=0; y<ROWS && removed < 2; y++) {
+                    for(let x=0; x<COLS; x++) { if(this.grid[y][x]!==0) { this.grid[y][x]=0; removed++; break; } }
+                }
+                msg = "🌀 元素亂流：移除高位"; 
+            }
+            else if (count === 5) { 
+                // 🎯 修正：消3行補償 (每格0.5分)
+                let bonus = 0;
+                for(let i=0; i<2; i++) { // 檢查上方兩行
+                    this.grid[i].forEach(cell => { if(cell!==0) bonus += 0.5; });
+                }
+                this.score += bonus;
+                this.grid.splice(0, 2);
+                this.grid.unshift(Array(COLS).fill(0), Array(COLS).fill(0));
+                msg = `🔥 五行封印：+${bonus.toFixed(1)} 補償`; 
+            }
+            else if (count === 6) { this.score *= 1.5; msg = "💎 虹色奇蹟：1.5倍加成"; }
+            else if (count === 7) { 
+                // 🎯 修正：全清大絕招補償 (每格0.1分)
+                let totalCells = 0;
+                this.grid.forEach(r => r.forEach(c => { if(c!==0) totalCells++; }));
+                let grandBonus = totalCells * 0.1;
+                this.score += grandBonus;
+                this.grid = Array.from({length:ROWS},()=>Array(COLS).fill(0));
+                msg = `🌌 領主領域：+${grandBonus.toFixed(1)} 轉化分數`; 
+            }
+
+            if(msg) {
+                document.getElementById('skill-notif').innerText = msg;
+                setTimeout(()=>document.getElementById('skill-notif').innerText="", 2000);
+            }
         }
+
         draw() {
             this.ctx.clearRect(0,0,this.cvs.width,this.cvs.height);
-            this.grid.forEach((row,y)=>row.forEach((v,x)=>{ if(v) this.drawBlock(x, y, v.c, v.v, true); }));
+            this.grid.forEach((row,y)=>row.forEach((v,x)=>{ if(v) this.drawBlock(x, y, v.c, v.v); }));
             if (this.piece) this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
-                if (v) this.drawBlock(this.piece.pos.x + x, this.piece.pos.y + y, this.piece.color, this.piece.cardShape[y][x], true);
+                if (v) this.drawBlock(this.piece.pos.x + x, this.piece.pos.y + y, this.piece.color, this.piece.cardShape[y][x]);
             }));
         }
-        drawBlock(x, y, color, val, show) {
+        drawBlock(x, y, color, val) {
             this.ctx.fillStyle = color; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1);
-            if (this.score >= 1000 && show && val) {
+            if (this.score >= 1000 && val) {
                 this.ctx.fillStyle = "white"; this.ctx.font = "bold 9px Arial"; this.ctx.textAlign = "center";
                 this.ctx.fillText(val, x*SIZE+SIZE/2, y*SIZE+SIZE/2+3);
             }
         }
     }
 
-    const p1 = new Game('c1','s1','#58a6ff');
-    const p2 = new Game('c2','s2','#ff79c6');
+    const p1 = new Game('c1','s1');
+    const p2 = new Game('c2','s2');
 
-    function goSingle() { isOnline=false; showSc('sc-game'); }
+    function goSingle() { isOnline=false; showSc('sc-game'); startTimer(); }
     function startNet(host) {
         const id = "YU-" + document.getElementById('rid').value; isOnline = true;
         if(host) {
             peer = new Peer(id);
             peer.on('open', ()=>alert("房間 ID: " + document.getElementById('rid').value + " 已建立！"));
-            peer.on('connection', c=>{conn=c; setup();});
-        } else { peer = new Peer(); peer.on('open', ()=>{conn=peer.connect(id); setup();}); }
+            peer.on('connection', c=>{conn=c; setup(); startTimer();});
+        } else { 
+            peer = new Peer(); 
+            peer.on('open', ()=>{conn=peer.connect(id); setup(); startTimer();}); 
+        }
         showSc('sc-game');
     }
     function setup(){
         document.getElementById('p2-ui').style.opacity="1";
-        conn.on('data', d=>{p2.grid=d.g; p2.piece=d.p; p2.score=d.s; p2.sel.innerText=d.s;});
+        conn.on('data', d=>{p2.grid=d.g; p2.piece=d.p; p2.score=d.s; p2.sel.innerText=Number(d.s).toFixed(1);});
     }
     function sync(){ if(conn && conn.open) conn.send({g:p1.grid, p:p1.piece, s:p1.score}); }
 
-    // --- 控制系統 (手把 & 鍵盤) ---
     let lp=0;
     function loop() {
-        // 1. 手把控制
         const gp = navigator.getGamepads()[0];
         if(gp){
             const now=Date.now();
-            if(now-lp > 125){ // 🎯 1/8 秒冷卻 (125ms)
+            if(now-lp > 125){
                 if(gp.axes[0]<-0.4||gp.buttons[14].pressed) {p1.move(-1,0); lp=now;}
                 if(gp.axes[0]>0.4||gp.buttons[15].pressed) {p1.move(1,0); lp=now;}
                 if(gp.axes[1]>0.4||gp.buttons[13].pressed) {p1.move(0,1); lp=now;}
@@ -196,7 +247,6 @@
         p1.draw(); p2.draw(); requestAnimationFrame(loop);
     }
 
-    // 2. 鍵盤控制 (電腦端)
     window.addEventListener('keydown', e => {
         if (e.key === 'ArrowLeft' || e.key === 'a') p1.move(-1, 0);
         if (e.key === 'ArrowRight' || e.key === 'd') p1.move(1, 0);
