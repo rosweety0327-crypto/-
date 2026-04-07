@@ -3,188 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主：四位數對戰基地</title>
+    <title>小宥領主：同花順覺醒基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        .header { background: #161b22; width: 100%; padding: 10px; border-bottom: 3px solid #f1c40f; text-align: center; }
+        .score-box { font-size: 28px; color: #f1c40f; margin: 5px; font-weight: bold; }
+        .skill-status { font-size: 14px; color: #ff79c6; margin-bottom: 5px; height: 20px; }
+        canvas { background: #000; border: 4px solid #30363d; border-radius: 8px; width: 250px; height: 500px; }
         
-        /* 選單畫面 */
-        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top: 0; background: #0d1117; z-index: 10; }
-        .active { display: flex; }
-        
-        h1 { color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-        .menu-btn { background: #238636; border: none; color: white; padding: 20px 40px; border-radius: 15px; font-size: 24px; margin: 15px; width: 250px; box-shadow: 0 4px #1a6328; }
-        .menu-btn:active { box-shadow: 0 0; transform: translateY(4px); }
-        
-        input { padding: 15px; border-radius: 10px; border: 2px solid #30363d; background: #161b22; color: white; font-size: 30px; width: 150px; text-align: center; letter-spacing: 5px; }
-        
-        /* 遊戲畫面 */
-        .game-area { display: flex; gap: 10px; margin-top: 10px; justify-content: center; width: 100%; }
-        .player-box { display: flex; flex-direction: column; align-items: center; }
-        canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 170px; height: 340px; }
-        .score { font-size: 20px; color: #f1c40f; margin: 5px; }
-
-        .touch-panel { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; }
-        .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 70px; display: flex; justify-content: center; align-items: center; border-radius: 15px; font-size: 30px; }
+        /* 觸控面板 */
+        .touch-panel { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin-top: 15px; }
+        .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 70px; display: flex; justify-content: center; align-items: center; border-radius: 15px; font-size: 30px; user-select: none; }
+        .t-btn:active { background: #58a6ff; }
     </style>
 </head>
 <body>
 
-<div id="screen-start" class="screen active">
-    <h1>⚔️ 領主對戰基地</h1>
-    <button class="menu-btn" onclick="showScreen('screen-game'); isOnline=false;">👤 單人特訓</button>
-    <button class="menu-btn" style="background:#1f6feb; box-shadow: 0 4px #185adb;" onclick="showScreen('screen-id')">👥 雙人對戰</button>
-</div>
-
-<div id="screen-id" class="screen">
-    <h2>輸入 4 位數房間 ID</h2>
-    <input type="text" id="room-id" maxlength="4" placeholder="0000">
-    <div style="margin-top:20px;">
-        <button class="menu-btn" onclick="startOnline(true)">創建房間</button>
-        <button class="menu-btn" style="background:#8957e5; box-shadow: 0 4px #6e40c1;" onclick="startOnline(false)">加入對手</button>
+    <div class="header">
+        🧱 俄羅斯特遣隊：同花順覺醒
+        <div id="status" style="font-size:12px; color:#8b949e;">目標：2500分 開啟技能</div>
     </div>
-    <button onclick="showScreen('screen-start')" style="background:none; border:none; color:#8b949e; margin-top:10px;">返回主選單</button>
-</div>
 
-<div id="screen-game" class="screen">
-    <div class="game-area">
-        <div class="player-box">
-            <div style="color:#58a6ff">我 (P1)</div>
-            <div class="score" id="score1">0</div>
-            <canvas id="canvas1"></canvas>
-        </div>
-        <div class="player-box" id="p2-ui" style="opacity:0.2">
-            <div style="color:#ff79c6">對手 (P2)</div>
-            <div class="score" id="score2">0</div>
-            <canvas id="canvas2"></canvas>
-        </div>
-    </div>
+    <div class="score-box">分數: <span id="score">0</span></div>
+    <div class="skill-status" id="skill-text"></div>
+
+    <canvas id="tetris"></canvas>
+
     <div class="touch-panel">
-        <div class="t-btn" style="grid-column:2" onclick="p1.rotate()">🔄</div>
-        <div class="t-btn" style="grid-column:1; grid-row:2" onclick="p1.move(-1, 0)">⬅️</div>
-        <div class="t-btn" style="grid-column:2; grid-row:2" onclick="p1.move(0, 1)">⬇️</div>
-        <div class="t-btn" style="grid-column:3; grid-row:2" onclick="p1.move(1, 0)">➡️</div>
+        <div class="t-btn" style="grid-column:2" onclick="game.rotate()">🔄</div>
+        <div class="t-btn" style="grid-column:1; grid-row:2" onclick="game.move(-1, 0)">⬅️</div>
+        <div class="t-btn" style="grid-column:2; grid-row:2" onclick="game.move(0, 1)">⬇️</div>
+        <div class="t-btn" style="grid-column:3; grid-row:2" onclick="game.move(1, 0)">➡️</div>
     </div>
-</div>
 
-<script>
-    const SHAPES = [[[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]]];
-    const COLS = 10, ROWS = 20, SIZE = 17;
-    let peer, conn, isOnline = false;
+    <script>
+        const canvas = document.getElementById('tetris');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const skillText = document.getElementById('skill-text');
+        
+        const COLS = 10, ROWS = 20, BLOCK_SIZE = 25;
+        canvas.width = COLS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
 
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+        // 1. 固定顏色系統
+        const SHAPES_CONFIG = [
+            { shape: [[1, 1, 1, 1]], color: '#00f0f0' }, // I - 青色
+            { shape: [[1, 1], [1, 1]], color: '#f0f000' }, // O - 黃色
+            { shape: [[0, 1, 0], [1, 1, 1]], color: '#a000f0' }, // T - 紫色
+            { shape: [[1, 1, 0], [0, 1, 1]], color: '#f00000' }, // Z - 紅色
+            { shape: [[0, 1, 1], [1, 1, 0]], color: '#00f000' }, // S - 綠色
+            { shape: [[1, 0, 0], [1, 1, 1]], color: '#0000f0' }, // L - 藍色
+            { shape: [[0, 0, 1], [1, 1, 1]], color: '#f0a000' }  // J - 橘色
+        ];
 
-    class Tetris {
-        constructor(id, scoreId, color) {
-            this.canvas = document.getElementById(id);
-            this.ctx = this.canvas.getContext('2d');
-            this.canvas.width = COLS * SIZE;
-            this.canvas.height = ROWS * SIZE;
-            this.scoreEl = document.getElementById(scoreId);
-            this.color = color;
-            this.reset();
-        }
-        reset() {
-            this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
-            this.score = 0;
-            this.scoreEl.innerText = "0";
-            this.spawn();
-        }
-        spawn() {
-            this.piece = { pos: {x: 3, y: 0}, shape: SHAPES[Math.floor(Math.random() * 7)] };
-            if (this.collide()) this.reset();
-        }
-        collide() {
-            const {pos, shape} = this.piece;
-            for (let y = 0; y < shape.length; y++) {
-                for (let x = 0; x < shape[y].length; x++) {
-                    if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
-                }
+        const CARDS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const CARD_VAL = { 'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13 };
+
+        class TetrisGame {
+            constructor() { this.reset(); }
+            reset() {
+                this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+                this.score = 0;
+                this.spawn();
             }
-            return false;
-        }
-        rotate() {
-            const r = this.piece.shape[0].map((_, i) => this.piece.shape.map(row => row[i]).reverse());
-            const prev = this.piece.shape; this.piece.shape = r;
-            if (this.collide()) this.piece.shape = prev;
-            sync();
-        }
-        move(dx, dy) {
-            this.piece.pos.x += dx; this.piece.pos.y += dy;
-            if (this.collide()) {
-                this.piece.pos.x -= dx; this.piece.pos.y -= dy;
-                if (dy > 0) this.freeze();
+            spawn() {
+                const config = SHAPES_CONFIG[Math.floor(Math.random() * 7)];
+                // 每個方塊生成時，裡面的格子都會帶有一個隨機數字
+                this.piece = { 
+                    pos: {x: 3, y: 0}, 
+                    shape: config.shape, 
+                    color: config.color,
+                    card: CARDS[Math.floor(Math.random() * 13)] 
+                };
+                if (this.collide()) this.reset();
+            }
+            collide() {
+                const {pos, shape} = this.piece;
+                for (let y = 0; y < shape.length; y++) {
+                    for (let x = 0; x < shape[y].length; x++) {
+                        if (shape[y][x] && (this.grid[y + pos.y]?.[x + pos.x] !== 0)) return true;
+                    }
+                }
                 return false;
             }
-            sync(); return true;
-        }
-        freeze() {
-            this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
-                if (v) this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = this.color;
-            }));
-            this.clearLines(); this.spawn(); sync();
-        }
-        clearLines() {
-            let c = 0;
-            this.grid = this.grid.filter(row => { const full = row.every(cell => cell !== 0); if(full) c++; return !full; });
-            while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(0));
-            if (c > 0) { this.score += c * 100; this.scoreEl.innerText = this.score; }
-        }
-        draw() {
-            this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-            this.grid.forEach((row, y) => row.forEach((v, x) => {
-                if (v) { this.ctx.fillStyle = v; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1); }
-            }));
-            this.ctx.fillStyle = this.color;
-            this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
-                if (v) this.ctx.fillRect((this.piece.pos.x+x)*SIZE, (this.piece.pos.y+y)*SIZE, SIZE-1, SIZE-1);
-            }));
-        }
-    }
+            rotate() {
+                const r = this.piece.shape[0].map((_, i) => this.piece.shape.map(row => row[i]).reverse());
+                const prev = this.piece.shape; this.piece.shape = r;
+                if (this.collide()) this.piece.shape = prev;
+            }
+            move(dx, dy) {
+                this.piece.pos.x += dx; this.piece.pos.y += dy;
+                if (this.collide()) {
+                    this.piece.pos.x -= dx; this.piece.pos.y -= dy;
+                    if (dy > 0) this.freeze();
+                    return false;
+                }
+                return true;
+            }
+            freeze() {
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) {
+                        // 存入 grid 的不僅是顏色，還有這格的數字
+                        this.grid[y + this.piece.pos.y][x + this.piece.pos.x] = {
+                            color: this.piece.color,
+                            card: this.piece.card
+                        };
+                    }
+                }));
+                this.clearLines();
+                this.spawn();
+            }
+            clearLines() {
+                let linesCleared = 0;
+                let bonus = 1;
 
-    const p1 = new Tetris('canvas1', 'score1', '#58a6ff');
-    const p2 = new Tetris('canvas2', 'score2', '#ff79c6');
+                for (let y = ROWS - 1; y >= 0; y--) {
+                    if (this.grid[y].every(cell => cell !== 0)) {
+                        // 檢查同花順技能 (2500分開啟)
+                        if (this.score >= 2500) {
+                            bonus = this.checkFlushStraight(this.grid[y]);
+                        }
+                        this.grid.splice(y, 1);
+                        this.grid.unshift(Array(COLS).fill(0));
+                        linesCleared++;
+                        y++; // 重新檢查這一行
+                    }
+                }
 
-    function startOnline(isHost) {
-        const id = "YU-GAME-" + document.getElementById('room-id').value;
-        isOnline = true;
-        if (isHost) {
-            peer = new Peer(id);
-            peer.on('open', () => { alert("房間已建立，等待對方輸入同樣的 ID 加入！"); });
-            peer.on('connection', (c) => { conn = c; setupConn(); });
-        } else {
-            peer = new Peer();
-            peer.on('open', () => { conn = peer.connect(id); setupConn(); });
-        }
-        showScreen('screen-game');
-    }
+                if (linesCleared > 0) {
+                    let gain = linesCleared * 100 * bonus;
+                    this.score += gain;
+                    scoreElement.innerText = this.score;
+                    if (bonus > 1) {
+                        skillText.innerText = `🔥 同花順覺醒！ 分數 x${bonus}`;
+                        setTimeout(() => skillText.innerText = "", 2000);
+                    }
+                }
+                
+                if (this.score >= 2500) {
+                    document.getElementById('status').innerText = "✨ 技能系統：已開啟 (同花順加成中)";
+                    document.getElementById('status').style.color = "#f1c40f";
+                }
+            }
 
-    function setupConn() {
-        document.getElementById('p2-ui').style.opacity = "1";
-        conn.on('data', (d) => { p2.grid = d.g; p2.piece = d.p; p2.score = d.s; p2.scoreEl.innerText = d.s; });
-    }
+            // 🎴 檢查同花順邏輯
+            checkFlushStraight(row) {
+                const colors = row.map(c => c.color);
+                const values = row.map(c => CARD_VAL[c.card]).sort((a, b) => a - b);
+                
+                // 1. 檢查是否同花 (所有格子顏色一樣)
+                const isFlush = colors.every(c => c === colors[0]);
+                
+                // 2. 檢查是否順子 (數字連續)
+                let isStraight = true;
+                for (let i = 0; i < values.length - 1; i++) {
+                    if (values[i+1] !== values[i] + 1) {
+                        isStraight = false;
+                        break;
+                    }
+                }
 
-    function sync() { if (conn && conn.open) conn.send({ g: p1.grid, p: p1.piece, s: p1.score }); }
+                if (isFlush && isStraight) return 10; // 同花順 10 倍分！
+                if (isFlush || isStraight) return 3;  // 只有其中一種 3 倍分
+                return 1;
+            }
 
-    let lastPad = 0;
-    function loop() {
-        const gp = navigator.getGamepads()[0];
-        if (gp) {
-            const now = Date.now();
-            if (now - lastPad > 333) {
-                if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { p1.move(-1, 0); lastPad = now; }
-                if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { p1.move(1, 0); lastPad = now; }
-                if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { p1.move(0, 1); lastPad = now; }
-                if (gp.buttons[0].pressed || gp.buttons[1].pressed) { p1.rotate(); lastPad = now; }
+            draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // 畫格線
+                ctx.strokeStyle = "#161b22";
+                for(let i=0; i<COLS; i++) ctx.strokeRect(i*25, 0, 25, ROWS*25);
+
+                // 畫存好的方塊
+                this.grid.forEach((row, y) => row.forEach((cell, x) => {
+                    if (cell) this.drawBlock(x, y, cell.color, cell.card);
+                }));
+
+                // 畫移動中的方塊
+                this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                    if (v) this.drawBlock(this.piece.pos.x + x, this.piece.pos.y + y, this.piece.color, this.piece.card);
+                }));
+            }
+
+            drawBlock(x, y, color, card) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x * 25, y * 25, 24, 24);
+                // 如果分數超過 2500，顯示數字
+                if (this.score >= 2500) {
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 12px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(card, x * 25 + 12, y * 25 + 17);
+                }
             }
         }
-        p1.draw(); p2.draw(); requestAnimationFrame(loop);
-    }
-    setInterval(() => p1.move(0, 1), 1000);
-    loop();
-</script>
+
+        const game = new TetrisGame();
+        let lastPad = 0;
+
+        function loop() {
+            const gp = navigator.getGamepads()[0];
+            if (gp) {
+                const now = Date.now();
+                if (now - lastPad > 333) {
+                    if (gp.axes[0] < -0.4 || gp.buttons[14].pressed) { game.move(-1, 0); lastPad = now; }
+                    if (gp.axes[0] > 0.4 || gp.buttons[15].pressed) { game.move(1, 0); lastPad = now; }
+                    if (gp.axes[1] > 0.4 || gp.buttons[13].pressed) { game.move(0, 1); lastPad = now; }
+                    if (gp.buttons[0].pressed || gp.buttons[1].pressed) { game.rotate(); lastPad = now; }
+                }
+            }
+            game.draw();
+            requestAnimationFrame(loop);
+        }
+
+        setInterval(() => game.move(0, 1), 1000);
+        loop();
+    </script>
 </body>
 </html>
