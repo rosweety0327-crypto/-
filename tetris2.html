@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥領主：500分覺醒基地</title>
+    <title>小宥領主：1/8秒極速覺醒基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        
-        /* 選單系統 */
         .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top: 0; background: #0d1117; z-index: 10; }
         .active { display: flex; }
         h1 { color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); font-size: 32px; margin-bottom: 30px; }
         .menu-btn { background: #238636; border: none; color: white; padding: 20px 40px; border-radius: 15px; font-size: 24px; margin: 15px; width: 280px; box-shadow: 0 4px #1a6328; }
         .menu-btn:active { transform: translateY(4px); box-shadow: 0 0; }
         input { padding: 15px; border-radius: 10px; border: 2px solid #30363d; background: #161b22; color: white; font-size: 30px; width: 180px; text-align: center; letter-spacing: 5px; margin: 20px; }
-
-        /* 遊戲介面 */
         .game-header { background: #161b22; width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid #f1c40f; }
         .game-container { display: flex; gap: 10px; margin-top: 10px; }
         .p-box { display: flex; flex-direction: column; align-items: center; }
         canvas { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 170px; height: 340px; }
         .score { font-size: 22px; color: #f1c40f; font-weight: bold; margin: 5px; }
         .skill-notif { height: 20px; color: #ff79c6; font-size: 14px; font-weight: bold; text-align: center; }
-
-        /* 觸控按鈕 */
         .touch-panel { display: grid; grid-template-columns: repeat(3, 75px); gap: 12px; margin-top: 15px; }
         .t-btn { background: #21262d; border: 1px solid #30363d; color: white; height: 65px; display: flex; justify-content: center; align-items: center; border-radius: 15px; font-size: 28px; user-select: none; }
         .t-btn:active { background: #58a6ff; }
@@ -48,7 +42,7 @@
 
 <div id="sc-game" class="screen">
     <div class="game-header">
-        <span id="game-status">覺醒進度：500分開啟技能</span>
+        <span id="game-status">覺醒進度：1000分開啟技能</span>
     </div>
     <div class="skill-notif" id="skill-notif"></div>
     <div class="game-container">
@@ -73,13 +67,10 @@
 
 <script>
     const SHAPES = [
-        { s: [[1,1,1,1]], c: '#00f0f0' }, // I
-        { s: [[1,1],[1,1]], c: '#f0f000' }, // O
-        { s: [[0,1,0],[1,1,1]], c: '#a000f0' }, // T
-        { s: [[1,1,0],[0,1,1]], c: '#f00000' }, // Z
-        { s: [[0,1,1],[1,1,0]], c: '#00f000' }, // S
-        { s: [[1,0,0],[1,1,1]], c: '#0000f0' }, // L
-        { s: [[0,0,1],[1,1,1]], c: '#f0a000' }  // J
+        { s: [[1,1,1,1]], c: '#00f0f0' }, { s: [[1,1],[1,1]], c: '#f0f000' },
+        { s: [[0,1,0],[1,1,1]], c: '#a000f0' }, { s: [[1,1,0],[0,1,1]], c: '#f00000' },
+        { s: [[0,1,1],[1,1,0]], c: '#00f000' }, { s: [[1,0,0],[1,1,1]], c: '#0000f0' },
+        { s: [[0,0,1],[1,1,1]], c: '#f0a000' }
     ];
     const CARDS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     const CVAL = {'A':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13};
@@ -100,7 +91,8 @@
         reset() { this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0)); this.score=0; this.sel.innerText="0"; this.spawn(); }
         spawn() {
             const conf = SHAPES[Math.floor(Math.random()*7)];
-            this.piece = { pos:{x:3,y:0}, shape:conf.s, color:conf.c, card:CARDS[Math.floor(Math.random()*13)] };
+            const cardShape = conf.s.map(row => row.map(val => val ? CARDS[Math.floor(Math.random()*13)] : 0));
+            this.piece = { pos: {x:3, y:0}, shape: conf.s, cardShape: cardShape, color: conf.c };
             if(this.collide()) this.reset();
         }
         collide() {
@@ -110,9 +102,11 @@
             return false;
         }
         rotate() {
-            const r=this.piece.shape[0].map((_,i)=>this.piece.shape.map(row=>row[i]).reverse());
-            const prev=this.piece.shape; this.piece.shape=r;
-            if(this.collide()) this.piece.shape=prev;
+            const r = this.piece.shape[0].map((_,i)=>this.piece.shape.map(row=>row[i]).reverse());
+            const cr = this.piece.cardShape[0].map((_,i)=>this.piece.cardShape.map(row=>row[i]).reverse());
+            const prev = this.piece.shape; const prevC = this.piece.cardShape;
+            this.piece.shape = r; this.piece.cardShape = cr;
+            if(this.collide()){ this.piece.shape = prev; this.piece.cardShape = prevC; }
             sync();
         }
         move(dx,dy) {
@@ -122,7 +116,7 @@
         }
         freeze() {
             this.piece.shape.forEach((row,y)=>row.forEach((v,x)=>{
-                if(v) this.grid[y+this.piece.pos.y][x+this.piece.pos.x] = {c:this.piece.color, v:this.piece.card};
+                if(v) this.grid[y+this.piece.pos.y][x+this.piece.pos.x] = {c: this.piece.color, v: this.piece.cardShape[y][x]};
             }));
             this.clearLines(); this.spawn(); sync();
         }
@@ -130,8 +124,7 @@
             let lines=0, bonus=1;
             for(let y=ROWS-1; y>=0; y--){
                 if(this.grid[y].every(cell=>cell!==0)){
-                    // 🎯 門檻修改為 500 分
-                    if(this.score >= 500) bonus = this.checkPoker(this.grid[y]);
+                    if(this.score >= 1000) bonus = this.checkPoker(this.grid[y]);
                     this.grid.splice(y,1); this.grid.unshift(Array(COLS).fill(0));
                     lines++; y++;
                 }
@@ -143,8 +136,7 @@
                     setTimeout(()=>document.getElementById('skill-notif').innerText="",2000);
                 }
             }
-            // 🎯 狀態文字門檻也修改為 500 分
-            if(this.score>=500) document.getElementById('game-status').innerText="✨ 技能覺醒中 (同花順模式)";
+            if(this.score>=1000) document.getElementById('game-status').innerText="✨ 技能覺醒中 (1000分門檻)";
         }
         checkPoker(row) {
             const colors = row.map(c=>c.c); const vals = row.map(c=>CVAL[c.v]).sort((a,b)=>a-b);
@@ -154,28 +146,17 @@
         }
         draw() {
             this.ctx.clearRect(0,0,this.cvs.width,this.cvs.height);
-            this.grid.forEach((row,y)=>row.forEach((v,x)=>{
-                if(v) this.drawB(x,y,v.c,v.v);
+            this.grid.forEach((row,y)=>row.forEach((v,x)=>{ if(v) this.drawBlock(x, y, v.c, v.v, true); }));
+            if (this.piece) this.piece.shape.forEach((row, y) => row.forEach((v, x) => {
+                if (v) this.drawBlock(this.piece.pos.x + x, this.piece.pos.y + y, this.piece.color, this.piece.cardShape[y][x], true);
             }));
-            this.drawB(this.piece.pos.x, this.piece.pos.y, this.piece.color, this.piece.card, this.piece.shape);
         }
-        drawB(x,y,c,v,shape=null) {
-            this.ctx.fillStyle=c;
-            if(!shape) {
-                this.ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
-                if(this.score>=500) this.drawT(x,y,v);
-            } else {
-                shape.forEach((row,ry)=>row.forEach((val,rx)=>{
-                    if(val) {
-                        this.ctx.fillRect((x+rx)*SIZE,(y+ry)*SIZE,SIZE-1,SIZE-1);
-                        if(this.score>=500) this.drawT(x+rx,y+ry,v);
-                    }
-                }));
+        drawBlock(x, y, color, val, show) {
+            this.ctx.fillStyle = color; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1);
+            if (this.score >= 1000 && show && val) {
+                this.ctx.fillStyle = "white"; this.ctx.font = "bold 9px Arial"; this.ctx.textAlign = "center";
+                this.ctx.fillText(val, x*SIZE+SIZE/2, y*SIZE+SIZE/2+3);
             }
-        }
-        drawT(x,y,v){
-            this.ctx.fillStyle="white"; this.ctx.font="bold 9px Arial"; this.ctx.textAlign="center";
-            this.ctx.fillText(v, x*SIZE+SIZE/2, y*SIZE+SIZE/2+3);
         }
     }
 
@@ -183,34 +164,29 @@
     const p2 = new Game('c2','s2','#ff79c6');
 
     function goSingle() { isOnline=false; showSc('sc-game'); }
-
     function startNet(host) {
-        const id = "YU-" + document.getElementById('rid').value;
-        isOnline = true;
+        const id = "YU-" + document.getElementById('rid').value; isOnline = true;
         if(host) {
             peer = new Peer(id);
-            peer.on('open', ()=>alert("房間 ID: " + document.getElementById('rid').value + " 等待對手中..."));
+            peer.on('open', ()=>alert("房間 ID: " + document.getElementById('rid').value + " 已建立！"));
             peer.on('connection', c=>{conn=c; setup();});
-        } else {
-            peer = new Peer();
-            peer.on('open', ()=>{conn=peer.connect(id); setup();});
-        }
+        } else { peer = new Peer(); peer.on('open', ()=>{conn=peer.connect(id); setup();}); }
         showSc('sc-game');
     }
-
     function setup(){
         document.getElementById('p2-ui').style.opacity="1";
         conn.on('data', d=>{p2.grid=d.g; p2.piece=d.p; p2.score=d.s; p2.sel.innerText=d.s;});
     }
-
     function sync(){ if(conn && conn.open) conn.send({g:p1.grid, p:p1.piece, s:p1.score}); }
 
+    // --- 控制系統 (手把 & 鍵盤) ---
     let lp=0;
     function loop() {
+        // 1. 手把控制
         const gp = navigator.getGamepads()[0];
         if(gp){
             const now=Date.now();
-            if(now-lp>333){
+            if(now-lp > 125){ // 🎯 1/8 秒冷卻 (125ms)
                 if(gp.axes[0]<-0.4||gp.buttons[14].pressed) {p1.move(-1,0); lp=now;}
                 if(gp.axes[0]>0.4||gp.buttons[15].pressed) {p1.move(1,0); lp=now;}
                 if(gp.axes[1]>0.4||gp.buttons[13].pressed) {p1.move(0,1); lp=now;}
@@ -219,6 +195,15 @@
         }
         p1.draw(); p2.draw(); requestAnimationFrame(loop);
     }
+
+    // 2. 鍵盤控制 (電腦端)
+    window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft' || e.key === 'a') p1.move(-1, 0);
+        if (e.key === 'ArrowRight' || e.key === 'd') p1.move(1, 0);
+        if (e.key === 'ArrowDown' || e.key === 's') p1.move(0, 1);
+        if (e.key === 'ArrowUp' || e.key === 'w') p1.rotate();
+    });
+
     setInterval(()=>p1.move(0,1), 1000);
     loop();
 </script>
