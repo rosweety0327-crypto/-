@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V8.0 旗艦大廳</title>
+    <title>小宥領主的基地 | V8.1 迷宮擴充版</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
@@ -12,7 +12,7 @@
         html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
         body { padding-bottom: 160px; text-align: center; }
 
-        /* 📺 頻道宣傳列 (點擊直通 YT) */
+        /* 📺 頻道宣傳列 */
         .promo-bar { 
             background: linear-gradient(90deg, #ff0000, #b20000); 
             color: white; padding: 12px; font-weight: bold; cursor: pointer; 
@@ -39,6 +39,7 @@
         .star-card { border-color: var(--star); background: linear-gradient(145deg, #0d1a33, #161b22); }
         .battle-card { border-color: var(--gold); background: linear-gradient(145deg, #2c2500, #161b22); }
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
+        .maze-card { border-color: #2ecc71; background: linear-gradient(145deg, #002b11, #161b22); }
 
         /* 底部音樂列 */
         #music-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); padding: 15px 0; border-top: 2px solid var(--pink); display: flex; justify-content: center; gap: 20px; align-items: center; z-index: 4000; }
@@ -76,8 +77,14 @@
         <div class="game-card star-card" onclick="location.href='star_ch5.html'"><div class="tag">Ch 5</div><div class="icon">🔥</div><div class="title">靈魂之火</div></div>
     </div>
 
-    <div class="section-header">🎮 領主核心遊戲 (10)</div>
+    <div class="section-header">🎮 領主核心遊戲 (11)</div>
     <div class="grid">
+        <div class="game-card maze-card" onclick="play('你的迷宮檔名.html')">
+            <div class="tag" style="background:#2ecc71;">NEW</div>
+            <div class="icon">🌀</div>
+            <div class="title">迷宮挑戰</div>
+        </div>
+        
         <div class="game-card" onclick="play('jump.html')"><div class="tag">HOT</div><div class="icon">🐟</div><div class="title">小魚跳跳</div></div>
         <div class="game-card" onclick="play('狼人殺.html')"><div class="icon">🐺</div><div class="title">狼人殺</div></div>
         <div class="game-card blood-card" onclick="location.href='story_blood.html'"><div class="tag">Series</div><div class="icon">🩸</div><div class="title">血之遺痕</div></div>
