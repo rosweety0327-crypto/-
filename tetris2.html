@@ -6,35 +6,36 @@
     <title>小宥領主：天賦神諭基地</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        body { background: #0d1117; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; transition: background 0.5s; }
         .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; top: 0; background: #0d1117; z-index: 10; }
         .active { display: flex; }
         h1 { color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); font-size: 26px; margin-bottom: 15px; }
         .menu-btn { background: #238636; border: none; color: white; padding: 15px 30px; border-radius: 15px; font-size: 20px; margin: 10px; width: 250px; }
         
         /* 頂部資訊 */
-        .game-header { background: #161b22; width: 100%; padding: 5px; border-bottom: 2px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; }
+        .game-header { background: #161b22; width: 100%; padding: 8px; border-bottom: 2px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; }
         .timer { color: #58a6ff; font-family: monospace; font-size: 16px; }
         
+        /* 速度與等級顯示 */
+        .speed-info { color: #ff4757; font-weight: bold; font-size: 14px; transition: 0.3s; }
+        .level-up { animation: flash 0.5s infinite alternate; color: #f1c40f; text-shadow: 0 0 10px red; }
+        @keyframes flash { from { opacity: 1; transform: scale(1); } to { opacity: 0.7; transform: scale(1.1); } }
+
         /* 道具區 */
         .item-area { display: flex; flex-direction: column; align-items: center; margin: 5px 0; }
         .item-bar { display: flex; gap: 8px; margin-bottom: 3px; }
         .item-btn { background: #30363d; border: 1px solid #f1c40f; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
-        .item-btn:active { background: #f1c40f; color: black; }
-        .item-btn:disabled { opacity: 0.2; border-color: #8b949e; }
 
         /* 主畫面佈局 */
         .main-layout { display: flex; align-items: flex-start; gap: 8px; margin-top: 5px; }
         .side-panel { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         
-        /* 預知未來視窗 (永久能力) */
         .preview-box { background: #000; border: 2px solid #58a6ff; padding: 5px; border-radius: 8px; text-align: center; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); }
         #next-canvas { background: #000; width: 50px; height: 50px; }
 
-        canvas#c1 { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 160px; height: 320px; }
+        canvas#c1 { background: #000; border: 3px solid #30363d; border-radius: 8px; width: 160px; height: 320px; transition: box-shadow 0.5s; }
         canvas#c2 { background: #000; border: 1px solid #30363d; border-radius: 4px; width: 60px; height: 120px; }
         
-        .score { font-size: 18px; color: #f1c40f; font-weight: bold; }
         .skill-notif { height: 20px; color: #ff79c6; font-size: 13px; font-weight: bold; }
         
         .touch-panel { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 10px; }
@@ -59,25 +60,25 @@
 <div id="sc-game" class="screen">
     <div class="game-header">
         <div class="timer">⏳ <span id="time-val">00:00</span></div>
-        <div style="font-size:12px; color:#f1c40f;">道具次數: <span id="item-count">3</span></div>
+        <div class="speed-info" id="speed-display">LV.1 (1000ms)</div>
+        <div style="font-size:12px; color:#f1c40f;">💎 <span id="s1">0.0</span></div>
     </div>
     
     <div class="item-area">
         <div class="item-bar">
-            <button class="item-btn" id="btn-reroll" onclick="p1.useReroll()">🎨 染色重鑄</button>
-            <button class="item-btn" id="btn-snipe" onclick="p1.useSnipe()">🎯 精準狙擊</button>
+            <button class="item-btn" id="btn-reroll" onclick="p1.useReroll()">🎨 染色</button>
+            <button class="item-btn" id="btn-snipe" onclick="p1.useSnipe()">🎯 狙擊</button>
         </div>
         <div class="skill-notif" id="skill-notif"></div>
     </div>
 
     <div class="main-layout">
         <div class="p-box">
-            <div style="color:#58a6ff; font-size:11px; margin-bottom:2px;">領主: <span id="s1">0.0</span></div>
             <canvas id="c1"></canvas>
         </div>
         <div class="side-panel">
             <div class="preview-box">
-                <div style="font-size:10px; color:#58a6ff; font-weight:bold; margin-bottom:2px;">神諭 NEXT</div>
+                <div style="font-size:10px; color:#58a6ff; font-weight:bold;">NEXT</div>
                 <canvas id="next-canvas"></canvas>
             </div>
             <div id="p2-ui" style="opacity:0.2;">
@@ -104,7 +105,7 @@
     ];
     const CARDS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     const COLS=10, ROWS=20, SIZE=16;
-    let peer, conn, isOnline=false, startTime, timerInt;
+    let peer, conn, startTime, timerInt, dropTimeout;
 
     function showSc(id){
         document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -119,18 +120,28 @@
                 this.ncvs=document.getElementById(nextCid); this.nctx=this.ncvs.getContext('2d');
                 this.ncvs.width=40; this.ncvs.height=40;
             }
-            this.sel=document.getElementById(sid); this.items=3; this.nextPiece=null; this.reset();
+            this.sel=document.getElementById(sid); 
+            this.reset();
         }
         reset() { 
             this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0)); 
             this.score=0.0; this.sel.innerText="0.0"; this.items=3; 
-            this.updateItemUI(); this.genNext(); this.spawn(); 
+            this.level = 1;
+            this.dropInterval = 1000;
+            this.updateSpeedUI();
+            this.genNext(); this.spawn(); 
         }
-        updateItemUI() {
-            document.getElementById('item-count').innerText = this.items;
-            const disabled = this.items <= 0;
-            document.getElementById('btn-reroll').disabled = disabled;
-            document.getElementById('btn-snipe').disabled = disabled;
+        updateSpeedUI() {
+            const display = document.getElementById('speed-display');
+            if(display) {
+                display.innerText = `LV.${this.level} (${Math.floor(this.dropInterval)}ms)`;
+                // LV.4 以上就開始閃爍，因為這時候已經減了 300ms，速度很有感了
+                if(this.level >= 4) display.classList.add('level-up');
+                else display.classList.remove('level-up');
+                
+                // 畫布隨等級發出紅光
+                this.cvs.style.boxShadow = `0 0 ${this.level * 4}px rgba(255, 71, 87, ${this.level * 0.15})`;
+            }
         }
         genNext() {
             const conf = SHAPES[Math.floor(Math.random()*7)];
@@ -142,7 +153,7 @@
         }
         spawn() {
             this.piece = { pos: {x:3, y:0}, ...this.nextPiece };
-            this.genNext(); // 這是預知，會一直更新，不扣次數
+            this.genNext();
             if(this.collide()) this.reset();
         }
         drawNext() {
@@ -156,7 +167,7 @@
         useReroll() {
             if(this.items <= 0) return;
             this.grid.forEach(row => row.forEach(cell => { if(cell !== 0) cell.c = SHAPES[Math.floor(Math.random()*7)].c; }));
-            this.items--; this.updateItemUI(); sync();
+            this.items--; sync();
         }
         useSnipe() {
             if(this.items <= 0) return;
@@ -165,7 +176,7 @@
                 for(let x=0; x<COLS; x++) { if(this.grid[y][x] !== 0) targets.push(x); }
                 if(targets.length > 0) { this.grid[y][targets[Math.floor(Math.random()*targets.length)]] = 0; break; }
             }
-            this.items--; this.updateItemUI(); sync();
+            this.items--; sync();
         }
         collide() {
             const {pos, shape}=this.piece;
@@ -196,28 +207,19 @@
             let cleared = 0;
             for(let y=ROWS-1; y>=0; y--){
                 if(this.grid[y].every(cell=>cell!==0)){
-                    if(this.score >= 1000) this.triggerCombo(this.grid[y], y);
                     this.grid.splice(y,1); this.grid.unshift(Array(COLS).fill(0));
                     cleared++; y++; 
                 }
             }
-            if(cleared > 0) { this.score += cleared * 100; this.sel.innerText = this.score.toFixed(1); }
-        }
-        triggerCombo(row, idx) {
-            const colors = new Set(row.map(c => c.c));
-            const count = colors.size;
-            let msg = "";
-            if (count === 5) { 
-                let bonus = 0;
-                for(let i=0; i<2; i++) { this.grid[i]?.forEach(c => { if(c!==0) bonus += 0.5; }); }
-                this.score += bonus; this.grid.splice(0, 2); this.grid.unshift(Array(COLS).fill(0), Array(COLS).fill(0));
-                msg = `🔥 五行封印 (+${bonus.toFixed(1)})`;
-            } else if (count === 7) {
-                let total = 0; this.grid.forEach(r => r.forEach(c => { if(c!==0) total++; }));
-                this.score += total * 0.1; this.grid = Array.from({length:ROWS},()=>Array(COLS).fill(0));
-                msg = `🌌 領主領域 (+${(total*0.1).toFixed(1)})`;
+            if(cleared > 0) { 
+                this.score += cleared * 100; 
+                this.sel.innerText = this.score.toFixed(1); 
+                // 🚀 核心修改：每 200 分升一級
+                this.level = Math.floor(this.score / 200) + 1;
+                // 🚀 核心修改：每一級加快 100 毫秒
+                this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 100);
+                this.updateSpeedUI();
             }
-            if(msg) { document.getElementById('skill-notif').innerText = msg; setTimeout(()=>document.getElementById('skill-notif').innerText="", 2000); }
         }
         draw() {
             this.ctx.clearRect(0,0,this.cvs.width,this.cvs.height);
@@ -228,24 +230,22 @@
         }
         drawBlock(x, y, color, val) {
             this.ctx.fillStyle = color; this.ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1);
-            if (this.score >= 1000 && val) {
-                this.ctx.fillStyle = "white"; this.ctx.font = "bold 8px Arial"; this.ctx.textAlign = "center";
-                this.ctx.fillText(val, x*SIZE+SIZE/2, y*SIZE+SIZE/2+3);
-            }
         }
     }
 
     const p1 = new Game('c1','s1','next-canvas');
     const p2 = new Game('c2','s2',null);
 
-    function goSingle() { isOnline=false; showSc('sc-game'); startTimer(); p1.reset(); }
+    function goSingle() { showSc('sc-game'); startTimer(); p1.reset(); startDropLoop(); }
+    
     function startNet(host) {
         const id = "YU-" + document.getElementById('rid').value;
         peer = new Peer(id);
-        if(host) peer.on('connection', c=>{conn=c; setup(); startTimer();});
-        else { conn=peer.connect(id); setup(); startTimer(); }
+        if(host) peer.on('connection', c=>{conn=c; setup(); startTimer(); startDropLoop();});
+        else { conn=peer.connect(id); setup(); startTimer(); startDropLoop(); }
         showSc('sc-game'); p1.reset();
     }
+
     function startTimer() {
         startTime = Date.now(); clearInterval(timerInt);
         timerInt = setInterval(() => {
@@ -253,31 +253,31 @@
             document.getElementById('time-val').innerText = `${String(Math.floor(diff/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
         }, 1000);
     }
+
+    function startDropLoop() {
+        clearTimeout(dropTimeout);
+        p1.move(0, 1);
+        // 使用動態計算的 dropInterval
+        dropTimeout = setTimeout(startDropLoop, p1.dropInterval);
+    }
+
     function setup(){
         document.getElementById('p2-ui').style.opacity="1";
         conn.on('data', d=>{p2.grid=d.g; p2.piece=d.p; p2.score=d.s; p2.sel.innerText=Number(d.s).toFixed(1);});
     }
     function sync(){ if(conn && conn.open) conn.send({g:p1.grid, p:p1.piece, s:p1.score}); }
 
-    let lp=0;
     function loop() {
-        const gp = navigator.getGamepads()[0];
-        if(gp && Date.now()-lp > 125){
-            if(gp.axes[0]<-0.4||gp.buttons[14].pressed) p1.move(-1,0);
-            if(gp.axes[0]>0.4||gp.buttons[15].pressed) p1.move(1,0);
-            if(gp.axes[1]>0.4||gp.buttons[13].pressed) p1.move(0,1);
-            if(gp.buttons[0].pressed||gp.buttons[1].pressed) p1.rotate();
-            lp=Date.now();
-        }
         p1.draw(); p2.draw(); requestAnimationFrame(loop);
     }
+
     window.addEventListener('keydown', e => {
         if(e.key==='ArrowLeft'||e.key==='a') p1.move(-1,0);
         if(e.key==='ArrowRight'||e.key==='d') p1.move(1,0);
         if(e.key==='ArrowDown'||e.key==='s') p1.move(0,1);
         if(e.key==='ArrowUp'||e.key==='w') p1.rotate();
     });
-    setInterval(()=>p1.move(0,1), 1000);
+
     loop();
 </script>
 </body>
