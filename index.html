@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V8.1 迷宮擴充版</title>
+    <title>小宥領主的基地 | V8.3</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
@@ -39,7 +39,7 @@
         .star-card { border-color: var(--star); background: linear-gradient(145deg, #0d1a33, #161b22); }
         .battle-card { border-color: var(--gold); background: linear-gradient(145deg, #2c2500, #161b22); }
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
-        .maze-card { border-color: #2ecc71; background: linear-gradient(145deg, #002b11, #161b22); }
+        .share-card { border-color: #a371f7; background: linear-gradient(145deg, #1e1333, #161b22); }
 
         /* 底部音樂列 */
         #music-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); padding: 15px 0; border-top: 2px solid var(--pink); display: flex; justify-content: center; gap: 20px; align-items: center; z-index: 4000; }
@@ -79,7 +79,7 @@
 
     <div class="section-header">🎮 領主核心遊戲 (11)</div>
     <div class="grid">
-        <div class="game-card maze-card" onclick="play('70701.2.html')">
+        <div class="game-card" style="border-color:#2ecc71;" onclick="play('70701.2.html')">
             <div class="tag" style="background:#2ecc71;">NEW</div>
             <div class="icon">🌀</div>
             <div class="title">迷宮挑戰</div>
@@ -95,6 +95,22 @@
         <div class="game-card" onclick="play('競賽貓站.html')"><div class="icon">🐈</div><div class="title">競賽貓站</div></div>
         <div class="game-card" onclick="play('槍戰 2.html')"><div class="icon">🔫</div><div class="title">草原槍戰</div></div>
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
+    </div>
+
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>📂 領主檔案分享板 (公測中)</span>
+        <button onclick="window.open('你的Google表單連結', '_blank')" 
+                style="background:var(--pink); color:white; border:none; padding:5px 15px; border-radius:50px; cursor:pointer; font-size:14px; font-weight:bold;">
+            ➕ 我要投稿
+        </button>
+    </div>
+    <div class="grid" id="share-board">
+        <div class="game-card share-card" style="cursor: default;">
+            <div class="tag">公告</div>
+            <div class="icon">📢</div>
+            <div class="title">歡迎投稿分享！</div>
+            <p style="font-size: 11px; color: #888;">目前暫不開放直接下載</p>
+        </div>
     </div>
 
     <div id="music-bar">
@@ -132,5 +148,7 @@
         function updateTrackName() { document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n; }
         refresh();
     </script>
+</body>
+</html>
 </body>
 </html>
