@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V8.3</title>
+    <title>小宥領主的基地 | V8.4</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
             --red: #ff4757; --pink: #ff79c6; --text: #c9d1d9; --blood: #880000; --star: #70a1ff;
+            --primary: #f1c40f; --border: #30363d; --boss: #ff4757;
         }
         html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
         body { padding-bottom: 160px; text-align: center; }
@@ -35,11 +36,27 @@
         .game-card .icon { font-size: 45px; margin-bottom: 10px; }
         .game-card .tag { position: absolute; top: 0; right: 0; background: var(--blue); color: white; font-size: 11px; padding: 5px 12px; border-bottom-left-radius: 15px; font-weight: bold; }
 
-        /* 特殊卡片顏色 */
         .star-card { border-color: var(--star); background: linear-gradient(145deg, #0d1a33, #161b22); }
         .battle-card { border-color: var(--gold); background: linear-gradient(145deg, #2c2500, #161b22); }
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
         .share-card { border-color: #a371f7; background: linear-gradient(145deg, #1e1333, #161b22); }
+
+        /* --- 噠噠特工專用 UI --- */
+        #survivor-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; overflow: hidden; }
+        .game-page { display: none; width: 100%; height: 100vh; flex-direction: column; position: absolute; }
+        .game-page.active { display: flex; }
+        .scroll-v { overflow-y: auto; flex-grow: 1; padding: 15px; display: grid; gap: 12px; }
+        .level-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .skill-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .skill-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; border: 2px solid transparent; }
+        .skill-item.selected { border-color: var(--primary); background: rgba(241, 196, 15, 0.1); }
+        #battleCanvas { display: block; background: #1a1a1a; }
+        #joystick-container { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 100; }
+        #joystick-stick { width: 40px; height: 40px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+        .battle-ui { position: absolute; top: 0; width: 100%; padding: 10px; box-sizing: border-box; display: flex; justify-content: space-between; z-index: 100; font-weight: bold; pointer-events: none; }
+        .boss-warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--boss); font-size: 40px; font-weight: bolder; text-shadow: 0 0 20px #000; display: none; animation: blink 0.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .start-btn { background: #238636; color: white; border: none; padding: 15px; border-radius: 30px; width: 80%; margin: 20px auto; font-weight: bold; cursor: pointer; }
 
         /* 底部音樂列 */
         #music-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); padding: 15px 0; border-top: 2px solid var(--pink); display: flex; justify-content: center; gap: 20px; align-items: center; z-index: 4000; }
@@ -77,14 +94,14 @@
         <div class="game-card star-card" onclick="location.href='star_ch5.html'"><div class="tag">Ch 5</div><div class="icon">🔥</div><div class="title">靈魂之火</div></div>
     </div>
 
-    <div class="section-header">🎮 領主核心遊戲 (11)</div>
+    <div class="section-header">🎮 領主核心遊戲 (12)</div>
     <div class="grid">
-        <div class="game-card" style="border-color:#2ecc71;" onclick="play('70701.2.html')">
-            <div class="tag" style="background:#2ecc71;">NEW</div>
-            <div class="icon">🌀</div>
-            <div class="title">迷宮挑戰</div>
+        <div class="game-card" style="border-color:#f1c40f;" onclick="openSurvivor()">
+            <div class="tag" style="background:#f1c40f; color:black;">V4.1</div>
+            <div class="icon">🔫</div>
+            <div class="title">噠噠特工</div>
         </div>
-        
+        <div class="game-card" style="border-color:#2ecc71;" onclick="play('70701.2.html')"><div class="tag" style="background:#2ecc71;">NEW</div><div class="icon">🌀</div><div class="title">迷宮挑戰</div></div>
         <div class="game-card" onclick="play('jump.html')"><div class="tag">HOT</div><div class="icon">🐟</div><div class="title">小魚跳跳</div></div>
         <div class="game-card" onclick="play('狼人殺.html')"><div class="icon">🐺</div><div class="title">狼人殺</div></div>
         <div class="game-card blood-card" onclick="location.href='story_blood.html'"><div class="tag">Series</div><div class="icon">🩸</div><div class="title">血之遺痕</div></div>
@@ -97,41 +114,51 @@
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
     </div>
 
-    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>📂 領主檔案分享板 (公測中)</span>
-        <button onclick="window.open('https://forms.gle/dDxPmbBovZNxn6HB9', '_blank')" 
-                style="background:var(--pink); color:white; border:none; padding:5px 15px; border-radius:50px; cursor:pointer; font-size:14px; font-weight:bold;">
-            ➕ 我要投稿
-        </button>
-    </div>
-    <div class="grid" id="share-board">
-        <div class="game-card share-card" style="cursor: default;">
-            <div class="tag">公告</div>
-            <div class="icon">📢</div>
-            <div class="title">歡迎投稿分享！</div>
-            <p style="font-size: 11px; color: #888;">目前暫不開放直接下載</p>
-        </div>
-    </div>
-
     <div id="music-bar">
         <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 準備播放</div>
         <button class="control-btn" onclick="switchTrack()">⏭ 下一首</button>
         <button class="control-btn" onclick="playPause()">▶/⏸</button>
     </div>
 
+    <div id="survivor-overlay">
+        <div id="page-levels" class="game-page active">
+            <div style="padding:15px; text-align:center; background: #1f6feb; display: flex; justify-content: space-between;">
+                <button onclick="closeSurvivor()" style="background:none; border:none; color:white; font-size:20px;">🏠</button>
+                <h2>百戰深淵</h2>
+                <div style="width:20px;"></div>
+            </div>
+            <div class="scroll-v" id="level-list"></div>
+        </div>
+        <div id="page-equip" class="game-page">
+            <div style="padding:15px; text-align:center; background: #1f6feb;"><h2>領主整備室</h2></div>
+            <div style="padding: 20px; overflow-y: auto;">
+                <h3 style="color:var(--primary)">預選初始神諭 (3個)</h3>
+                <div id="skill-selection" class="skill-grid"></div>
+                <button class="start-btn" onclick="startBattle()">傳送進入第 <span id="targetLv">1</span> 層</button>
+            </div>
+        </div>
+        <div id="page-battle" class="game-page">
+            <div class="battle-ui">
+                <div class="timer" id="gameTimer" style="font-size:24px;">15:00</div>
+                <div style="text-align:right">KILLS: <span id="killCount">0</span></div>
+            </div>
+            <div class="boss-warning" id="bossWarn">WARNING: BOSS APPROACHING</div>
+            <canvas id="battleCanvas"></canvas>
+            <div id="joystick-container"><div id="joystick-stick"></div></div>
+        </div>
+    </div>
+
     <audio id="audio" loop><source id="audio-src" src="《全力展開！閃光射線》.mp3"></audio>
 
     <script>
+        // --- 基地基礎系統 ---
         let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '初級冒險者' };
         const playlist = [
             {n: "閃光射線", f: "《全力展開！閃光射線》.mp3"}, 
             {n: "赤き月的欠片", f: "赤き月的欠片 (1).mp3"}, 
-            {n: "光のキセキ", f: "光のキセキ.mp3"},
-            {n: "戰鬥 BGM 1", f: "battle1.mp3"},
-            {n: "主題曲 2", f: "theme2.mp3"}
+            {n: "光のキセキ", f: "光のキセキ.mp3"}
         ];
         let curT = 0;
-
         function save() { localStorage.setItem('lord_mega_db_v5', JSON.stringify(db)); refresh(); }
         function refresh() {
             document.getElementById('display-points').innerText = Math.floor(db.pts);
@@ -146,6 +173,179 @@
             updateTrackName(); a.load(); a.play();
         }
         function updateTrackName() { document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n; }
+
+        // --- 噠噠特工 V4.1 核心代碼 ---
+        const skillsConfig = [
+            { id: 'fire', name: '紅蓮業火', icon: '🔥' },
+            { id: 'bolt', name: '九天雷劫', icon: '⚡' },
+            { id: 'guard', name: '守護力場', icon: '🌀' },
+            { id: 'drill', name: '螺旋穿孔', icon: '🔩' }
+        ];
+        let selectedSkills = [], enemies = [], projectiles = [], kills = 0, frame = 0;
+        let gameTime = 900, currentLv = 1, isGameOver = false;
+        const canvas = document.getElementById('battleCanvas');
+        const ctx = canvas.getContext('2d');
+        let player = { x: 0, y: 0, speed: 3.5, radius: 15, hp: 100, maxHp: 100, invinc: 0 };
+        let joystick = { active: false, x: 0, y: 0, startX: 0, startY: 0 };
+        let keys = {};
+
+        function openSurvivor() { document.getElementById('survivor-overlay').style.display = 'block'; }
+        function closeSurvivor() { document.getElementById('survivor-overlay').style.display = 'none'; isGameOver = true; }
+        function switchGamePage(id) { 
+            document.querySelectorAll('.game-page').forEach(p=>p.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+        }
+
+        // 初始化關卡列表
+        const levelList = document.getElementById('level-list');
+        for(let i=1; i<=100; i++) {
+            const div = document.createElement('div');
+            div.className = 'level-card';
+            div.innerHTML = `<span>第 ${i} 層</span><button onclick="selectLevel(${i})" style="background:var(--blue); color:white; border:none; padding:5px 15px; border-radius:15px;">準備</button>`;
+            levelList.appendChild(div);
+        }
+
+        // 初始化技能選擇
+        const skillGrid = document.getElementById('skill-selection');
+        skillsConfig.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'skill-item';
+            div.innerHTML = `${s.icon} ${s.name}`;
+            div.onclick = () => {
+                if(selectedSkills.includes(s.id)) { selectedSkills = selectedSkills.filter(x => x!==s.id); div.classList.remove('selected'); }
+                else if(selectedSkills.length < 3) { selectedSkills.push(s.id); div.classList.add('selected'); }
+            };
+            skillGrid.appendChild(div);
+        });
+
+        function selectLevel(lv) { currentLv = lv; document.getElementById('targetLv').innerText = lv; switchGamePage('page-equip'); }
+
+        function startBattle() {
+            if(selectedSkills.length === 0) return alert("領主，請選擇神諭！");
+            switchGamePage('page-battle');
+            isGameOver = false;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            player.x = canvas.width/2; player.y = canvas.height/2;
+            player.hp = 100; gameTime = 900; enemies = []; projectiles = []; kills = 0; frame = 0;
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 戰鬥邏輯與繪製 (update/draw/spawnEnemy...)
+        function update() {
+            if(isGameOver) return;
+            frame++;
+            if(frame % 60 === 0) {
+                if(gameTime > 0) {
+                    gameTime--;
+                    const m = Math.floor(gameTime / 60), s = gameTime % 60;
+                    document.getElementById('gameTimer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if(gameTime === 600 || gameTime === 300) spawnBoss();
+                }
+                if(player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + 1);
+            }
+            const factor = 1 + ((900-gameTime) / 60) * 0.15;
+            let mx = (keys['a'] ? -1 : keys['d'] ? 1 : 0) || joystick.x;
+            let my = (keys['w'] ? -1 : keys['s'] ? 1 : 0) || joystick.y;
+            player.x += mx * player.speed; player.y += my * player.speed;
+            player.x = Math.max(15, Math.min(canvas.width-15, player.x));
+            player.y = Math.max(15, Math.min(canvas.height-15, player.y));
+            if(player.invinc > 0) player.invinc--;
+
+            if(frame % 40 === 0 && enemies.length > 0) {
+                let target = enemies[0];
+                let angle = Math.atan2(target.y - player.y, target.x - player.x);
+                projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle)*10, vy: Math.sin(angle)*10, type: 'blade' });
+            }
+            if(frame % Math.max(5, 35 - Math.floor((900-gameTime)/20)) === 0) spawnEnemy(factor);
+
+            enemies.forEach((en, i) => {
+                let dx = player.x - en.x, dy = player.y - en.y;
+                let dist = Math.hypot(dx, dy);
+                en.x += (dx/dist) * en.speed; en.y += (dy/dist) * en.speed;
+                if(dist < en.radius + player.radius && player.invinc <= 0) {
+                    player.hp -= en.isBoss ? 20 : 10; player.invinc = 60;
+                    if(player.hp <= 0) endGame(false);
+                }
+                if(en.hp <= 0) { enemies.splice(i, 1); kills++; document.getElementById('killCount').innerText = kills; }
+            });
+
+            projectiles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                enemies.forEach(en => {
+                    if(Math.hypot(en.x - p.x, en.y - p.y) < en.radius + 10) {
+                        en.hp -= 2; if(p.type === 'blade') projectiles.splice(i, 1);
+                    }
+                });
+                if(p.x < -50 || p.x > canvas.width+50 || p.y < -50 || p.y > canvas.height+50) projectiles.splice(i, 1);
+            });
+            if(gameTime <= 0) endGame(true);
+        }
+
+        function spawnEnemy(factor) {
+            let side = Math.floor(Math.random()*4), x, y;
+            if(side===0){x=Math.random()*canvas.width;y=-30} else if(side===1){x=Math.random()*canvas.width;y=canvas.height+30}
+            else if(side===2){x=-30;y=Math.random()*canvas.height} else {x=canvas.width+30;y=Math.random()*canvas.height}
+            enemies.push({ x, y, hp: 1*factor, speed: 1.2+factor*0.1, radius: 10, isBoss: false });
+        }
+
+        function spawnBoss() {
+            document.getElementById('bossWarn').style.display='block';
+            setTimeout(()=>document.getElementById('bossWarn').style.display='none', 3000);
+            enemies.push({ x: canvas.width/2, y: -50, hp: 150, speed: 1.5, radius: 30, isBoss: true });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            enemies.forEach(en => {
+                ctx.fillStyle = en.isBoss ? "#ff4757" : "#8b949e";
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.radius, 0, Math.PI*2); ctx.fill();
+            });
+            projectiles.forEach(p => {
+                ctx.fillStyle = "#00f0f0"; ctx.fillRect(p.x-5, p.y-2, 10, 4);
+            });
+            selectedSkills.forEach(sId => {
+                if(sId === 'fire') {
+                    ctx.fillStyle = "rgba(255, 71, 87, 0.1)";
+                    ctx.beginPath(); ctx.arc(player.x, player.y, 80, 0, Math.PI*2); ctx.fill();
+                    enemies.forEach(en => { if(Math.hypot(en.x-player.x, en.y-player.y) < 80) en.hp -= 0.05; });
+                }
+                if(sId === 'guard') {
+                    const angle = frame * 0.08;
+                    for(let i=0; i<2; i++) {
+                        const gx = player.x + Math.cos(angle + i*Math.PI) * 65, gy = player.y + Math.sin(angle + i*Math.PI) * 65;
+                        ctx.fillStyle = "#00f0f0"; ctx.beginPath(); ctx.arc(gx, gy, 8, 0, Math.PI*2); ctx.fill();
+                        enemies.forEach(en => { if(Math.hypot(en.x-gx, en.y-gy) < 15) en.hp -= 0.3; });
+                    }
+                }
+            });
+            if(player.invinc % 10 < 5) { ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(player.x, player.y, 15, 0, Math.PI*2); ctx.fill(); }
+            ctx.fillStyle = "#2ecc71"; ctx.fillRect(player.x-20, player.y-30, 40 * (player.hp/player.maxHp), 6);
+        }
+
+        function endGame(win) { isGameOver = true; alert(win ? "成功！" : "失敗！"); switchGamePage('page-levels'); }
+        function gameLoop() { if(!isGameOver){ update(); draw(); requestAnimationFrame(gameLoop); } }
+
+        // Joystick 邏輯
+        const joyContainer = document.getElementById('joystick-container');
+        const joyStick = document.getElementById('joystick-stick');
+        joyContainer.addEventListener('touchstart', e => {
+            joystick.active = true;
+            const rect = joyContainer.getBoundingClientRect();
+            joystick.startX = rect.left + rect.width/2; joystick.startY = rect.top + rect.height/2;
+        });
+        window.addEventListener('touchmove', e => {
+            if(!joystick.active) return;
+            const touch = e.touches[0];
+            let dx = touch.clientX - joystick.startX, dy = touch.clientY - joystick.startY;
+            if(Math.sqrt(dx*dx + dy*dy) > 40) { const a = Math.atan2(dy, dx); dx = Math.cos(a)*40; dy = Math.sin(a)*40; }
+            joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            joystick.x = dx/40; joystick.y = dy/40;
+        });
+        window.addEventListener('touchend', () => { joystick.active = false; joyStick.style.transform = `translate(0,0)`; joystick.x = 0; joystick.y = 0; });
+        
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
         refresh();
     </script>
 </body>
