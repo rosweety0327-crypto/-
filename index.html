@@ -42,10 +42,14 @@
         .battle-card { border-color: var(--gold); background: linear-gradient(145deg, #2c2500, #161b22); }
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
 
-        /* --- 噠噠特工專用 UI --- */
-        #survivor-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; overflow: hidden; }
+        /* --- 遊戲 Overlay 共通樣式 --- */
+        #survivor-overlay, #shooter-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; overflow: hidden; }
         .game-page { display: none; width: 100%; height: 100vh; flex-direction: column; position: absolute; }
         .game-page.active { display: flex; }
+        
+        /* 射擊遊戲專用 */
+        #shooterCanvas { background: #000; display: block; width: 100%; height: 100%; }
+
         .scroll-v { overflow-y: auto; flex-grow: 1; padding: 15px; display: grid; gap: 12px; }
         .level-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         .skill-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -95,12 +99,17 @@
         <div class="game-card star-card" onclick="location.href='star_ch5.html'"><div class="tag">Ch 5</div><div class="icon">🔥</div><div class="title">靈魂之火</div></div>
     </div>
 
-    <div class="section-header">🎮 領主核心遊戲 (12)</div>
+    <div class="section-header">🎮 領主核心遊戲 (13)</div>
     <div class="grid">
         <div class="game-card" style="border-color:var(--primary);" onclick="openSurvivor()">
             <div class="tag" style="background:var(--primary); color:black;">V4.1</div>
             <div class="icon">🔫</div>
             <div class="title">噠噠特工</div>
+        </div>
+        <div class="game-card" style="border-color:var(--red);" onclick="openShooter()">
+            <div class="tag" style="background:var(--red);">NEW</div>
+            <div class="icon">🚀</div>
+            <div class="title">星際射擊</div>
         </div>
         <div class="game-card" style="border-color:var(--green);" onclick="play('70701.2.html')"><div class="tag" style="background:var(--green);">NEW</div><div class="icon">🌀</div><div class="title">迷宮挑戰</div></div>
         <div class="game-card" onclick="play('jump.html')"><div class="tag">HOT</div><div class="icon">🐟</div><div class="title">小魚跳跳</div></div>
@@ -141,6 +150,14 @@
             <canvas id="battleCanvas"></canvas>
             <div id="joystick-container"><div id="joystick-stick"></div></div>
         </div>
+    </div>
+
+    <div id="shooter-overlay">
+        <div class="battle-ui" style="pointer-events: auto;">
+            <button onclick="closeShooter()" style="background:rgba(0,0,0,0.5); border:1px solid white; color:white; padding:5px 15px; border-radius:10px;">退出</button>
+            <div style="color:var(--gold); font-size:20px;">SCORE: <span id="shooter-score">0</span></div>
+        </div>
+        <canvas id="shooterCanvas"></canvas>
     </div>
 
     <div id="music-bar">
@@ -193,7 +210,87 @@
         }
         function updateTrackName() { document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n; }
 
-        // --- 噠噠特工 V4.1 核心代碼 (單機版) ---
+        // --- 星際射擊遊戲代碼 ---
+        const sCanvas = document.getElementById('shooterCanvas');
+        const sCtx = sCanvas.getContext('2d');
+        let shooterActive = false, sScore = 0;
+        let sPlayer = { x: 0, y: 0, w: 40, h: 40 };
+        let sBullets = [], sEnemies = [];
+
+        function openShooter() {
+            document.getElementById('shooter-overlay').style.display = 'block';
+            sCanvas.width = window.innerWidth;
+            sCanvas.height = window.innerHeight;
+            sPlayer.x = sCanvas.width / 2 - 20;
+            sPlayer.y = sCanvas.height - 80;
+            sBullets = []; sEnemies = []; sScore = 0;
+            shooterActive = true;
+            document.getElementById('shooter-score').innerText = 0;
+            requestAnimationFrame(shooterLoop);
+        }
+
+        function closeShooter() {
+            document.getElementById('shooter-overlay').style.display = 'none';
+            shooterActive = false;
+            db.pts += Math.floor(sScore / 10); save();
+        }
+
+        function shooterLoop() {
+            if(!shooterActive) return;
+            sCtx.fillStyle = "black";
+            sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+            // 畫玩家 (藍色火箭)
+            sCtx.fillStyle = "#58a6ff";
+            sCtx.beginPath();
+            sCtx.moveTo(sPlayer.x + 20, sPlayer.y);
+            sCtx.lineTo(sPlayer.x, sPlayer.y + 40);
+            sCtx.lineTo(sPlayer.x + 40, sPlayer.y + 40);
+            sCtx.fill();
+
+            // 子彈處理
+            if(frame % 10 === 0) sBullets.push({x: sPlayer.x + 18, y: sPlayer.y, v: 8});
+            sBullets.forEach((b, i) => {
+                b.y -= b.v;
+                sCtx.fillStyle = "yellow";
+                sCtx.fillRect(b.x, b.y, 4, 10);
+                if(b.y < 0) sBullets.splice(i, 1);
+            });
+
+            // 敵人處理
+            if(Math.random() < 0.05) sEnemies.push({x: Math.random()*(sCanvas.width-30), y: -30, v: 3 + Math.random()*3});
+            sEnemies.forEach((en, i) => {
+                en.y += en.v;
+                sCtx.fillStyle = "#ff4757";
+                sCtx.fillRect(en.x, en.y, 30, 30);
+
+                // 碰撞檢測 (子彈擊中敵人)
+                sBullets.forEach((b, bi) => {
+                    if(b.x > en.x && b.x < en.x+30 && b.y > en.y && b.y < en.y+30) {
+                        sEnemies.splice(i, 1);
+                        sBullets.splice(bi, 1);
+                        sScore += 100;
+                        document.getElementById('shooter-score').innerText = sScore;
+                    }
+                });
+
+                // 碰撞檢測 (敵人撞到玩家)
+                if(en.y + 30 > sPlayer.y && en.x + 30 > sPlayer.x && en.x < sPlayer.x + 40) {
+                    alert("遊戲結束！最終得分: " + sScore);
+                    closeShooter();
+                }
+
+                if(en.y > sCanvas.height) sEnemies.splice(i, 1);
+            });
+
+            // 玩家移動 (隨滑鼠/觸控)
+            sCanvas.onmousemove = (e) => { sPlayer.x = e.clientX - 20; };
+            sCanvas.ontouchmove = (e) => { sPlayer.x = e.touches[0].clientX - 20; e.preventDefault(); };
+
+            requestAnimationFrame(shooterLoop);
+        }
+
+        // --- 噠噠特工 V4.1 核心代碼 (保持原樣) ---
         const skillsConfig = [
             { id: 'fire', name: '紅蓮業火', icon: '🔥' },
             { id: 'bolt', name: '九天雷劫', icon: '⚡' },
@@ -267,7 +364,6 @@
             player.y = Math.max(15, Math.min(canvas.height-15, player.y));
             if(player.invinc > 0) player.invinc--;
 
-            // 自動攻擊邏輯 (鑽頭/閃電)
             selectedSkills.forEach(sId => {
                 if(sId === 'drill' && frame % 60 === 0 && enemies.length > 0) {
                     let target = enemies[0];
@@ -341,7 +437,6 @@
         function endGame(win) { isGameOver = true; alert(win ? "第 "+currentLv+" 層通關成功！" : "領主戰敗，請下次再來！"); switchGamePage('page-levels'); }
         function gameLoop() { if(!isGameOver){ update(); draw(); requestAnimationFrame(gameLoop); } }
 
-        // Joystick 邏輯 (支援手機端)
         const joyContainer = document.getElementById('joystick-container');
         const joyStick = document.getElementById('joystick-stick');
         joyContainer.addEventListener('touchstart', e => {
