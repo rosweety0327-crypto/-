@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏰 領主物資站 | 商店 & 下載中心</title>
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --gold: #f1c40f; --blue: #58a6ff; --pink: #ff79c6; --border: #30363d; --text: #c9d1d9; }
+        body { background: var(--bg); color: var(--text); font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; }
+        
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--gold); padding-bottom: 20px; }
+        .balance { font-size: 24px; color: var(--gold); font-weight: bold; }
+
+        .section-title { color: var(--blue); border-left: 5px solid var(--blue); padding-left: 10px; margin: 30px 0 15px; font-size: 20px; }
+        
+        /* 商店卡片網格 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .item-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 15px; text-align: center; transition: 0.3s; }
+        .item-card:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .price { color: var(--gold); font-weight: bold; margin: 10px 0; }
+        .buy-btn { background: var(--blue); color: white; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; width: 100%; }
+        .buy-btn:disabled { background: #444; cursor: not-allowed; }
+
+        /* 超級販賣專區 */
+        #secret-zone { display: none; background: linear-gradient(135deg, #2a0000 0%, #161b22 100%); border: 2px solid var(--pink); border-radius: 20px; padding: 20px; margin-top: 40px; }
+        .order-input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--border); background: #0d1117; color: white; }
+
+        /* 游標樣式切換 */
+        .cursor-default { cursor: default; }
+        .cursor-sword { cursor: url('https://cur.cursors-4u.net/games/gam-4/gam372.cur'), auto; }
+        .cursor-magic { cursor: url('https://cur.cursors-4u.net/games/gam-4/gam389.cur'), auto; }
+
+        .nav-btn { position: fixed; top: 20px; left: 20px; background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 15px; border-radius: 10px; cursor: pointer; text-decoration: none; }
+    </style>
+</head>
+<body id="main-body">
+
+    <a href="index.html" class="nav-btn">🏠 返回大廳</a>
+
+    <div class="header">
+        <h1>🛒 領主物資站</h1>
+        <div class="balance">當前擁有 💎 <span id="pts-display">0</span></div>
+    </div>
+
+    <div class="section-title">✨ 游標外觀商店</div>
+    <div class="grid">
+        <div class="item-card">
+            <div style="font-size: 30px;">🏹</div>
+            <div>傳說之劍游標</div>
+            <div class="price">💎 500</div>
+            <button class="buy-btn" onclick="buyCursor('sword', 500)">購買並更換</button>
+        </div>
+        <div class="item-card">
+            <div style="font-size: 30px;">🪄</div>
+            <div>魔法星光游標</div>
+            <div class="price">💎 800</div>
+            <button class="buy-btn" onclick="buyCursor('magic', 800)">購買並更換</button>
+        </div>
+    </div>
+
+    <div class="section-title">📂 領主檔案下載區 (解鎖需扣除鑽石)</div>
+    <div class="grid" id="file-list">
+        <div class="item-card">
+            <div style="font-size: 30px;">📄</div>
+            <div>基地設計藍圖.pdf</div>
+            <div class="price">💎 200</div>
+            <button class="buy-btn" onclick="downloadFile('blueprint.pdf', 200)">解鎖下載</button>
+        </div>
+        <div class="item-card">
+            <div style="font-size: 30px;">📦</div>
+            <div>隱藏角色素材包.zip</div>
+            <div class="price">💎 1000</div>
+            <button class="buy-btn" onclick="downloadFile('assets.zip', 1000)">解鎖下載</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; text-align: center;">
+        <button onclick="enterSecretZone()" style="background:none; border:none; color:#333; cursor:help;">[ 進階功能 ]</button>
+    </div>
+
+    <div id="secret-zone">
+        <h2 style="color: var(--pink);">㊙️ 超級販賣專區 (實體商品訂購)</h2>
+        <p>此區僅限領主同學使用，請輸入你要訂購的物品與收件人姓名</p>
+        <input type="text" id="order-item" class="order-input" placeholder="想要訂購的商品 (例如：特製卡片、小玩具)"><br>
+        <input type="text" id="order-name" class="order-input" placeholder="你的姓名 (班級/座號)"><br>
+        <div class="price">訂購費用：💎 5000 / 次</div>
+        <button class="buy-btn" style="background:var(--pink);" onclick="placeOrder()">送出訂單</button>
+    </div>
+
+    <script>
+        // 讀取大廳數據
+        let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || { pts: 100, title: '初級冒險者', ownedCursors: [] };
+        
+        function updateUI() {
+            document.getElementById('pts-display').innerText = Math.floor(db.pts);
+            localStorage.setItem('lord_mega_db_v5', JSON.stringify(db));
+        }
+
+        // --- 游標購買邏輯 ---
+        function buyCursor(type, cost) {
+            if (db.pts >= cost) {
+                db.pts -= cost;
+                alert("購買成功！已套用新游標。");
+                applyCursor(type);
+                updateUI();
+            } else {
+                alert("鑽石不足！再去遊戲室賺一點吧。");
+            }
+        }
+
+        function applyCursor(type) {
+            const body = document.getElementById('main-body');
+            body.className = ''; // 清除舊樣式
+            if (type === 'sword') body.classList.add('cursor-sword');
+            if (type === 'magic') body.classList.add('cursor-magic');
+        }
+
+        // --- 檔案下載邏輯 ---
+        function downloadFile(fileName, cost) {
+            if (db.pts >= cost) {
+                if (confirm(`確定要花費 💎 ${cost} 下載 ${fileName} 嗎？`)) {
+                    db.pts -= cost;
+                    updateUI();
+                    alert("驗證成功！正在啟動下載...");
+                    // 這裡模擬下載，實際上領主需要把檔案放在同資料夾
+                    window.open(fileName, '_blank');
+                }
+            } else {
+                alert("鑽石不足，無法解鎖此檔案！");
+            }
+        }
+
+        // --- 超級販賣專區邏輯 ---
+        function enterSecretZone() {
+            const pw = prompt("請輸入專屬訪問代碼：");
+            if (pw === "45510") {
+                document.getElementById('secret-zone').style.display = 'block';
+                window.scrollTo(0, document.body.scrollHeight);
+            } else {
+                alert("代碼錯誤，這不是你該來的地方！");
+            }
+        }
+
+        function placeOrder() {
+            const item = document.getElementById('order-item').value;
+            const name = document.getElementById('order-name').value;
+            
+            if (!item || !name) return alert("請填寫完整的訂購資訊！");
+            
+            if (db.pts >= 5000) {
+                db.pts -= 5000;
+                updateUI();
+                alert(`【訂單成功】\n收件人：${name}\n商品：${item}\n領主已收到你的請求，請於學校見面領取！`);
+            } else {
+                alert("實體商品很貴的！鑽石不夠喔。");
+            }
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
