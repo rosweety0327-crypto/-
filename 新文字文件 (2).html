@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小朋友下樓梯 - 修正版</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #2c3e50;
+            font-family: sans-serif; display: flex; 
+            justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden; touch-action: none;
+        }
+        #game-container {
+            width: 320px; height: 480px; background: #34495e;
+            border: 6px solid #ecf0f1; border-radius: 10px;
+            position: relative; overflow: hidden;
+        }
+        canvas { background: #ecf0f1; display: block; width: 100%; height: 100%; }
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+            background: rgba(52, 73, 94, 0.9); z-index: 10;
+        }
+        .hidden { display: none !important; }
+        .btn {
+            margin: 10px; padding: 15px 40px; font-size: 1.2rem;
+            cursor: pointer; border: none; border-radius: 50px;
+            background: #e67e22; color: white; box-shadow: 0 4px #d35400;
+        }
+        .skin-item { font-size: 2.5rem; padding: 10px; cursor: pointer; border: 3px solid transparent; }
+        .skin-item.active { border-color: #f1c40f; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <section id="main-menu" class="screen">
+            <h1>小朋友下樓梯</h1>
+            <button class="btn" onclick="startGame()">開始遊戲</button>
+            <button class="btn" onclick="toggleScreen('skin-menu', true)">更換角色</button>
+        </section>
+
+        <section id="skin-menu" class="screen hidden">
+            <h2>選擇角色</h2>
+            <div style="display:flex; gap:10px;">
+                <div class="skin-item active" onclick="selectSkin('😄', this)">😄</div>
+                <div class="skin-item" onclick="selectSkin('🐱', this)">🐱</div>
+                <div class="skin-item" onclick="selectSkin('🤖', this)">🤖</div>
+            </div>
+            <button class="btn" onclick="toggleScreen('skin-menu', false)">確定</button>
+        </section>
+
+        <canvas id="gameCanvas" width="320" height="480"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameActive = false;
+        let player = { x: 145, y: 50, vy: 0, emoji: "😄", onGround: false, left: false, right: false };
+        let stairs = [];
+        const config = { gravity: 0.25, speed: 1.5, jump: -7, step: 100 };
+
+        function toggleScreen(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
+
+        function selectSkin(emoji, el) {
+            player.emoji = emoji;
+            document.querySelectorAll('.skin-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function startGame() {
+            toggleScreen('main-menu', false);
+            resetGame();
+            gameActive = true;
+            // 確保循環有在跑
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            player.x = 145; player.y = 50; player.vy = 0;
+            stairs = [];
+            for(let i=0; i<5; i++) {
+                stairs.push({
+                    type: i === 0 ? 'block' : (Math.random() > 0.8 ? 'spike' : 'block'),
+                    x: Math.random() * 260,
+                    y: 150 + (i * config.step)
+                });
+            }
+        }
+
+        // --- 控制邏輯 ---
+        window.onkeydown = (e) => {
+            if(e.key === "ArrowLeft") player.left = true;
+            if(e.key === "ArrowRight") player.right = true;
+        };
+        window.onkeyup = (e) => {
+            if(e.key === "ArrowLeft") player.left = false;
+            if(e.key === "ArrowRight") player.right = false;
+        };
+
+        // iPad 觸控
+        canvas.ontouchstart = (e) => {
+            const x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            if(x < 160) player.left = true; else player.right = true;
+            return false;
+        };
+        canvas.ontouchend = () => { player.left = false; player.right = false; };
+
+        // Switch 手把
+        function checkGamepad() {
+            const gp = navigator.getGamepads()[0];
+            if(gp) {
+                player.left = gp.axes[0] < -0.4 || gp.buttons[14].pressed;
+                player.right = gp.axes[0] > 0.4 || gp.buttons[15].pressed;
+            }
+        }
+
+        function update() {
+            if(!gameActive) return;
+            checkGamepad();
+
+            if(player.left) player.x -= 4;
+            if(player.right) player.x += 4;
+            
+            player.vy += config.gravity;
+            player.y += player.vy;
+
+            player.onGround = false;
+            stairs.forEach(s => {
+                s.y -= config.speed;
+                // 碰撞檢查
+                if(player.vy > 0 && player.x + 25 > s.x && player.x < s.x + 60 &&
+                   player.y + 25 >= s.y && player.y + 25 <= s.y + 15 + player.vy) {
+                    player.vy = 0;
+                    player.y = s.y - 25;
+                    player.onGround = true;
+                }
+            });
+
+            if(player.onGround) player.y -= config.speed;
+
+            // 樓梯循環
+            if(stairs[0].y < -20) {
+                stairs.shift();
+                stairs.push({
+                    type: Math.random() > 0.8 ? 'spike' : 'block',
+                    x: Math.random() * 260,
+                    y: VIEWHEIGHT
+                });
+            }
+
+            if(player.y > 480 || player.y < -30) {
+                gameActive = false;
+                alert("遊戲結束！分數：" + Math.floor(Date.now()/1000));
+                location.reload();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, 320, 480);
+            stairs.forEach(s => {
+                ctx.fillStyle = s.type === 'block' ? "#3498db" : "#e74c3c";
+                if(s.type === 'block') {
+                    ctx.fillRect(s.x, s.y, 60, 15);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y+15); ctx.lineTo(s.x+30, s.y); ctx.lineTo(s.x+60, s.y+15);
+                    ctx.fill();
+                }
+            });
+            ctx.font = "26px serif";
+            ctx.fillText(player.emoji, player.x, player.y + 22);
+        }
+
+        const VIEWHEIGHT = 480;
+        function gameLoop() {
+            if(gameActive) {
+                update();
+                draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
