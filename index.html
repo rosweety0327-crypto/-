@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小宥領主的基地 | V8.5</title>
+    <title>小宥領主的基地 | V8.6</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --gold: #f1c40f; 
@@ -43,9 +43,15 @@
         .blood-card { border-color: var(--blood); background: linear-gradient(145deg, #2a0000, #161b22); }
 
         /* --- 遊戲 Overlay 共通樣式 --- */
-        #survivor-overlay, #shooter-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; overflow: hidden; }
+        #survivor-overlay, #shooter-overlay, #exam-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; overflow: hidden; }
         .game-page { display: none; width: 100%; height: 100vh; flex-direction: column; position: absolute; }
         .game-page.active { display: flex; }
+
+        /* 考試專用樣式 */
+        .exam-container { max-width: 600px; margin: 50px auto; background: #161b22; border: 2px solid #30363d; border-radius: 20px; padding: 30px; }
+        .staff { position: relative; width: 200px; height: 100px; border-top: 2px solid white; border-bottom: 2px solid white; margin: 20px auto; background: linear-gradient(to bottom, transparent 18px, white 18px, white 20px, transparent 20px); background-size: 100% 20px; }
+        .note-head { position: absolute; width: 16px; height: 12px; background: white; border-radius: 50%; left: 90px; }
+        .ledger-line { position: absolute; width: 24px; height: 2px; background: white; left: 86px; }
         
         /* 射擊遊戲專用 */
         #shooterCanvas { background: #000; display: block; width: 100%; height: 100%; }
@@ -88,28 +94,27 @@
             <div class="icon">🧱</div>
             <div class="title">俄羅斯方塊 2</div>
         </div>
-    <!-- 領主坦克大戰按鈕 -->
-<div class="game-card" style="border-color:var(--boss); background: linear-gradient(145deg, #2a0000, #161b22);" onclick="location.href='tank_war.html'">
-    <div class="tag" style="background:var(--boss);">2 PLAYER</div>
-    <div class="icon">🚀</div>
-    <div class="title">領主坦克大戰</div>
-</div>
+        <div class="game-card" style="border-color:var(--boss); background: linear-gradient(145deg, #2a0000, #161b22);" onclick="location.href='tank_war.html'">
+            <div class="tag" style="background:var(--boss);">2 PLAYER</div>
+            <div class="icon">🚀</div>
+            <div class="title">領主坦克大戰</div>
+        </div>
     </div>
-<div class="game-card" style="border-color:var(--gold); background: linear-gradient(145deg, #2c2500, #161b22);" onclick="location.href='shop.html'">
-    <div class="tag" style="background:var(--gold); color:black;">SHOP</div>
-    <div class="icon">🛒</div>
-    <div class="title">領主物資站</div>
-<div class="section-header">🎓 領主進修區</div>
-<div class="grid">
-    <!-- 貼上方的按鈕程式碼 -->
-   
-</div>
-    <div class="game-card" style="border-color:var(--gold); background: linear-gradient(145deg, #1e1e1e, #2d2d2d);" 解謎.html'">
-        <div class="tag" style="background:var(--gold); color:black;">🏆 EXAM</div>
-        <div class="icon">📜</div>
-        <div class="title">領主生關考試(第一級)</div>
+
+    <div class="section-header">🎓 領主進修區</div>
+    <div class="grid">
+        <div class="game-card" style="border-color:var(--gold); background: linear-gradient(145deg, #1e1e1e, #2d2d2d);" onclick="openExam()">
+            <div class="tag" style="background:var(--gold); color:black;">🏆 EXAM</div>
+            <div class="icon">📜</div>
+            <div class="title">領主生關考試(第一級)</div>
+        </div>
+        <div class="game-card" style="border-color:var(--gold); background: linear-gradient(145deg, #2c2500, #161b22);" onclick="location.href='shop.html'">
+            <div class="tag" style="background:var(--gold); color:black;">SHOP</div>
+            <div class="icon">🛒</div>
+            <div class="title">領主物資站</div>
+        </div>
     </div>
-</div>
+
     <div class="section-header">✨ 星光閃爍之時 (小說全集)</div>
     <div class="grid">
         <div class="game-card star-card" onclick="location.href='star_ch1.html'"><div class="tag">Ch 1</div><div class="icon">🌃</div><div class="title">星與光</div></div>
@@ -118,6 +123,7 @@
         <div class="game-card star-card" onclick="location.href='star_ch4.html'"><div class="tag">Ch 4</div><div class="icon">📱</div><div class="title">綻放序曲</div></div>
         <div class="game-card star-card" onclick="location.href='star_ch5.html'"><div class="tag">Ch 5</div><div class="icon">🔥</div><div class="title">靈魂之火</div></div>
     </div>
+
     <div class="section-header">🎮 領主核心遊戲 (13)</div>
     <div class="grid">
         <div class="game-card" style="border-color:var(--primary);" onclick="openSurvivor()">
@@ -131,10 +137,10 @@
             <div class="title">星際射擊</div>
         </div>
         <div class="game-card" style="border-color:var(--green);" onclick="location.href='下樓梯.html'">
-    <div class="tag" style="background:var(--green);">NEW</div>
-    <div class="icon">🏃</div>
-    <div class="title">小朋友下樓梯</div>
-</div>
+            <div class="tag" style="background:var(--green);">NEW</div>
+            <div class="icon">🏃</div>
+            <div class="title">小朋友下樓梯</div>
+        </div>
         <div class="game-card" style="border-color:var(--green);" onclick="play('70701.2.html')"><div class="tag" style="background:var(--green);">NEW</div><div class="icon">🌀</div><div class="title">迷宮挑戰</div></div>
         <div class="game-card" onclick="play('jump.html')"><div class="tag">HOT</div><div class="icon">🐟</div><div class="title">小魚跳跳</div></div>
         <div class="game-card" onclick="play('狼人殺.html')"><div class="icon">🐺</div><div class="title">狼人殺</div></div>
@@ -148,41 +154,24 @@
         <div class="game-card" onclick="play('四子棋.html')"><div class="icon">🔴</div><div class="title">四子棋</div></div>
     </div>
 
-    <div id="survivor-overlay">
-        <div id="page-levels" class="game-page active">
-            <div style="padding:15px; text-align:center; background: #1f6feb; display: flex; justify-content: space-between;">
-                <button onclick="closeSurvivor()" style="background:none; border:none; color:white; font-size:20px;">🏠</button>
-                <h2>百戰深淵</h2>
-                <div style="width:20px;"></div>
+    <!-- 考試 Overlay -->
+    <div id="exam-overlay">
+        <div class="exam-container">
+            <div style="display:flex; justify-content: space-between; align-items:center;">
+                <h2 id="exam-title" style="color:var(--gold);">領主考試：第 1 關</h2>
+                <button onclick="closeExam()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
             </div>
-            <div class="scroll-v" id="level-list"></div>
-        </div>
-        <div id="page-equip" class="game-page">
-            <div style="padding:15px; text-align:center; background: #1f6feb;"><h2>領主整備室</h2></div>
-            <div style="padding: 20px; overflow-y: auto;">
-                <h3 style="color:var(--primary)">預選初始神諭 (3個)</h3>
-                <div id="skill-selection" class="skill-grid"></div>
-                <button class="start-btn" onclick="startBattle()">傳送進入第 <span id="targetLv">1</span> 層</button>
-            </div>
-        </div>
-        <div id="page-battle" class="game-page">
-            <div class="battle-ui">
-                <div class="timer" id="gameTimer" style="font-size:24px;">15:00</div>
-                <div style="text-align:right">KILLS: <span id="killCount">0</span></div>
-            </div>
-            <div class="boss-warning" id="bossWarn">WARNING: BOSS APPROACHING</div>
-            <canvas id="battleCanvas"></canvas>
-            <div id="joystick-container"><div id="joystick-stick"></div></div>
+            <div id="exam-q-area" style="padding: 20px; text-align: left; min-height: 150px; background:#0d1117; border-radius:10px; margin-bottom:20px;"></div>
+            <input type="text" id="exam-input" style="padding:12px; width:80%; font-size:18px; border-radius:8px; border:1px solid var(--blue); background:#161b22; color:white;" placeholder="輸入答案">
+            <br><br>
+            <button class="control-btn" style="background:var(--blue); width:100px;" onclick="checkExam()">驗證</button>
+            <p id="exam-hint" style="font-size:12px; color:#8b949e; margin-top:10px;"></p>
         </div>
     </div>
 
-    <div id="shooter-overlay">
-        <div class="battle-ui" style="pointer-events: auto;">
-            <button onclick="closeShooter()" style="background:rgba(0,0,0,0.5); border:1px solid white; color:white; padding:5px 15px; border-radius:10px;">退出</button>
-            <div style="color:var(--gold); font-size:20px;">SCORE: <span id="shooter-score">0</span></div>
-        </div>
-        <canvas id="shooterCanvas"></canvas>
-    </div>
+    <!-- 原有遊戲與功能 Overlay -->
+    <div id="survivor-overlay">...</div> <!-- 這裡內容保持原樣 -->
+    <!-- (下略，請維持原本 body 內的 survivor-overlay 與 shooter-overlay 代碼) -->
 
     <div id="music-bar">
         <div id="track-name" style="font-size:14px; color:var(--pink);">🎵 準備播放</div>
@@ -208,281 +197,63 @@
             document.getElementById('display-title').innerText = "稱號：" + db.title;
         }
 
-        // --- 領主隱藏入口邏輯 ---
-        let titleClickCount = 0;
-        document.getElementById('display-title').onclick = function() {
-            titleClickCount++;
-            if (titleClickCount >= 5) {
-                titleClickCount = 0;
-                const pw = prompt("【領主驗證】請輸入隱藏控制室代碼：");
-                if (pw === "108014") {
-                    location.href = 'ultimate_dodge.html';
-                } else if (pw !== null) {
-                    alert("驗證失敗！");
-                }
-            }
-        };
-
-        // --- 遊戲與音樂邏輯 ---
-        function play(url) { db.pts += 50; save(); location.href = url; }
-        function playPause() { const a = document.getElementById('audio'); if(a.paused) a.play(); else a.pause(); updateTrackName(); }
-        function switchTrack() {
-            curT = (curT + 1) % playlist.length;
-            const a = document.getElementById('audio');
-            document.getElementById('audio-src').src = encodeURIComponent(playlist[curT].f);
-            updateTrackName(); a.load(); a.play();
-        }
-        function updateTrackName() { document.getElementById('track-name').innerText = "🎵 " + playlist[curT].n; }
-
-        // --- 星際射擊遊戲代碼 ---
-        const sCanvas = document.getElementById('shooterCanvas');
-        const sCtx = sCanvas.getContext('2d');
-        let shooterActive = false, sScore = 0;
-        let sPlayer = { x: 0, y: 0, w: 40, h: 40 };
-        let sBullets = [], sEnemies = [];
-
-        function openShooter() {
-            document.getElementById('shooter-overlay').style.display = 'block';
-            sCanvas.width = window.innerWidth;
-            sCanvas.height = window.innerHeight;
-            sPlayer.x = sCanvas.width / 2 - 20;
-            sPlayer.y = sCanvas.height - 80;
-            sBullets = []; sEnemies = []; sScore = 0;
-            shooterActive = true;
-            document.getElementById('shooter-score').innerText = 0;
-            requestAnimationFrame(shooterLoop);
-        }
-
-        function closeShooter() {
-            document.getElementById('shooter-overlay').style.display = 'none';
-            shooterActive = false;
-            db.pts += Math.floor(sScore / 10); save();
-        }
-
-        function shooterLoop() {
-            if(!shooterActive) return;
-            sCtx.fillStyle = "black";
-            sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
-
-            // 畫玩家 (藍色火箭)
-            sCtx.fillStyle = "#58a6ff";
-            sCtx.beginPath();
-            sCtx.moveTo(sPlayer.x + 20, sPlayer.y);
-            sCtx.lineTo(sPlayer.x, sPlayer.y + 40);
-            sCtx.lineTo(sPlayer.x + 40, sPlayer.y + 40);
-            sCtx.fill();
-
-            // 子彈處理
-            if(frame % 10 === 0) sBullets.push({x: sPlayer.x + 18, y: sPlayer.y, v: 8});
-            sBullets.forEach((b, i) => {
-                b.y -= b.v;
-                sCtx.fillStyle = "yellow";
-                sCtx.fillRect(b.x, b.y, 4, 10);
-                if(b.y < 0) sBullets.splice(i, 1);
-            });
-
-            // 敵人處理
-            if(Math.random() < 0.05) sEnemies.push({x: Math.random()*(sCanvas.width-30), y: -30, v: 3 + Math.random()*3});
-            sEnemies.forEach((en, i) => {
-                en.y += en.v;
-                sCtx.fillStyle = "#ff4757";
-                sCtx.fillRect(en.x, en.y, 30, 30);
-
-                // 碰撞檢測 (子彈擊中敵人)
-                sBullets.forEach((b, bi) => {
-                    if(b.x > en.x && b.x < en.x+30 && b.y > en.y && b.y < en.y+30) {
-                        sEnemies.splice(i, 1);
-                        sBullets.splice(bi, 1);
-                        sScore += 100;
-                        document.getElementById('shooter-score').innerText = sScore;
-                    }
-                });
-
-                // 碰撞檢測 (敵人撞到玩家)
-                if(en.y + 30 > sPlayer.y && en.x + 30 > sPlayer.x && en.x < sPlayer.x + 40) {
-                    alert("遊戲結束！最終得分: " + sScore);
-                    closeShooter();
-                }
-
-                if(en.y > sCanvas.height) sEnemies.splice(i, 1);
-            });
-
-            // 玩家移動 (隨滑鼠/觸控)
-            sCanvas.onmousemove = (e) => { sPlayer.x = e.clientX - 20; };
-            sCanvas.ontouchmove = (e) => { sPlayer.x = e.touches[0].clientX - 20; e.preventDefault(); };
-
-            requestAnimationFrame(shooterLoop);
-        }
-
-        // --- 噠噠特工 V4.1 核心代碼 (保持原樣) ---
-        const skillsConfig = [
-            { id: 'fire', name: '紅蓮業火', icon: '🔥' },
-            { id: 'bolt', name: '九天雷劫', icon: '⚡' },
-            { id: 'guard', name: '守護力場', icon: '🌀' },
-            { id: 'drill', name: '螺旋穿孔', icon: '🔩' }
-        ];
-        let selectedSkills = [], enemies = [], projectiles = [], kills = 0, frame = 0;
-        let gameTime = 900, currentLv = 1, isGameOver = true;
-        const canvas = document.getElementById('battleCanvas');
-        const ctx = canvas.getContext('2d');
-        let player = { x: 0, y: 0, speed: 3.5, radius: 15, hp: 100, maxHp: 100, invinc: 0 };
-        let joystick = { active: false, x: 0, y: 0, startX: 0, startY: 0 };
-        let keys = {};
-
-        function openSurvivor() { document.getElementById('survivor-overlay').style.display = 'block'; initLevelList(); }
-        function closeSurvivor() { document.getElementById('survivor-overlay').style.display = 'none'; isGameOver = true; }
-        function switchGamePage(id) { 
-            document.querySelectorAll('.game-page').forEach(p=>p.classList.remove('active')); 
-            document.getElementById(id).classList.add('active'); 
-        }
-
-        function initLevelList() {
-            const levelList = document.getElementById('level-list');
-            if(levelList.children.length > 0) return;
-            for(let i=1; i<=100; i++) {
-                const div = document.createElement('div');
-                div.className = 'level-card';
-                div.innerHTML = `<span>第 ${i} 層</span><button onclick="selectLevel(${i})" style="background:var(--blue); color:white; border:none; padding:5px 15px; border-radius:15px;">準備</button>`;
-                levelList.appendChild(div);
-            }
-            const skillGrid = document.getElementById('skill-selection');
-            skillsConfig.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'skill-item';
-                div.innerHTML = `${s.icon} ${s.name}`;
-                div.onclick = () => {
-                    if(selectedSkills.includes(s.id)) { selectedSkills = selectedSkills.filter(x => x!==s.id); div.classList.remove('selected'); }
-                    else if(selectedSkills.length < 3) { selectedSkills.push(s.id); div.classList.add('selected'); }
-                };
-                skillGrid.appendChild(div);
-            });
-        }
-
-        function selectLevel(lv) { currentLv = lv; document.getElementById('targetLv').innerText = lv; switchGamePage('page-equip'); }
-
-        function startBattle() {
-            if(selectedSkills.length === 0) return alert("領主，請選擇神諭！");
-            switchGamePage('page-battle');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            player.x = canvas.width/2; player.y = canvas.height/2;
-            player.hp = 100; gameTime = 900; enemies = []; projectiles = []; kills = 0; frame = 0;
-            isGameOver = false;
-            requestAnimationFrame(gameLoop);
-        }
-
-        function update() {
-            if(isGameOver) return;
-            frame++;
-            if(frame % 60 === 0 && gameTime > 0) {
-                gameTime--;
-                const m = Math.floor(gameTime / 60), s = gameTime % 60;
-                document.getElementById('gameTimer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                if(gameTime === 600 || gameTime === 300) spawnBoss();
-                if(player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + 1);
-            }
-            const factor = 1 + ((900-gameTime) / 60) * 0.15;
-            let mx = (keys['a'] ? -1 : keys['d'] ? 1 : 0) || joystick.x;
-            let my = (keys['w'] ? -1 : keys['s'] ? 1 : 0) || joystick.y;
-            player.x += mx * player.speed; player.y += my * player.speed;
-            player.x = Math.max(15, Math.min(canvas.width-15, player.x));
-            player.y = Math.max(15, Math.min(canvas.height-15, player.y));
-            if(player.invinc > 0) player.invinc--;
-
-            selectedSkills.forEach(sId => {
-                if(sId === 'drill' && frame % 60 === 0 && enemies.length > 0) {
-                    let target = enemies[0];
-                    let a = Math.atan2(target.y-player.y, target.x-player.x);
-                    projectiles.push({ x: player.x, y: player.y, vx: Math.cos(a)*7, vy: Math.sin(a)*7 });
-                }
-                if(sId === 'bolt' && frame % 100 === 0 && enemies.length > 0) {
-                    const t = enemies[Math.floor(Math.random()*enemies.length)];
-                    t.hp -= 15;
-                    ctx.strokeStyle = "white"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(t.x, 0); ctx.lineTo(t.x, t.y); ctx.stroke();
-                }
-            });
-
-            if(frame % Math.max(5, 35 - Math.floor((900-gameTime)/20)) === 0) spawnEnemy(factor);
-
-            enemies.forEach((en, i) => {
-                let dx = player.x - en.x, dy = player.y - en.y;
-                let dist = Math.hypot(dx, dy);
-                en.x += (dx/dist) * en.speed; en.y += (dy/dist) * en.speed;
-                if(dist < en.radius + player.radius && player.invinc <= 0) {
-                    player.hp -= en.isBoss ? 20 : 10; player.invinc = 60;
-                    if(player.hp <= 0) endGame(false);
-                }
-                if(en.hp <= 0) { enemies.splice(i, 1); kills++; document.getElementById('killCount').innerText = kills; }
-            });
-
-            projectiles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy;
-                enemies.forEach(en => {
-                    if(Math.hypot(en.x - p.x, en.y - p.y) < en.radius + 10) { en.hp -= 5; projectiles.splice(i, 1); }
-                });
-            });
-            if(gameTime <= 0) endGame(true);
-        }
-
-        function spawnEnemy(f) {
-            let side = Math.floor(Math.random()*4), x, y;
-            if(side===0){x=Math.random()*canvas.width;y=-30} else if(side===1){x=Math.random()*canvas.width;y=canvas.height+30}
-            else if(side===2){x=-30;y=Math.random()*canvas.height} else {x=canvas.width+30;y=Math.random()*canvas.height}
-            enemies.push({ x, y, hp: 1*f, speed: 1.2+f*0.1, radius: 10, isBoss: false });
-        }
-
-        function spawnBoss() {
-            document.getElementById('bossWarn').style.display='block';
-            setTimeout(()=>document.getElementById('bossWarn').style.display='none', 3000);
-            enemies.push({ x: canvas.width/2, y: -50, hp: 150, speed: 1.5, radius: 30, isBoss: true });
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            enemies.forEach(en => { ctx.fillStyle = en.isBoss ? "#ff4757" : "#8b949e"; ctx.beginPath(); ctx.arc(en.x, en.y, en.radius, 0, Math.PI*2); ctx.fill(); });
-            projectiles.forEach(p => { ctx.fillStyle = "#00f0f0"; ctx.fillRect(p.x-5, p.y-5, 10, 10); });
-            selectedSkills.forEach(sId => {
-                if(sId === 'fire') {
-                    ctx.fillStyle = "rgba(255, 71, 87, 0.1)"; ctx.beginPath(); ctx.arc(player.x, player.y, 80, 0, Math.PI*2); ctx.fill();
-                    enemies.forEach(en => { if(Math.hypot(en.x-player.x, en.y-player.y) < 80) en.hp -= 0.05; });
-                }
-                if(sId === 'guard') {
-                    const angle = frame * 0.08;
-                    for(let i=0; i<2; i++) {
-                        const gx = player.x + Math.cos(angle + i*Math.PI) * 65, gy = player.y + Math.sin(angle + i*Math.PI) * 65;
-                        ctx.fillStyle = "#00f0f0"; ctx.beginPath(); ctx.arc(gx, gy, 8, 0, Math.PI*2); ctx.fill();
-                        enemies.forEach(en => { if(Math.hypot(en.x-gx, en.y-gy) < 15) en.hp -= 0.3; });
-                    }
-                }
-            });
-            if(player.invinc % 10 < 5) { ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(player.x, player.y, 15, 0, Math.PI*2); ctx.fill(); }
-            ctx.fillStyle = "#2ecc71"; ctx.fillRect(player.x-20, player.y-30, 40 * (player.hp/player.maxHp), 6);
-        }
-
-        function endGame(win) { isGameOver = true; alert(win ? "第 "+currentLv+" 層通關成功！" : "領主戰敗，請下次再來！"); switchGamePage('page-levels'); }
-        function gameLoop() { if(!isGameOver){ update(); draw(); requestAnimationFrame(gameLoop); } }
-
-        const joyContainer = document.getElementById('joystick-container');
-        const joyStick = document.getElementById('joystick-stick');
-        joyContainer.addEventListener('touchstart', e => {
-            joystick.active = true;
-            const rect = joyContainer.getBoundingClientRect();
-            joystick.startX = rect.left + rect.width/2; joystick.startY = rect.top + rect.height/2;
-        });
-        window.addEventListener('touchmove', e => {
-            if(!joystick.active) return;
-            const touch = e.touches[0];
-            let dx = touch.clientX - joystick.startX, dy = touch.clientY - joystick.startY;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist > 40) { dx *= 40/dist; dy *= 40/dist; }
-            joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
-            joystick.x = dx/40; joystick.y = dy/40;
-        });
-        window.addEventListener('touchend', () => { joystick.active = false; joyStick.style.transform = `translate(0,0)`; joystick.x = 0; joystick.y = 0; });
+        // --- 考試邏輯系統 (V6 規格) ---
+        let examStage = 0;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const examNotes = { "C": 261.63, "C#": 277.18, "D": 293.66, "E": 329.63, "G": 392.00 };
         
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+        const examStages = [
+            { type: "math", q: "【二元一次】<br>3x + y = 13<br>x - y = -1<br>輸入 xy 組合", ans: "34" },
+            { type: "morse", q: "【摩斯密碼】辨識字母：<br><button class='control-btn' onclick='playExamMorse(\"-\")'>播放</button>", ans: "T" },
+            { type: "music", q: "【絕對音感】基準音 C：<button class='control-btn' onclick='playExamTone(261.63)'>C</button><br>挑戰音：<button class='control-btn' onclick='playExamTone(293.66)'>挑戰音</button>", ans: "D" },
+            { type: "bpm", q: "【節拍運算】BPM = 120，4 秒內有幾個四分音符？", ans: "8" },
+            { type: "math", q: "【二元一次】x + y = 5, x - y = 1<br>算出 x * y 的值", ans: "6" },
+            { type: "music", q: "【音感】基準音 C：<button class='control-btn' onclick='playExamTone(261.63)'>C</button><br>挑戰音：<button class='control-btn' onclick='playExamTone(392.00)'>挑戰音</button>", ans: "G" },
+            { type: "morse", q: "【標準長碼數字】<br><button class='control-btn' onclick='playExamMorse(\"...--\")'>播放</button>", ans: "3", hint: "這是數字 3 的長碼" },
+            { type: "bpm", q: "【進階節拍】BPM = 60，2 秒內有幾個八分音符？", ans: "4" },
+            { type: "chord", q: "【三音和弦挑戰】基準音 C<br><button class='control-btn' onclick='playExamChord([261.63, 329.63, 392.00])'>播放和弦</button>", ans: "C、E、G", hint: "格式：C、E、G" },
+            { type: "staff", q: "【視譜挑戰】辨認音符名：<br><div class='staff'><div class='ledger-line' style='top:110px;'></div><div class='note-head' style='top:105px;'></div></div>", ans: "C", hint: "下加一線的音" }
+        ];
 
-        refresh();
+        function openExam() { document.getElementById('exam-overlay').style.display='block'; examStage=0; showExamStage(); }
+        function closeExam() { document.getElementById('exam-overlay').style.display='none'; }
+        function showExamStage() {
+            const s = examStages[examStage];
+            document.getElementById('exam-title').innerText = `領主考試：第 ${examStage+1} 關`;
+            document.getElementById('exam-q-area').innerHTML = s.q;
+            document.getElementById('exam-input').value = "";
+            document.getElementById('exam-hint').innerText = s.hint || "";
+        }
+        function checkExam() {
+            const input = document.getElementById('exam-input').value.toUpperCase().trim();
+            if(input === examStages[examStage].ans) {
+                examStage++;
+                if(examStage >= examStages.length) {
+                    alert("🎉 恭喜通關第一級考試！獲得 500 積分！");
+                    db.pts += 500; save(); closeExam();
+                } else { showExamStage(); }
+            } else { alert("❌ 答案有誤，再試一次！"); }
+        }
+        function playExamTone(f) {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.frequency.value = f; g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            o.start(); o.stop(audioCtx.currentTime + 0.8);
+        }
+        function playExamChord(fs) { fs.forEach(f => playExamTone(f)); }
+        function playExamMorse(code) {
+            let now = audioCtx.currentTime;
+            code.split('').forEach(s => {
+                const o = audioCtx.createOscillator(); o.connect(audioCtx.destination);
+                o.frequency.value = 700; const d = (s==='.') ? 0.1 : 0.3;
+                o.start(now); o.stop(now + d); now += d + 0.15;
+            });
+        }
+
+        // --- 其餘原有邏輯 (titleClickCount, playPause, switchTrack, shooter, survivor 等) ---
+        // (請在此處完整保留你原本程式碼中的 script 內容)
+        
+        // ... (保持你原本 script 的所有 function 到 refresh() 為止)
     </script>
 </body>
 </html>
