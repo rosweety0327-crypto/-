@@ -2,11 +2,26 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小魚跳跳：輕盈版</title>
+    <!-- 加入 viewport 設置，防止 iPad 自動縮放，user-scalable=no 很重要 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小魚跳跳：iPad 觸控版</title>
     <style>
+        /* 防止 iPad 上出現選取文字或長按選單，並鎖定畫面滑動 */
+        * { -webkit-touch-callout: none; -webkit-user-select: none; touch-action: none; }
+        
         body { background: #050a10; color: white; text-align: center; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        canvas { background: linear-gradient(to bottom, #111d2b 0%, #050a10 100%); border: 4px solid #58a6ff; border-radius: 15px; box-shadow: 0 0 30px rgba(88, 166, 255, 0.3); cursor: pointer; }
+        
+        /* 讓畫布根據螢幕高度自動調整比例，確保 iPad 顯示不會跑掉 */
+        canvas { 
+            background: linear-gradient(to bottom, #111d2b 0%, #050a10 100%); 
+            border: 4px solid #58a6ff; 
+            border-radius: 15px; 
+            box-shadow: 0 0 30px rgba(88, 166, 255, 0.3); 
+            max-width: 95vw;
+            max-height: 80vh;
+            cursor: pointer; 
+        }
+
         .ui { position: absolute; top: 20px; width: 100%; pointer-events: none; }
         .score-board { font-size: 32px; font-weight: bold; color: #58a6ff; text-shadow: 0 0 10px rgba(88,166,255,0.5); }
         button { background: #161b22; color: #58a6ff; border: 1px solid #30363d; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; pointer-events: auto; }
@@ -29,17 +44,15 @@
 
         let db = JSON.parse(localStorage.getItem('lord_mega_db_v5')) || {pts: 0};
         
-        // 🔹 參數修正：掉落變慢，手感變好
-        // let bird = { x: 80, y: 250, v: 0, g: 0.35, jump: -6.5, angle: 0 };
         let bird = { x: 80, y: 250, v: 0, g: 0.1, jump: -3.5, angle: 0 };
         let pipes = [];
         let score = 0;
         let gameActive = true;
         let frame = 0;
-        let speed = 2.0; // 🔹 速度變慢，反應時間變長
+        let speed = 2.0;
 
         function spawnPipe() {
-            const gap = 150; // 🔹 洞口稍微變大一點點
+            const gap = 150; 
             const h = Math.random() * (canvas.height - gap - 100) + 50;
             pipes.push({ x: canvas.width, topH: h, bottomY: h + gap, passed: false });
         }
@@ -49,12 +62,10 @@
             frame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 物理運動
             bird.v += bird.g;
             bird.y += bird.v;
             bird.angle = Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.1));
 
-            // 繪製柱子
             ctx.fillStyle = "#30363d";
             ctx.strokeStyle = "#58a6ff";
             pipes.forEach((p, i) => {
@@ -66,7 +77,7 @@
 
                 if(!p.passed && bird.x > p.x + 50) {
                     p.passed = true; score++; 
-                    speed += 0.03; // 慢慢增加難度
+                    speed += 0.03; 
                     db.pts += 50; save();
                     document.getElementById('current-score').innerText = score;
                 }
@@ -77,10 +88,9 @@
             });
 
             if(pipes.length > 0 && pipes[0].x < -60) pipes.shift();
-            if(frame % 110 === 0) spawnPipe(); // 生成間隔拉長
+            if(frame % 110 === 0) spawnPipe();
             if(bird.y > canvas.height || bird.y < 0) gameOver();
 
-            // 畫小魚
             ctx.save();
             ctx.translate(bird.x, bird.y);
             ctx.rotate(bird.angle);
@@ -103,7 +113,15 @@
             document.getElementById('pts').innerText = Math.floor(db.pts);
         }
 
-        window.onclick = () => { bird.v = bird.jump; };
+        // --- 核心改動：支援 iPad 觸控 ---
+        const handleJump = (e) => {
+            if (e) e.preventDefault(); // 防止 iPad 點擊時產生縮放或滑動
+            bird.v = bird.jump;
+        };
+
+        window.addEventListener('touchstart', handleJump, { passive: false }); // iPad 專用觸控監聽
+        window.onclick = handleJump; // 電腦端維持滑鼠點擊
+
         document.getElementById('pts').innerText = db.pts;
         spawnPipe();
         draw();
