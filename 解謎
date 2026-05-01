@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>🧠 領主全能密室 V6</title>
+    <style>
+        :root { --blue: #58a6ff; --pink: #ff79c6; --gold: #f1c40f; }
+        body { background: #0d1117; color: white; font-family: "Microsoft JhengHei", sans-serif; text-align: center; padding: 20px; }
+        .game-container { max-width: 800px; margin: 0 auto; background: #161b22; border: 2px solid #30363d; border-radius: 20px; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .stage-info { color: var(--gold); font-size: 22px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .clue-area { background: #0d1117; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--blue); text-align: left; line-height: 1.6; }
+        input { padding: 12px; font-size: 18px; width: 85%; border-radius: 5px; border: 1px solid var(--blue); background: #21262d; color: white; margin-bottom: 15px; }
+        .btn { padding: 12px 30px; cursor: pointer; background: var(--blue); border: none; color: white; border-radius: 5px; font-weight: bold; }
+        .sound-btn { background: var(--pink); margin-right: 10px; }
+        .ref-btn { background: #444; margin-right: 10px; }
+        .note-hint { font-size: 14px; color: #8b949e; margin-top: 5px; }
+
+        /* 五線譜樣式 */
+        .staff { position: relative; width: 200px; height: 100px; border-top: 2px solid white; border-bottom: 2px solid white; margin: 20px auto; background: linear-gradient(to bottom, transparent 18px, white 18px, white 20px, transparent 20px); background-size: 100% 20px; }
+        .note-head { position: absolute; width: 16px; height: 12px; background: white; border-radius: 50%; left: 90px; }
+        .ledger-line { position: absolute; width: 24px; height: 2px; background: white; left: 86px; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="stage-info">🏆 領主試煉：第 <span id="stg-num">1</span> 關</div>
+    <div class="clue-area" id="clue-box"></div>
+    <input type="text" id="ans-input" placeholder="請輸入答案">
+    <br>
+    <button class="btn" onclick="check()">驗證答案</button>
+    <div class="note-hint" id="format-hint"></div>
+</div>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let currentStage = 0;
+
+    const notes = {
+        "C": 261.63, "C#": 277.18, "D": 293.66, "D#": 311.13, "E": 329.63, "F": 349.23, 
+        "F#": 369.99, "G": 392.00, "G#": 415.30, "A": 440.00, "A#": 466.16, "B": 493.88
+    };
+
+    const stages = [
+        { type: "math", q: "【二元一次】<br>3x + y = 13<br>x - y = -1<br>輸入 xy 組合", ans: "34" },
+        { type: "morse", q: "【摩斯密碼】辨識英文字母：<br><button class='btn sound-btn' onclick='playMorse(\"-\")'>播放音訊</button>", ans: "T" },
+        { type: "music", q: "【絕對音感】基準音 C：<button class='btn ref-btn' onclick='playTone(notes.C)'>C</button><br>挑戰音：<button class='btn sound-btn' onclick='playTone(notes.D)'>挑戰音</button>", ans: "D" },
+        { type: "bpm", q: "【節拍運算】BPM = 120，4 秒內有幾個四分音符？", ans: "8" },
+        { type: "math_inter", q: "【二元一次】<br>x + y = 5<br>x - y = 1<br>算出 x * y 的值", ans: "6" },
+        { type: "music_inter", q: "【絕對音感】基準音 C：<button class='btn ref-btn' onclick='playTone(notes.C)'>C</button><br>挑戰音：<button class='btn sound-btn' onclick='playTone(notes.G)'>挑戰音</button>", ans: "G" },
+        { type: "morse_standard", q: "【第七關：標準長碼數字】<br>聽取五位一組的數字碼：<br><button class='btn sound-btn' onclick='playMorse(\"...--\")'>播放音訊</button>", ans: "3", hint: "提示：標準摩斯碼數字 3" },
+        { type: "bpm_adv", q: "【進階節拍】BPM = 60，2 秒內有幾個八分音符？", ans: "4" },
+        { type: "chord_3", q: "【領主級和弦挑戰】<br>基準音 C：<button class='btn ref-btn' onclick='playTone(notes.C)'>C</button><br>聽取 3 個音組成的和弦：<br><button class='btn sound-btn' onclick='playChord([notes.C, notes.E, notes.G])'>播放和弦</button>", ans: "C、E、G", hint: "格式：C、E、G" },
+        { 
+            type: "staff_read", 
+            q: "【第十關：視譜挑戰】<br>請辨認下圖五位譜中的音符名稱（不含升降）：<br><div class='staff'><div class='ledger-line' style='top:110px;'></div><div class='note-head' style='top:105px;'></div></div>", 
+            ans: "C", 
+            hint: "提示：這是一個位於下加一線的音" 
+        }
+    ];
+
+    function showStage() {
+        const s = stages[currentStage];
+        document.getElementById('stg-num').innerText = currentStage + 1;
+        document.getElementById('clue-box').innerHTML = s.q;
+        document.getElementById('ans-input').value = "";
+        document.getElementById('format-hint').innerText = s.hint || "";
+    }
+
+    function check() {
+        const input = document.getElementById('ans-input').value.toUpperCase().trim();
+        if (input === stages[currentStage].ans) {
+            alert("🌟 太強了！通關成功！");
+            currentStage++;
+            if (currentStage >= stages.length) {
+                alert("🎉 恭喜通過領主終極試煉 V6！你已具備全能領主的實力。");
+                location.href = 'index.html';
+            } else {
+                showStage();
+            }
+        } else {
+            alert("❌ 答案錯誤，再仔細觀察或計算一下！");
+        }
+    }
+
+    function playTone(f, dur = 0.8) {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+        o.start(); o.stop(audioCtx.currentTime + dur);
+    }
+
+    function playChord(freqs) {
+        freqs.forEach(f => playTone(f, 1.5));
+    }
+
+    function playMorse(code) {
+        let now = audioCtx.currentTime;
+        code.split('').forEach(s => {
+            const o = audioCtx.createOscillator();
+            o.connect(audioCtx.destination);
+            o.frequency.value = 700;
+            const dur = (s === '.') ? 0.1 : 0.3;
+            o.start(now); o.stop(now + dur);
+            now += dur + 0.15;
+        });
+    }
+
+    showStage();
+</script>
+</body>
+</html>
