@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ 領主坦克大戰 | 道具與障礙</title>
+    <style>
+        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; overflow: hidden; }
+        canvas { background: #2c3e50; border: 5px solid #7f8c8d; display: block; margin: 10px auto; }
+        .ui { display: flex; justify-content: center; gap: 50px; font-size: 24px; font-weight: bold; margin-top: 10px; }
+        .p1-ui { color: #58a6ff; } .p2-ui { color: #ff4757; }
+        .nav-btn { position: fixed; top: 10px; left: 10px; background: #333; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="nav-btn">🏠 返回大廳</a>
+    
+    <div class="ui">
+        <div class="p1-ui">P1: <span id="p1-hp">100</span>% <span id="p1-pow"></span></div>
+        <div class="p2-ui">P2: <span id="p2-hp">100</span>% <span id="p2-pow"></span></div>
+    </div>
+
+    <canvas id="tankCanvas" width="800" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById('tankCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 障礙物與道具設定
+        let obstacles = [
+            {x: 200, y: 150, w: 20, h: 200},
+            {x: 580, y: 150, w: 20, h: 200},
+            {x: 350, y: 230, w: 100, h: 40}
+        ];
+        let powerUp = { x: 400, y: 100, active: true };
+
+        class Tank {
+            constructor(x, y, color, controls) {
+                this.x = x; this.y = y; this.color = color; this.controls = controls;
+                this.angle = 0; this.speed = 0; this.hp = 100; this.radius = 15;
+                this.damage = 5; this.isPowered = false;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-15, -15, 30, 30);
+                if(this.isPowered) { ctx.strokeStyle = "yellow"; ctx.lineWidth = 3; ctx.strokeRect(-17, -17, 34, 34); }
+                ctx.fillStyle = "black"; ctx.fillRect(0, -3, 25, 6);
+                ctx.restore();
+            }
+            update() {
+                let nextX = this.x + Math.cos(this.angle) * this.speed;
+                let nextY = this.y + Math.sin(this.angle) * this.speed;
+                
+                // 牆壁碰撞檢測
+                let hit = obstacles.some(o => nextX > o.x && nextX < o.x+o.w && nextY > o.y && nextY < o.y+o.h);
+                if(!hit) {
+                    this.x = Math.max(20, Math.min(canvas.width - 20, nextX));
+                    this.y = Math.max(20, Math.min(canvas.height - 20, nextY));
+                }
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, angle, owner, dmg) {
+                this.x = x; this.y = y; this.vx = Math.cos(angle) * 7; this.vy = Math.sin(angle) * 7;
+                this.owner = owner; this.dmg = dmg;
+            }
+            update() { this.x += this.vx; this.y += this.vy; }
+            draw() { ctx.fillStyle = this.dmg > 5 ? "orange" : "yellow"; ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill(); }
+        }
+
+        const p1 = new Tank(100, 250, "#58a6ff", {up:'w', down:'s', left:'a', right:'d', fire:' '});
+        const p2 = new Tank(700, 250, "#ff4757", {up:'arrowup', down:'arrowdown', left:'arrowleft', right:'arrowright', fire:'enter'});
+        let bullets = [];
+        const keys = {};
+
+        window.onkeydown = (e) => keys[e.key.toLowerCase()] = true;
+        window.onkeyup = (e) => keys[e.key.toLowerCase()] = false;
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 畫出障礙物
+            ctx.fillStyle = "#7f8c8d";
+            obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+
+            // 畫出道具 (⚡)
+            if(powerUp.active) {
+                ctx.font = "30px Arial";
+                ctx.fillText("⚡", powerUp.x, powerUp.y);
+                [p1, p2].forEach(p => {
+                    if(Math.hypot(p.x - powerUp.x, p.y - powerUp.y) < 30) {
+                        p.damage = 10; p.isPowered = true; powerUp.active = false;
+                        document.getElementById(p === p1 ? 'p1-pow' : 'p2-pow').innerText = "🔥火力加強!";
+                        setTimeout(() => { p.damage = 5; p.isPowered = false; powerUp.active = true; document.getElementById('p1-pow').innerText = ""; document.getElementById('p2-pow').innerText = ""; }, 10000);
+                    }
+                });
+            }
+
+            [p1, p2].forEach(t => {
+                t.speed = keys[t.controls.up] ? 3 : (keys[t.controls.down] ? -3 : 0);
+                if(keys[t.controls.left]) t.angle -= 0.05;
+                if(keys[t.controls.right]) t.angle += 0.05;
+                if(keys[t.controls.fire] && (!t.lastShot || Date.now() - t.lastShot > 500)) {
+                    bullets.push(new Bullet(t.x, t.y, t.angle, t, t.damage));
+                    t.lastShot = Date.now();
+                }
+                t.update(); t.draw();
+            });
+
+            bullets.forEach((b, i) => {
+                b.update(); b.draw();
+                let target = b.owner === p1 ? p2 : p1;
+                if(Math.hypot(b.x - target.x, b.y - target.y) < 20) {
+                    target.hp -= b.dmg;
+                    bullets.splice(i, 1);
+                    document.getElementById(b.owner === p1 ? 'p2-hp' : 'p1-hp').innerText = target.hp;
+                    if(target.hp <= 0) { alert((b.owner === p1 ? "藍色" : "紅色") + "領主勝利！"); location.reload(); }
+                }
+                // 撞牆消失
+                if(obstacles.some(o => b.x > o.x && b.x < o.x+o.w && b.y > o.y && b.y < o.y+o.h)) bullets.splice(i, 1);
+            });
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
