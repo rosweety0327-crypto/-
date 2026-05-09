@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小宥帝國：全平台戰略終端</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root { --gold: #daa520; --parchment: #f4e4bc; --border: #8b4513; --blood: #c62828; }
+        body { background: var(--parchment); color: #3e2723; font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; touch-action: manipulation; }
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: absolute; }
+        .active { display: flex; }
+        
+        /* 頂部狀態 */
+        .aoe-header { background: var(--gold); width: 100%; padding: 5px; border-bottom: 3px ridge var(--border); display: flex; justify-content: space-around; font-size: 12px; }
+        .civ-card { border: 1px solid var(--border); padding: 3px; background: #fffde7; border-radius: 4px; width: 18%; text-align: center; }
+        .hp-bg { width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        .hp-fill { height: 100%; width: 100%; background: #2e7d32; transition: width 0.3s; }
+
+        /* 戰場 */
+        .war-map { flex: 1; width: 98%; margin: 5px; background: #e6cc80; border: 3px double var(--border); position: relative; border-radius: 8px; overflow: hidden; }
+        .base-icon { position: absolute; bottom: 10px; font-size: 40px; }
+        
+        /* 操作面板 */
+        .aoe-panel { display: flex; flex-direction: row; gap: 10px; padding: 10px; background: #d7b978; border-top: 3px ridge var(--border); width: 100%; box-sizing: border-box; justify-content: center; }
+        canvas { background: #1a1a1a; border: 3px solid var(--border); width: 140px; height: 280px; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 5px; width: 160px; }
+        .btn-aoe { background: var(--border); color: #fff; border: 1px solid var(--gold); padding: 8px; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 12px; }
+        
+        /* 🎮 虛擬手把（手機用） */
+        .touch-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px; }
+        .t-btn { background: rgba(139, 69, 19, 0.2); border: 1px solid var(--border); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .troop { position: absolute; font-size: 20px; z-index: 10; }
+        .damage-flash { animation: flash 0.2s; }
+        @keyframes flash { 0% { background: var(--blood); } 100% { background: var(--parchment); } }
+    </style>
+</head>
+<body>
+
+<div id="sc-menu" class="screen active">
+    <h1 style="color:var(--border);">⚔️ 小宥帝國：全端控制</h1>
+    <p style="font-size:12px;">支援 鍵盤 / 觸控 / Switch手把</p>
+    <div style="background:var(--gold); padding:15px; border:4px ridge var(--border); border-radius:10px; text-align:center;">
+        <input type="text" id="rid" placeholder="連線碼" style="padding:10px; width:100px; text-align:center;">
+        <div style="margin-top: 10px;">
+            <button class="btn-aoe" onclick="initNet(true)">開創世界</button>
+            <button class="btn-aoe" style="background:#5d4037;" onclick="initNet(false)">加入戰局</button>
+        </div>
+    </div>
+</div>
+
+<div id="sc-game" class="screen">
+    <div class="aoe-header" id="aoe-header"></div>
+    <div class="war-map" id="map">
+        <div class="base-icon" style="left: 10px;">🏰</div>
+        <div id="other-bases"></div>
+    </div>
+
+    <div class="aoe-panel">
+        <div>
+            <div style="font-weight:bold; text-align:center;">💰 <span id="m-val">1000</span></div>
+            <canvas id="tetris" width="160" height="320"></canvas>
+            <div class="touch-controls">
+                <div></div><div class="t-btn" onclick="rotate()">🔄</div><div></div>
+                <div class="t-btn" onclick="movePiece(-1,0)">⬅️</div>
+                <div class="t-btn" onclick="movePiece(0,1)">⬇️</div>
+                <div class="t-btn" onclick="movePiece(1,0)">➡️</div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <select id="target-civ" style="width:100%; font-size:12px;"><option value="all">全線進攻</option></select>
+            <button class="btn-aoe" onclick="buyUnit('militia')">🛡️ 民兵(10) (100)</button>
+            <button class="btn-aoe" onclick="buyUnit('scout')">🏇 騎兵(20) (300)</button>
+            <button class="btn-aoe" onclick="buyUnit('knight')">🐎 騎士(45) (600)</button>
+            <button class="btn-aoe" style="background:#2e7d32" onclick="repair()">🛠️ 維修(500)</button>
+            <button id="start-btn" class="btn-aoe" style="background:var(--blood); display:none;" onclick="hostStart()">📣 全軍開戰</button>
+            <div id="gp-stat" style="font-size:10px; color:green; margin-top:5px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SHAPES = [
+        { s: [[1,1,1,1]], c: '#00bcd4' }, { s: [[1,1],[1,1]], c: '#ffeb3b' },
+        { s: [[0,1,0],[1,1,1]], c: '#9c27b0' }, { s: [[1,1,0],[0,1,1]], c: '#4caf50' },
+        { s: [[0,1,1],[1,1,0]], c: '#2196f3' }
+    ];
+    const UNITS = {
+        militia: { cost: 100, speed: 100, icon: '🛡️', dmg: 10 },
+        scout: { cost: 300, speed: 45, icon: '🏇', dmg: 20 },
+        knight: { cost: 600, speed: 75, icon: '🐎', dmg: 45 }
+    };
+    
+    let peer, myId, conns = [], isHost = false, players = {}, myMana = 1000, myHp = 100, active = false;
+    const cvs = document.getElementById('tetris'), ctx = cvs.getContext('2d');
+    const COLS=10, ROWS=20, SIZE=16;
+    let grid = Array.from({length:ROWS},()=>Array(COLS).fill(0)), piece;
+
+    // --- 🎮 Switch / Gamepad 控制器支援 ---
+    let gpIndex = null;
+    window.addEventListener("gamepadconnected", (e) => {
+        gpIndex = e.gamepad.index;
+        document.getElementById('gp-stat').innerText = "🎮 手把已連線";
+        gamepadLoop();
+    });
+
+    let lastGpUpdate = 0;
+    function gamepadLoop() {
+        if (gpIndex === null) return;
+        const gp = navigator.getGamepads()[gpIndex];
+        const now = Date.now();
+        if (now - lastGpUpdate > 150) { // 防止按鍵過快
+            if (gp.axes[0] < -0.5 || gp.buttons[14].pressed) movePiece(-1, 0); // 左
+            if (gp.axes[0] > 0.5 || gp.buttons[15].pressed) movePiece(1, 0);  // 右
+            if (gp.axes[1] > 0.5 || gp.buttons[13].pressed) movePiece(0, 1);  // 下
+            if (gp.buttons[0].pressed || gp.buttons[1].pressed || gp.buttons[12].pressed) rotate(); // A/B或上 旋轉
+            lastGpUpdate = now;
+        }
+        requestAnimationFrame(gamepadLoop);
+    }
+
+    // --- 連線與遊戲邏輯 ---
+    function initNet(h) {
+        const roomId = "YU-ALL-" + document.getElementById('rid').value;
+        isHost = h;
+        peer = new Peer(isHost ? roomId : null);
+        peer.on('open', id => {
+            myId = id; showSc('sc-game');
+            if(isHost) {
+                players[myId] = { name: "領主小宥", hp: 100 }; updateUI();
+                document.getElementById('start-btn').style.display='block';
+                peer.on('connection', c => { if(conns.length<4){ conns.push(c); setupC(c); } });
+            } else { const c = peer.connect(roomId); conns.push(c); setupC(c); }
+        });
+    }
+
+    function setupC(c) {
+        c.on('data', d => {
+            if(d.type==='SYNC') { players=d.p; updateUI(); }
+            if(d.type==='START') doStart();
+            if(d.type==='ATK') spawnTroop(d.unit, 'enemy');
+            if(d.type==='HP') { players[d.id].hp = d.hp; updateUI(); if(d.hp<100) shake(); }
+        });
+        if(isHost) c.on('open', () => {
+            players[c.peer] = { name: "文明"+(conns.length+1), hp: 100 };
+            broadcast({type:'SYNC', p:players}); updateUI();
+        });
+    }
+
+    function broadcast(d) { conns.forEach(c => c.send(d)); }
+    function hostStart() { broadcast({type:'START'}); doStart(); }
+    function doStart() { active=true; document.getElementById('start-btn').style.display='none'; spawnPiece(); dropLoop(); render(); }
+
+    function updateUI() {
+        const header = document.getElementById('aoe-header');
+        const selector = document.getElementById('target-civ');
+        header.innerHTML = ''; selector.innerHTML = '<option value="all">全線突擊</option>';
+        Object.keys(players).forEach(id => {
+            const p = players[id];
+            const card = document.createElement('div'); card.className = 'civ-card';
+            card.innerHTML = `<div>${id===myId?'【您】':p.name}</div><div class="hp-bg"><div class="hp-fill" style="width:${p.hp}%;"></div></div>`;
+            header.appendChild(card);
+            if(id !== myId) { const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name; selector.appendChild(opt); }
+        });
+    }
+
+    function buyUnit(t) {
+        if(myMana >= UNITS[t].cost && active) {
+            myMana -= UNITS[t].cost; document.getElementById('m-val').innerText = myMana;
+            spawnTroop(t, 'self');
+            broadcast({type:'ATK', unit:t, target: document.getElementById('target-civ').value});
+        }
+    }
+
+    function spawnTroop(type, side) {
+        const map = document.getElementById('map');
+        const t = document.createElement('div'); t.className = 'troop'; t.innerText = UNITS[type].icon;
+        t.style.bottom = (10 + Math.random()*80) + 'px';
+        let pos = (side==='self') ? 5 : 90;
+        t.style.left = pos + '%'; map.appendChild(t);
+        const move = setInterval(() => {
+            if(!active) { clearInterval(move); return; }
+            pos += (side==='self') ? 2.5 : -2.5; t.style.left = pos + '%';
+            if(pos >= 95 && side === 'self') { clearInterval(move); t.remove(); }
+            else if(pos <= 5 && side === 'enemy') {
+                clearInterval(move); t.remove();
+                myHp = Math.max(0, myHp - UNITS[type].dmg); players[myId].hp = myHp;
+                updateUI(); broadcast({type:'HP', id: myId, hp: myHp}); shake();
+                if(myHp <= 0) { active = false; alert("文明滅亡！"); location.reload(); }
+            }
+        }, UNITS[type].speed);
+    }
+
+    function shake() { document.body.classList.add('damage-flash'); setTimeout(() => document.body.classList.remove('damage-flash'), 200); }
+    function repair() { if(myMana >= 500 && myHp < 100) { myMana -= 500; myHp = Math.min(100, myHp + 20); players[myId].hp = myHp; document.getElementById('m-val').innerText = myMana; updateUI(); broadcast({type:'HP', id: myId, hp: myHp}); } }
+
+    // --- 方塊核心 ---
+    function spawnPiece() { const s = SHAPES[Math.floor(Math.random()*s.length)]; piece = { pos:{x:3, y:0}, shape:s.s, color:s.c }; if(collide()) active=false; }
+    function rotate() { const p = piece.shape; piece.shape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i]).reverse()); if(collide()) piece.shape = p; }
+    function movePiece(dx, dy) {
+        piece.pos.x += dx; piece.pos.y += dy;
+        if(collide()) {
+            piece.pos.x -= dx; piece.pos.y -= dy;
+            if(dy > 0) { piece.shape.forEach((r,y)=>r.forEach((v,x)=>{ if(v) grid[y+piece.pos.y][x+piece.pos.x]=piece.color; })); clearL(); spawnPiece(); }
+            return false;
+        } return true;
+    }
+    function collide() { return piece.shape.some((r,y)=>r.some((v,x)=>v&&(grid[y+piece.pos.y]?.[x+piece.pos.x]!==0))); }
+    function clearL() {
+        let c=0; for(let y=ROWS-1; y>=0; y--) { if(grid[y].every(v=>v!==0)) { grid.splice(y,1); grid.unshift(Array(COLS).fill(0)); c++; y++; } }
+        if(c>0) { myMana += c*250; document.getElementById('m-val').innerText = myMana; }
+    }
+    function dropLoop() { if(active) { movePiece(0,1); setTimeout(dropLoop, 900); } }
+    function render() {
+        ctx.clearRect(0,0,cvs.width,cvs.height);
+        grid.forEach((r,y)=>r.forEach((v,x)=>{ if(v){ ctx.fillStyle=v; ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1); } }));
+        if(piece) piece.shape.forEach((r,y)=>r.forEach((v,x)=>{ if(v){ ctx.fillStyle=piece.color; ctx.fillRect((piece.pos.x+x)*SIZE,(piece.pos.y+y)*SIZE,SIZE-1,SIZE-1); } }));
+        if(active) requestAnimationFrame(render);
+    }
+    function showSc(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    window.addEventListener('keydown', e => {
+        if(!active) return;
+        if(e.key==='ArrowLeft') movePiece(-1,0); if(e.key==='ArrowRight') movePiece(1,0);
+        if(e.key==='ArrowDown') movePiece(0,1); if(e.key==='ArrowUp'||e.key===' ') rotate();
+    });
+</script>
+</body>
+</html>
