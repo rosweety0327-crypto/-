@@ -3,128 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小宥帝國：iPad 修正版</title>
+    <title>小宥帝國：全面戰爭 V5</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --gold: #daa520; --parchment: #f4e4bc; --border: #8b4513; --blood: #c62828; }
-        body { background: var(--parchment); color: #3e2723; font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; touch-action: none; }
-        .screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; position: absolute; }
+        * { box-sizing: border-box; touch-action: none; }
+        body { background: #1a1a1a; color: #3e2723; font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: var(--parchment); }
         .active { display: flex; }
-        .aoe-header { background: var(--gold); width: 100%; padding: 10px 0; border-bottom: 4px ridge var(--border); display: flex; justify-content: space-around; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        .civ-card { border: 2px solid var(--border); padding: 5px; background: #fffde7; border-radius: 6px; width: 18%; text-align: center; font-weight: bold; }
-        .hp-bg { width: 100%; height: 14px; background: #333; border-radius: 7px; overflow: hidden; border: 1px solid #000; margin-top: 4px; }
-        .hp-fill { height: 100%; width: 100%; background: #2e7d32; transition: width 0.3s; }
-        .war-map { flex: 0.35; width: 96%; margin: 10px 0; background: #e6cc80; border: 5px double var(--border); position: relative; border-radius: 12px; overflow: hidden; }
-        .base-icon { position: absolute; bottom: 15px; font-size: 55px; }
-        .game-core { flex: 0.65; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; }
-        canvas { background: #1a1a1a; border: 4px solid var(--border); border-radius: 8px; height: 40vh; width: auto; }
-        .resource-tag { font-size: 28px; font-weight: bold; color: #8b4513; margin-bottom: 5px; }
-        .touch-zone { display: flex; flex-direction: column; gap: 15px; }
-        .big-btn { width: 90px; height: 90px; background: rgba(139, 69, 19, 0.7); color: white; border: 3px solid var(--gold); border-radius: 50%; font-size: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 0 #5d4037; }
-        .big-btn:active { transform: translateY(4px); box-shadow: none; }
-        .action-btns { display: flex; flex-direction: column; gap: 10px; width: 180px; }
-        .unit-btn { background: var(--border); color: white; border: 2px solid var(--gold); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; }
-        .troop { position: absolute; font-size: 30px; z-index: 10; }
-        .damage-flash { animation: flash 0.2s; }
+
+        /* 戰場區 - 自動縮放 */
+        .battlefield { width: 100%; flex: 0.3; background: #e6cc80; border-bottom: 4px ridge var(--border); position: relative; overflow: hidden; }
+        .base { position: absolute; bottom: 10px; font-size: 40px; text-align: center; }
+        .hp-bar-container { width: 60px; height: 8px; background: #333; border-radius: 4px; margin-bottom: 5px; }
+        .hp-bar-fill { height: 100%; width: 100%; background: #2e7d32; transition: width 0.3s, background 0.3s; }
+
+        /* 遊戲核心區 - 左右布局 */
+        .game-main { flex: 0.7; width: 100%; display: flex; padding: 10px; gap: 10px; background: #d7b978; }
+        
+        /* 左：方塊區 */
+        .tetris-side { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        canvas { background: #000; border: 3px solid var(--border); max-height: 50vh; width: auto; }
+        .mana-display { font-size: 24px; font-weight: bold; color: var(--border); margin-bottom: 5px; }
+
+        /* 右：控制區 */
+        .control-side { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { border: 2px solid var(--gold); border-radius: 12px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; text-shadow: 1px 1px 2px #000; }
+        .dir-btn { background: rgba(139, 69, 19, 0.8); height: 60px; }
+        .atk-btn { background: var(--blood); height: 50px; font-size: 12px; }
+        .sys-btn { background: #2e7d32; grid-column: span 2; height: 50px; }
+
+        .target-select { grid-column: span 2; padding: 8px; font-weight: bold; border: 2px solid var(--border); border-radius: 8px; }
+
+        .troop { position: absolute; font-size: 24px; z-index: 5; transition: left 0.1s linear; }
+        .flash-red { animation: flash 0.2s; }
         @keyframes flash { 0% { background: var(--blood); } 100% { background: var(--parchment); } }
     </style>
 </head>
 <body>
 
-<div id="sc-menu" class="screen active" style="justify-content: center;">
-    <h1 style="color:var(--border); font-size: 45px;">🏰 小宥帝國</h1>
-    <div style="background:var(--gold); padding:30px; border:6px ridge var(--border); border-radius:20px; text-align:center;">
-        <input type="text" id="rid" placeholder="連線頻道" style="padding:15px; width:150px; font-size:24px; text-align:center;">
-        <div style="margin-top: 20px;">
-            <button class="unit-btn" style="font-size:24px; padding:10px 40px;" onclick="initNet(true)">開創文明</button>
-            <button class="unit-btn" style="font-size:24px; padding:10px 40px; background:#5d4037;" onclick="initNet(false)">加入戰役</button>
+<div id="sc-menu" class="screen active" style="justify-content:center;">
+    <h1 style="color:var(--border);">🏰 小宥帝國：全面戰線</h1>
+    <div style="background:var(--gold); padding:20px; border:5px ridge var(--border); border-radius:15px; text-align:center;">
+        <input type="text" id="rid" placeholder="連線密碼" style="padding:10px; font-size:18px; width:120px; text-align:center;">
+        <div style="margin-top: 15px;">
+            <button class="btn" style="background:var(--border); padding:10px 20px;" onclick="initNet(true)">開創領地</button>
+            <button class="btn" style="background:#5d4037; padding:10px 20px;" onclick="initNet(false)">加入盟軍</button>
         </div>
     </div>
 </div>
 
 <div id="sc-game" class="screen">
-    <div class="aoe-header" id="aoe-header"></div>
-    <div class="war-map" id="map"><div class="base-icon" style="left: 15px;">🏰</div></div>
-    <div class="game-core">
-        <div class="touch-zone">
-            <div class="big-btn" onclick="rotate()">🔄</div>
-            <div style="display:flex; gap:10px;">
-                <div class="big-btn" onclick="movePiece(-1,0)">⬅️</div>
-                <div class="big-btn" onclick="movePiece(1,0)">➡️</div>
-            </div>
-            <div class="big-btn" onclick="movePiece(0,1)" style="width:190px; border-radius:45px;">⬇️ 急速下落</div>
+    <div class="battlefield" id="map">
+        <div class="base" style="left: 10px;" id="base-self">
+            <div class="hp-bar-container"><div id="hp-fill-self" class="hp-bar-fill"></div></div>
+            🏰
         </div>
-        <div style="text-align:center;">
-            <div class="resource-tag">💰 <span id="m-val">1000</span></div>
+    </div>
+
+    <div class="game-main">
+        <div class="tetris-side">
+            <div class="mana-display">💰 <span id="mana-val">1000</span></div>
             <canvas id="tetris" width="160" height="320"></canvas>
         </div>
-        <div class="action-btns">
-            <select id="target-civ" style="width:100%; padding:10px; font-size:16px; font-weight:bold;"><option value="all">全線突擊</option></select>
-            <button class="unit-btn" onclick="buyUnit('militia')">🛡️ 民兵 $100</button>
-            <button class="unit-btn" onclick="buyUnit('scout')">🏇 騎兵 $300</button>
-            <button class="unit-btn" onclick="buyUnit('knight')">🐎 騎士 $600</button>
-            <button class="unit-btn" style="background:#2e7d32" onclick="repair()">🛠️ 維修基地</button>
-            <button id="start-btn" class="unit-btn" style="background:var(--blood); display:none;" onclick="hostStart()">📣 全軍開戰</button>
+
+        <div class="control-side">
+            <select id="target-civ" class="target-select">
+                <option value="all">-- 全軍亂鬥 --</option>
+            </select>
+
+            <div class="btn dir-btn" onclick="movePiece(-1,0)">⬅️</div>
+            <div class="btn dir-btn" onclick="movePiece(1,0)">➡️</div>
+            <div class="btn dir-btn" onclick="rotate()">🔄</div>
+            <div class="btn dir-btn" onclick="movePiece(0,1)">⬇️</div>
+
+            <button class="btn atk-btn" onclick="buyUnit('militia')">🛡️ 民兵$100</button>
+            <button class="btn atk-btn" onclick="buyUnit('scout')">🏇 騎兵$300</button>
+            <button class="btn atk-btn" onclick="buyUnit('knight')">🐎 騎士$600</button>
+            <button class="btn atk-btn" style="background:#5d4037" onclick="repair()">🛠️ 加固主塔</button>
+            
+            <button id="start-btn" class="btn sys-btn" style="display:none;" onclick="hostStart()">📣 全軍衝鋒！</button>
         </div>
     </div>
 </div>
 
 <script>
-    const SHAPES = [
-        [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]]
-    ];
+    const SHAPES = [[[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]]];
     const COLORS = ['#00bcd4', '#ffeb3b', '#9c27b0', '#4caf50', '#2196f3'];
-    const UNITS = { militia: {cost:100, speed:100, icon:'🛡️', dmg:10}, scout: {cost:300, speed:45, icon:'🏇', dmg:20}, knight: {cost:600, speed:75, icon:'🐎', dmg:45} };
+    const UNITS = { militia: {cost:100, speed:120, icon:'🛡️', dmg:10}, scout: {cost:300, speed:50, icon:'🏇', dmg:20}, knight: {cost:600, speed:80, icon:'🐎', dmg:45} };
     
     let peer, myId, conns = [], isHost = false, players = {}, myMana = 1000, myHp = 100, active = false;
     const cvs = document.getElementById('tetris'), ctx = cvs.getContext('2d');
     const COLS=10, ROWS=20, SIZE=16;
     let grid = Array.from({length:ROWS},()=>Array(COLS).fill(0)), piece = null;
 
+    // --- 連線核心 ---
     function initNet(h) {
-        const roomId = "AOE-FIX-" + document.getElementById('rid').value;
+        const roomId = "AOE-WAR-V5-" + document.getElementById('rid').value;
         isHost = h;
         peer = new Peer(isHost ? roomId : null);
         peer.on('open', id => {
             myId = id; showSc('sc-game');
+            players[myId] = { hp: 100, name: "領主小宥" };
             if(isHost) {
-                players[myId] = { name: "領主小宥", hp: 100 }; updateUI();
                 document.getElementById('start-btn').style.display='block';
-                peer.on('connection', c => { if(conns.length<4){ conns.push(c); setupC(c); } });
+                peer.on('connection', c => { if(conns.length<5) { conns.push(c); setupC(c); } });
             } else { const c = peer.connect(roomId); conns.push(c); setupC(c); }
         });
     }
 
     function setupC(c) {
         c.on('data', d => {
-            if(d.type==='SYNC') { players=d.p; updateUI(); }
+            if(d.type==='SYNC') { players = d.p; updateUI(); }
             if(d.type==='START') doStart();
-            if(d.type==='ATK') spawnTroop(d.unit, 'enemy');
-            if(d.type==='HP') { players[d.id].hp = d.hp; updateUI(); if(d.hp<100) shake(); }
+            if(d.type==='ATK') { if(d.target === 'all' || d.target === myId) spawnTroop(d.unit, 'enemy', d.from); }
+            if(d.type==='HP_UPDATE') { players[d.id].hp = d.hp; updateUI(); }
         });
         if(isHost) c.on('open', () => {
-            players[c.peer] = { name: "文明"+(conns.length+1), hp: 100 };
+            players[c.peer] = { hp: 100, name: "敵人"+(conns.length) };
             broadcast({type:'SYNC', p:players}); updateUI();
         });
     }
 
     function broadcast(d) { conns.forEach(c => c.send(d)); }
+
+    function updateUI() {
+        const selector = document.getElementById('target-civ');
+        const map = document.getElementById('map');
+        
+        // 更新下拉選單
+        const currentTarget = selector.value;
+        selector.innerHTML = '<option value="all">-- 全線突擊 --</option>';
+        
+        // 更新戰場上的敵人基地
+        document.querySelectorAll('.enemy-base').forEach(e => e.remove());
+        
+        let offset = 0;
+        Object.keys(players).forEach(id => {
+            if(id === myId) {
+                document.getElementById('hp-fill-self').style.width = players[id].hp + '%';
+            } else {
+                // 加到下拉選單
+                const opt = document.createElement('option');
+                opt.value = id; opt.innerText = players[id].name;
+                selector.appendChild(opt);
+
+                // 繪製敵人基地 (平均分配位置)
+                offset += 70;
+                const eBase = document.createElement('div');
+                eBase.className = 'base enemy-base';
+                eBase.style.right = '20px';
+                eBase.style.bottom = (10 + (offset % 100)) + 'px';
+                eBase.id = 'base-' + id;
+                eBase.innerHTML = `<div class="hp-bar-container"><div class="hp-bar-fill" style="width:${players[id].hp}%"></div></div>🏯`;
+                map.appendChild(eBase);
+            }
+        });
+        selector.value = currentTarget;
+    }
+
+    // --- 戰鬥與維修 ---
+    function repair() {
+        if(myMana >= 500 && myHp < 100 && active) {
+            myMana -= 500;
+            myHp = Math.min(100, myHp + 25); // 每次修復 25%
+            players[myId].hp = myHp;
+            document.getElementById('mana-val').innerText = myMana;
+            updateUI();
+            broadcast({type:'HP_UPDATE', id: myId, hp: myHp}); // 關鍵：同步給所有人
+        }
+    }
+
+    function buyUnit(t) {
+        if(myMana >= UNITS[t].cost && active) {
+            myMana -= UNITS[t].cost;
+            document.getElementById('mana-val').innerText = myMana;
+            const target = document.getElementById('target-civ').value;
+            spawnTroop(t, 'self', target);
+            broadcast({type:'ATK', unit:t, target: target, from: myId});
+        }
+    }
+
+    function spawnTroop(type, side, targetId) {
+        const map = document.getElementById('map');
+        const t = document.createElement('div');
+        t.className = 'troop'; t.innerText = UNITS[type].icon;
+        
+        let pos = (side==='self') ? 10 : 85;
+        t.style.left = pos + '%';
+        t.style.bottom = (30 + Math.random()*50) + 'px';
+        map.appendChild(t);
+
+        const move = setInterval(() => {
+            if(!active) { clearInterval(move); return; }
+            pos += (side==='self') ? 2 : -2;
+            t.style.left = pos + '%';
+
+            if(pos >= 90 && side === 'self') { clearInterval(move); t.remove(); }
+            else if(pos <= 10 && side === 'enemy') {
+                clearInterval(move); t.remove();
+                myHp = Math.max(0, myHp - UNITS[type].dmg);
+                players[myId].hp = myHp;
+                updateUI();
+                broadcast({type:'HP_UPDATE', id: myId, hp: myHp});
+                document.body.classList.add('flash-red');
+                setTimeout(()=>document.body.classList.remove('flash-red'), 200);
+                if(myHp <= 0) { active = false; alert("勝敗乃兵家常事，領主請重新來過！"); location.reload(); }
+            }
+        }, UNITS[type].speed);
+    }
+
+    // --- 方塊邏輯 (簡化版確保不卡死) ---
+    function doStart() { active=true; document.getElementById('start-btn').style.display='none'; spawnPiece(); dropLoop(); render(); }
     function hostStart() { broadcast({type:'START'}); doStart(); }
-    
-    function doStart() { 
-        active=true; 
-        document.getElementById('start-btn').style.display='none'; 
-        spawnPiece(); 
-        dropLoop(); 
-        render(); 
-    }
-
     function spawnPiece() {
-        const idx = Math.floor(Math.random()*SHAPES.length);
-        piece = { pos:{x:3, y:0}, shape:SHAPES[idx], color:COLORS[idx] };
-        if(collide()) { active=false; alert("文明崩塌！"); location.reload(); }
+        const i = Math.floor(Math.random()*SHAPES.length);
+        piece = { pos:{x:3, y:0}, shape:SHAPES[i], color:COLORS[i] };
+        if(collide()) { active=false; alert("主城空間不足！"); }
     }
-
     function movePiece(dx, dy) {
         if(!active || !piece) return;
         piece.pos.x += dx; piece.pos.y += dy;
@@ -138,81 +235,28 @@
         }
         return true;
     }
-
     function rotate() {
         if(!active || !piece) return;
         const p = piece.shape;
         piece.shape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i]).reverse());
         if(collide()) piece.shape = p;
     }
-
     function collide() {
         return piece.shape.some((r,y)=>r.some((v,x)=>v&&(grid[y+piece.pos.y]?.[x+piece.pos.x]!==0 || (y+piece.pos.y)>=ROWS || (x+piece.pos.x)<0 || (x+piece.pos.x)>=COLS)));
     }
-
     function clearL() {
         let lines = 0;
         for(let y=ROWS-1; y>=0; y--) {
-            if(grid[y].every(v=>v!==0)) {
-                grid.splice(y,1);
-                grid.unshift(Array(COLS).fill(0));
-                lines++; y++;
-            }
+            if(grid[y].every(v=>v!==0)) { grid.splice(y,1); grid.unshift(Array(COLS).fill(0)); lines++; y++; }
         }
-        if(lines>0) { myMana += lines*300; document.getElementById('m-val').innerText = myMana; }
+        if(lines>0) { myMana += lines*400; document.getElementById('mana-val').innerText = myMana; }
     }
-
-    function dropLoop() {
-        if(active) {
-            movePiece(0,1);
-            setTimeout(dropLoop, 1000);
-        }
-    }
-
+    function dropLoop() { if(active) { movePiece(0,1); setTimeout(dropLoop, 1000); } }
     function render() {
         ctx.clearRect(0,0,cvs.width,cvs.height);
         grid.forEach((r,y)=>r.forEach((v,x)=>{ if(v){ ctx.fillStyle=v; ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1); } }));
         if(piece) piece.shape.forEach((r,y)=>r.forEach((v,x)=>{ if(v){ ctx.fillStyle=piece.color; ctx.fillRect((piece.pos.x+x)*SIZE,(piece.pos.y+y)*SIZE,SIZE-1,SIZE-1); } }));
         if(active) requestAnimationFrame(render);
-    }
-
-    function buyUnit(t) {
-        if(myMana >= UNITS[t].cost && active) {
-            myMana -= UNITS[t].cost; document.getElementById('m-val').innerText = myMana;
-            spawnTroop(t, 'self');
-            broadcast({type:'ATK', unit:t});
-        }
-    }
-
-    function spawnTroop(type, side) {
-        const map = document.getElementById('map');
-        const t = document.createElement('div'); t.className = 'troop'; t.innerText = UNITS[type].icon;
-        t.style.bottom = (15 + Math.random()*80) + 'px';
-        let pos = (side==='self') ? 5 : 90;
-        t.style.left = pos + '%'; map.appendChild(t);
-        const move = setInterval(() => {
-            if(!active) { clearInterval(move); return; }
-            pos += (side==='self') ? 2.5 : -2.5; t.style.left = pos + '%';
-            if(pos >= 95 && side === 'self') { clearInterval(move); t.remove(); }
-            else if(pos <= 5 && side === 'enemy') {
-                clearInterval(move); t.remove();
-                myHp = Math.max(0, myHp - UNITS[type].dmg); players[myId].hp = myHp;
-                updateUI(); broadcast({type:'HP', id: myId, hp: myHp}); shake();
-            }
-        }, UNITS[type].speed);
-    }
-
-    function shake() { document.body.classList.add('damage-flash'); setTimeout(() => document.body.classList.remove('damage-flash'), 200); }
-    function repair() { if(myMana >= 500 && myHp < 100) { myMana -= 500; myHp = Math.min(100, myHp + 20); players[myId].hp = myHp; document.getElementById('m-val').innerText = myMana; updateUI(); broadcast({type:'HP', id: myId, hp: myHp}); } }
-    function updateUI() {
-        const header = document.getElementById('aoe-header');
-        header.innerHTML = '';
-        Object.keys(players).forEach(id => {
-            const p = players[id];
-            const card = document.createElement('div'); card.className = 'civ-card';
-            card.innerHTML = `<div>${id===myId?'【您】':p.name}</div><div class="hp-bg"><div class="hp-fill" style="width:${p.hp}%;"></div></div>`;
-            header.appendChild(card);
-        });
     }
     function showSc(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 </script>
